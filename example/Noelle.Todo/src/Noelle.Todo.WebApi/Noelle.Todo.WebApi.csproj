@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetCore.CAP" Version="8.2.0" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Core\NoelleNet.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
+    <ProjectReference Include="..\Noelle.Todo.Domain\Noelle.Todo.Domain.csproj" />
+    <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

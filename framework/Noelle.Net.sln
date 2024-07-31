@@ -9,7 +9,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Ddd.Domain", "Noe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore", "NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj", "{29E235E1-108B-4B03-8220-79ED5FA3EDEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.AspNetCore", "NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj", "{703EE1DC-CEA0-4CC8-8FDE-37E2B0653DF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.AspNetCore", "NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj", "{703EE1DC-CEA0-4CC8-8FDE-37E2B0653DF5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Extensions.MediatR", "NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj", "{DEA0D74A-4B59-4262-9983-2AD1DB702F37}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Validation", "NoelleNet.Validation\NoelleNet.Validation.csproj", "{A5932362-0594-4051-8EBA-068F0CF34F5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.EntityFrameworkCore.CAP.MySql", "NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj", "{DC511E97-499A-4850-BA66-4D8FDAAF6312}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.EntityFrameworkCore.MediatR", "NoelleNet.EntityFrameworkCore.MediatR\NoelleNet.EntityFrameworkCore.MediatR.csproj", "{F720B63A-4A53-478B-8A34-FF2CB5C2888C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +41,22 @@ Global
 		{703EE1DC-CEA0-4CC8-8FDE-37E2B0653DF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{703EE1DC-CEA0-4CC8-8FDE-37E2B0653DF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{703EE1DC-CEA0-4CC8-8FDE-37E2B0653DF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEA0D74A-4B59-4262-9983-2AD1DB702F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEA0D74A-4B59-4262-9983-2AD1DB702F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEA0D74A-4B59-4262-9983-2AD1DB702F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEA0D74A-4B59-4262-9983-2AD1DB702F37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5932362-0594-4051-8EBA-068F0CF34F5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5932362-0594-4051-8EBA-068F0CF34F5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5932362-0594-4051-8EBA-068F0CF34F5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5932362-0594-4051-8EBA-068F0CF34F5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC511E97-499A-4850-BA66-4D8FDAAF6312}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC511E97-499A-4850-BA66-4D8FDAAF6312}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC511E97-499A-4850-BA66-4D8FDAAF6312}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC511E97-499A-4850-BA66-4D8FDAAF6312}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F720B63A-4A53-478B-8A34-FF2CB5C2888C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F720B63A-4A53-478B-8A34-FF2CB5C2888C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F720B63A-4A53-478B-8A34-FF2CB5C2888C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F720B63A-4A53-478B-8A34-FF2CB5C2888C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

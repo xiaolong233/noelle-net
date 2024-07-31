@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Authors>xiaolong2233</Authors>
     <Description>暂无</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -15,22 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
+    <ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
   </ItemGroup>
 
 </Project>
