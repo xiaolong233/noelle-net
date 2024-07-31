@@ -7,13 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framework", "framework", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{25440695-9687-4194-BFCB-0A4FC7D1DC01}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Core", "..\..\framework\NoelleNet.Core\NoelleNet.Core.csproj", "{A2E85FB0-23DB-46C2-8D6F-1C835997B5EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Core", "..\..\framework\src\NoelleNet.Core\NoelleNet.Core.csproj", "{A2E85FB0-23DB-46C2-8D6F-1C835997B5EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Ddd.Domain", "..\..\framework\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj", "{0F8525A5-B6EE-440D-B138-3A2E2CC77BE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Ddd.Domain", "..\..\framework\src\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj", "{0F8525A5-B6EE-440D-B138-3A2E2CC77BE7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore", "..\..\framework\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj", "{20496100-D912-4BD3-9EA5-D18FEDCFF60C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore", "..\..\framework\src\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj", "{20496100-D912-4BD3-9EA5-D18FEDCFF60C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.AspNetCore", "..\..\framework\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj", "{683A0F38-DCD4-42CD-BF50-E44C9E980F4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.AspNetCore", "..\..\framework\src\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj", "{683A0F38-DCD4-42CD-BF50-E44C9E980F4B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noelle.Todo.Domain", "src\Noelle.Todo.Domain\Noelle.Todo.Domain.csproj", "{E66CFA7B-BEB9-4278-9DCD-167C767E0570}"
 EndProject
@@ -21,11 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noelle.Todo.Infrastructure"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noelle.Todo.DbMigratior", "src\Noelle.Todo.Migratior\Noelle.Todo.DbMigratior.csproj", "{C311B3FD-0735-4675-895A-C62B6270E974}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Extensions.MediatR", "..\..\framework\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj", "{ED8CD18D-3522-4C14-826C-184A5B5DD98F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noelle.Todo.WebApi", "src\Noelle.Todo.WebApi\Noelle.Todo.WebApi.csproj", "{F5543054-EB09-414A-9318-28622D75C3CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.MySql", "..\..\framework\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj", "{D864CD7E-1F73-4E46-B237-5C0CFEB61779}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.MySql", "..\..\framework\src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj", "{D864CD7E-1F73-4E46-B237-5C0CFEB61779}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,10 +59,6 @@ Global
 		{C311B3FD-0735-4675-895A-C62B6270E974}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C311B3FD-0735-4675-895A-C62B6270E974}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C311B3FD-0735-4675-895A-C62B6270E974}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED8CD18D-3522-4C14-826C-184A5B5DD98F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED8CD18D-3522-4C14-826C-184A5B5DD98F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED8CD18D-3522-4C14-826C-184A5B5DD98F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED8CD18D-3522-4C14-826C-184A5B5DD98F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5543054-EB09-414A-9318-28622D75C3CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F5543054-EB09-414A-9318-28622D75C3CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5543054-EB09-414A-9318-28622D75C3CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -85,7 +79,6 @@ Global
 		{E66CFA7B-BEB9-4278-9DCD-167C767E0570} = {25440695-9687-4194-BFCB-0A4FC7D1DC01}
 		{46F39E9C-3551-494E-8AFE-31F17673F87C} = {25440695-9687-4194-BFCB-0A4FC7D1DC01}
 		{C311B3FD-0735-4675-895A-C62B6270E974} = {25440695-9687-4194-BFCB-0A4FC7D1DC01}
-		{ED8CD18D-3522-4C14-826C-184A5B5DD98F} = {5926FE44-FC76-4C5B-91FE-11DEAF747CB6}
 		{F5543054-EB09-414A-9318-28622D75C3CF} = {25440695-9687-4194-BFCB-0A4FC7D1DC01}
 		{D864CD7E-1F73-4E46-B237-5C0CFEB61779} = {5926FE44-FC76-4C5B-91FE-11DEAF747CB6}
 	EndGlobalSection

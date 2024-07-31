@@ -18,12 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Core\NoelleNet.Core.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Core\NoelleNet.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Domain\Noelle.Todo.Domain.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
