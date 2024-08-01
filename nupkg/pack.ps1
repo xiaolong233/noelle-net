@@ -8,7 +8,7 @@ $outputDir = "nupkgs"
 if (-Not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir
 }
-Remove-Item *.nupkg
+Remove-Item (Join-Path $currentPath $outputDir *.nupkg)
 
 # 查找所有项目文件
 $frameworkPath = Join-Path $rootPath "framework"
