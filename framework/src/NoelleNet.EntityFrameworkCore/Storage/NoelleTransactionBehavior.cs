@@ -1,33 +1,28 @@
-﻿using DotNetCore.CAP;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace NoelleNet.EntityFrameworkCore.Storage;
 
 /// <summary>
-/// 基于 <see cref="ICapTransaction"/> 的数据库事务管道
+/// 事务处理管道
 /// </summary>
-/// <remarks>CAP在发布消息时需要通过 <see cref="ICapTransaction"/> 的实例来提交事务</remarks>
 /// <typeparam name="TRequest"></typeparam>
 /// <typeparam name="TResponse"></typeparam>
-/// <param name="logger">日志组件</param>
+/// <param name="logger">日志</param>
 /// <param name="dbContext">数据库上下文实例</param>
-/// <param name="capPublisher">分布式事件总线实例</param>
-public class NoelleTransactionBehavior<TRequest, TResponse>(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ICapPublisher capPublisher) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
+public class NoelleTransactionBehavior<TRequest, TResponse>(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
 {
     private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger = logger;
     private readonly DbContext _dbContext = dbContext;
-    private readonly ICapPublisher _capPublisher = capPublisher;
 
     /// <summary>
-    /// 管道处理函数
+    /// 管道行为处理
     /// </summary>
     /// <param name="request"></param>
     /// <param name="next"></param>
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     public async Task<TResponse?> Handle(TRequest request, RequestHandlerDelegate<TResponse?> next, CancellationToken cancellationToken)
     {
         TResponse? response = default;
@@ -37,7 +32,7 @@ public class NoelleTransactionBehavior<TRequest, TResponse>(ILogger<NoelleTransa
         var strategy = _dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync(_capPublisher, false, cancellationToken) ?? throw new InvalidOperationException("数据库事务开启失败");
+            using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken) ?? throw new InvalidOperationException("数据库事务开启失败");
             _logger.LogInformation("Begin transaction {TransactionId} for {CommandName} ({@Command})", transaction?.TransactionId, cmdName, request);
 
             try

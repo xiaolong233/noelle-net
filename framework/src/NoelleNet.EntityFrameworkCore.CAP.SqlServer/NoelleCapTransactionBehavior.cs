@@ -14,9 +14,9 @@ namespace NoelleNet.EntityFrameworkCore.Storage;
 /// <param name="logger">日志组件</param>
 /// <param name="dbContext">数据库上下文实例</param>
 /// <param name="capPublisher">分布式事件总线实例</param>
-public class NoelleTransactionBehavior<TRequest, TResponse>(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ICapPublisher capPublisher) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
+public class NoelleCapTransactionBehavior<TRequest, TResponse>(ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ICapPublisher capPublisher) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
 {
-    private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger = logger;
+    private readonly ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> _logger = logger;
     private readonly DbContext _dbContext = dbContext;
     private readonly ICapPublisher _capPublisher = capPublisher;
 
