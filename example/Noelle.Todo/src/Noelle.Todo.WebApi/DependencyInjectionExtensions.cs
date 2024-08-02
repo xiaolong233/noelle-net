@@ -74,7 +74,7 @@ public static class DependencyInjectionExtensions
             options.Filters.Add<NoelleResultFilter>();
 
             // 格式化路由：小写字母+横线
-            options.Conventions.Add(new RouteTokenTransformerConvention(new NoelleRouteTokenTransformer()));
+            options.Conventions.Add(new RouteTokenTransformerConvention(new NoelleRouteSnakeCaseTransformer()));
 
             options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
         }).ConfigureApiBehaviorOptions(options =>
