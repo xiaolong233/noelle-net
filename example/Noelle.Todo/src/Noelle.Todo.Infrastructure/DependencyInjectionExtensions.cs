@@ -13,14 +13,12 @@ public static class DependencyInjectionExtensions
     {
         // 数据库配置
         string connectionString = configuration.GetRequiredConnectionString("Default");
-        string versionString = configuration.GetRequiredValue("MySql:Version");
-        var serverVersion = new MySqlServerVersion(versionString);
         services.AddDbContext<DbContext, TodoDbContext>(options =>
         {
-            options.UseMySql(connectionString, serverVersion)
+            options.UseSqlServer(connectionString)
                    .LogTo(Console.WriteLine, LogLevel.Information)
-                   .EnableSensitiveDataLogging()
                    .EnableDetailedErrors();
+            options.UseOpenIddict();
         }, ServiceLifetime.Scoped);
 
         // 仓储配置

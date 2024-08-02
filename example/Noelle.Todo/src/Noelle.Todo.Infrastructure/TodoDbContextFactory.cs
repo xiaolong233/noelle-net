@@ -14,13 +14,11 @@ public class TodoDbContextFactory : IDesignTimeDbContextFactory<TodoDbContext>
                                                .AddEnvironmentVariables()
                                                .Build();
         string connectionString = config.GetRequiredConnectionString("Default");
-        string versionString = config.GetRequiredValue("MySql:Version");
-        var serverVersion = new MySqlServerVersion(new Version(versionString));
 
         DbContextOptionsBuilder<TodoDbContext> builder = new();
-        builder.UseMySql(connectionString, serverVersion);
+        builder.UseSqlServer(connectionString).UseOpenIddict();
 
-        NoelleNoMediator mediator = new NoelleNoMediator(); 
+        NoelleNoMediator mediator = new();
 
         return new TodoDbContext(builder.Options, mediator);
     }

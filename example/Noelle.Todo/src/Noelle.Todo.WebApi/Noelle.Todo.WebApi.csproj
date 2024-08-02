@@ -10,7 +10,11 @@
   <ItemGroup>
     <PackageReference Include="DotNetCore.CAP" Version="8.2.0" />
     <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+    <PackageReference Include="NoelleNet.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="NoelleNet.EntityFrameworkCore.CAP.SqlServer" Version="2.2.0" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="5.7.0" />
+    <PackageReference Include="OpenIddict.Quartz" Version="5.7.0" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.11.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
@@ -18,13 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Core\NoelleNet.Core.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="..\..\..\..\framework\src\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
-    <ProjectReference Include="..\Noelle.Todo.Domain\Noelle.Todo.Domain.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
 

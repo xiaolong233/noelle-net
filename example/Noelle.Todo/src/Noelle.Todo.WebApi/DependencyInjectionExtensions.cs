@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Noelle.Todo.Infrastructure;
+using Noelle.Todo.WebApi.Application.HostedServices;
 using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Queries;
 using NoelleNet.AspNetCore.Exceptions;
@@ -13,8 +13,12 @@ using NoelleNet.AspNetCore.Routing;
 using NoelleNet.AspNetCore.Validation;
 using NoelleNet.EntityFrameworkCore.Storage;
 using NoelleNet.Extensions.MediatR;
+using OpenIddict.Abstractions;
+using OpenIddict.Server;
+using OpenIddict.Validation.AspNetCore;
+using Quartz;
 using System.Reflection;
-using System.Text;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Noelle.Todo.WebApi;
 
@@ -49,6 +53,8 @@ public static class DependencyInjectionExtensions
         services.AddHealthChecks();
 
         AddSwagger(services);
+
+        services.AddHostedService<SeedIdentityHostedService>();
 
         return services;
     }
@@ -91,22 +97,90 @@ public static class DependencyInjectionExtensions
     {
         services.AddHttpContextAccessor();
 
-        // 配置授权认证
-        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.Jwt));
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+        // 配置身份认证和授权
+        services.AddIdentity<IdentityUser<long>, IdentityRole<long>>()
+                .AddEntityFrameworkStores<TodoDbContext>()
+                .AddDefaultTokenProviders();
+
+        services.AddAuthentication(options =>
+        {
+            // DefaultAuthenticateScheme、DefaultChallengeScheme和DefaultSignInScheme的初始值为：Identity.Application
+            // 如果不手动设置DefaultChallengeScheme，验证失败是会重定向到登录页面（Account/Login）
+            options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+        });
+
+        services.AddQuartz(options =>
+        {
+            options.UseSimpleTypeLoader();
+            options.UseInMemoryStore();
+        });
+
+        services.AddOpenIddict()
+                .AddCore(options =>
                 {
-                    var jwtSettings = configuration.GetSection(JwtOptions.Jwt).Get<JwtOptions>();
-                    byte[] securityKeyBuffer = Encoding.UTF8.GetBytes(jwtSettings?.SecurityKey ?? string.Empty);
-                    var securityKey = new SymmetricSecurityKey(securityKeyBuffer);
-                    options.TokenValidationParameters = new TokenValidationParameters
+                    options.UseEntityFrameworkCore().UseDbContext<TodoDbContext>();
+                    options.UseQuartz();
+                })
+                .AddServer(options =>
+                {
+                    // 设置路由
+                    options.SetAuthorizationEndpointUris("/api/auth/authorize");
+                    options.SetTokenEndpointUris("/api/auth/token");
+                    options.SetLogoutEndpointUris("/api/auth/logout");
+
+                    // 设置令牌的生命周期
+                    options.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
+
+                    // 设置授权模式
+                    options.AllowClientCredentialsFlow()
+                           .AllowPasswordFlow()
+                           .AllowRefreshTokenFlow()
+                           .AllowCustomFlow("quick_login");
+
+                    options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
+
+                    // 添加事件处理器
+                    options.AddEventHandler<OpenIddictServerEvents.HandleTokenRequestContext>(builder =>
                     {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = securityKey
-                    };
+                        builder.UseInlineHandler(async context =>
+                        {
+                            // 根据grant_type设置令牌的有效时长
+                            if (context.Request.IsClientCredentialsGrantType())
+                                context.Options.AccessTokenLifetime = TimeSpan.FromHours(2);
+                            else if (context.Request.IsPasswordGrantType() || context.Request.IsRefreshTokenGrantType())
+                                context.Options.AccessTokenLifetime = TimeSpan.FromMinutes(15);
+                            else if (context.Request.GrantType == "quick_login")
+                                context.Options.AccessTokenLifetime = TimeSpan.FromHours(1);
+                            else
+                                context.Options.AccessTokenLifetime = TimeSpan.FromMinutes(30);
+
+                            // grant_type不为password、refresh_token时，禁止返回refresh_token
+                            if (!context.Request.IsPasswordGrantType() && !context.Request.IsRefreshTokenGrantType())
+                                context.Request.Scope = string.Join(" ", context.Request.GetScopes().Remove("offline_access"));
+
+                            await Task.CompletedTask;
+                        });
+                    });
+
+                    options.UseReferenceAccessTokens();
+                    options.UseReferenceRefreshTokens();
+
+                    // 添加签名和加密凭证
+                    options.AddDevelopmentEncryptionCertificate();
+                    options.AddDevelopmentSigningCertificate();
+
+                    options.UseAspNetCore()
+                           .EnableTokenEndpointPassthrough()
+                           .EnableAuthorizationEndpointPassthrough()
+                           .EnableLogoutEndpointPassthrough();
+                })
+                .AddValidation(options =>
+                {
+                    options.UseLocalServer();
+                    options.EnableAuthorizationEntryValidation();
+                    options.EnableTokenEntryValidation();
+                    options.UseAspNetCore();
                 });
 
         // 配置授权策略
@@ -163,23 +237,38 @@ public static class DependencyInjectionExtensions
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename), true);
 
-            // 定义安全方案
-            var scheme = new OpenApiSecurityScheme()
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Name = "Authorization",
-                Description = "Authorization header \r\nExample:'Bearer ...'",
-                Type = SecuritySchemeType.ApiKey,
-                In = ParameterLocation.Header,
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" },
-            };
-            options.AddSecurityDefinition("oauth2", scheme);
+                Version = "v1",
+                Title = "MyAPI",
+                Description = "API for my application"
+            });
 
-            // 指定安全方案的作用范围
-            OpenApiSecurityRequirement requirement = new()
+            string schemeName = "Bearer";
+            OpenApiSecurityScheme scheme = new OpenApiSecurityScheme
             {
-                [scheme] = []
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = schemeName
             };
-            options.AddSecurityRequirement(requirement);
+
+            options.AddSecurityDefinition(schemeName, scheme);
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
     }
 }
