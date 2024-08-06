@@ -17,7 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Validation", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.MySql", "src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj", "{DC511E97-499A-4850-BA66-4D8FDAAF6312}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.EntityFrameworkCore.CAP.SqlServer", "src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.EntityFrameworkCore.CAP.SqlServer.csproj", "{A6D38978-EAF2-4EA7-9516-29392561B32F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.SqlServer", "src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.EntityFrameworkCore.CAP.SqlServer.csproj", "{A6D38978-EAF2-4EA7-9516-29392561B32F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.Auditing", "src\NoelleNet.Auditing\NoelleNet.Auditing.csproj", "{66E8DE4E-A4F0-4A63-B221-55430D225E52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.Security", "src\NoelleNet.Security\NoelleNet.Security.csproj", "{0A9612CC-4B08-4451-8F40-437438E89645}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +61,14 @@ Global
 		{A6D38978-EAF2-4EA7-9516-29392561B32F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6D38978-EAF2-4EA7-9516-29392561B32F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6D38978-EAF2-4EA7-9516-29392561B32F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66E8DE4E-A4F0-4A63-B221-55430D225E52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66E8DE4E-A4F0-4A63-B221-55430D225E52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66E8DE4E-A4F0-4A63-B221-55430D225E52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66E8DE4E-A4F0-4A63-B221-55430D225E52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A9612CC-4B08-4451-8F40-437438E89645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A9612CC-4B08-4451-8F40-437438E89645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A9612CC-4B08-4451-8F40-437438E89645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A9612CC-4B08-4451-8F40-437438E89645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

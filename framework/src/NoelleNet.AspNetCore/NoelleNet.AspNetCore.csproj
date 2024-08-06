@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<Import Project="..\..\CommonProps.props"/>
+	<Import Project="..\..\CommonProps.props" />
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -18,6 +18,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
 		<ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
+		<ProjectReference Include="..\NoelleNet.Security\NoelleNet.Security.csproj" />
 		<ProjectReference Include="..\NoelleNet.Validation\NoelleNet.Validation.csproj" />
 	</ItemGroup>
 
