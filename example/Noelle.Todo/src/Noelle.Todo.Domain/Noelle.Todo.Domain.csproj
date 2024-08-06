@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NoelleNet.Auditing" Version="2.4.0" />
-    <PackageReference Include="NoelleNet.Ddd.Domain" Version="2.4.0" />
+    <PackageReference Include="NoelleNet.Auditing" Version="2.4.1" />
+    <PackageReference Include="NoelleNet.Ddd.Domain" Version="2.4.1" />
   </ItemGroup>
 
 </Project>
