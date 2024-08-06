@@ -1,9 +1,10 @@
-﻿using NoelleNet.Ddd.Domain.Entities;
+﻿using NoelleNet.Auditing;
+using NoelleNet.Ddd.Domain.Entities;
 using NoelleNet.Ddd.Domain.Events;
 
 namespace Noelle.Todo.Domain.Todo.Entities;
 
-public class TodoItem : Entity<Guid>, IAggregateRoot
+public class TodoItem : AuditableEntity<Guid, long>, IAggregateRoot
 {
     public TodoItem(string name)
     {

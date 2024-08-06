@@ -10,9 +10,12 @@ using Noelle.Todo.WebApi.Application.Queries;
 using NoelleNet.AspNetCore.Exceptions;
 using NoelleNet.AspNetCore.Filters;
 using NoelleNet.AspNetCore.Routing;
+using NoelleNet.AspNetCore.Security.Claims;
 using NoelleNet.AspNetCore.Validation;
 using NoelleNet.EntityFrameworkCore.Storage;
 using NoelleNet.Extensions.MediatR;
+using NoelleNet.Security;
+using NoelleNet.Security.Claims;
 using OpenIddict.Abstractions;
 using OpenIddict.Server;
 using OpenIddict.Validation.AspNetCore;
@@ -96,6 +99,8 @@ public static class DependencyInjectionExtensions
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
 
         // 配置身份认证和授权
         services.AddIdentity<IdentityUser<long>, IdentityRole<long>>()

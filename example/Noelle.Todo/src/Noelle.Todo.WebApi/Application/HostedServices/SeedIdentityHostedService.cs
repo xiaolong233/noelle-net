@@ -1,4 +1,4 @@
-﻿
+﻿using Microsoft.AspNetCore.Identity;
 using Noelle.Todo.Infrastructure;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -39,6 +39,17 @@ public class SeedIdentityHostedService : IHostedService
                     Permissions.ResponseTypes.Code,
                 }
             });
+        }
+
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<long>>>();
+        var user = await userManager.FindByNameAsync("user@example.com");
+        if (user == null)
+        {
+            user = new IdentityUser<long>("user@example.com")
+            {
+                Email = "user@example.com"
+            };
+            var result = await userManager.CreateAsync(user, "Qazwsx@123456");
         }
     }
 

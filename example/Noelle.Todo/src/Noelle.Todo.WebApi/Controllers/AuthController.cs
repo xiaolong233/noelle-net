@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using NoelleNet.Security.Claims;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using System.Security.Claims;
+using System.Text.Json;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Noelle.Todo.WebApi.Controllers
@@ -50,6 +52,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType, Claims.Name, Claims.Role);
 
                 identity.SetClaim(Claims.Subject, await _applicationManager.GetClientIdAsync(application));
+                identity.SetClaim(NoelleClaimTypes.ClientId, await _applicationManager.GetClientIdAsync(application));
                 identity.SetClaim(Claims.Name, await _applicationManager.GetDisplayNameAsync(application));
 
                 identity.SetScopes(request.GetScopes());
@@ -69,10 +72,12 @@ namespace Noelle.Todo.WebApi.Controllers
 
                 var identity = new ClaimsIdentity(TokenValidationParameters.DefaultAuthenticationType, Claims.Name, Claims.Role);
                 identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user));
+                identity.SetClaim(NoelleClaimTypes.ClientId, request.ClientId);
+                identity.SetClaim(NoelleClaimTypes.UserId, await _userManager.GetUserIdAsync(user));
                 identity.SetClaim(Claims.Email, await _userManager.GetEmailAsync(user));
                 identity.SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user));
                 identity.SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user));
-                identity.SetClaims(Claims.Role, [.. (await _userManager.GetRolesAsync(user))]);
+                identity.SetClaim(NoelleClaimTypes.Roles, JsonSerializer.Serialize(await _userManager.GetRolesAsync(user)));
 
                 identity.SetScopes(request.GetScopes());
                 identity.SetDestinations(GetDestinations);
