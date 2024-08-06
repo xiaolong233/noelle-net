@@ -11,7 +11,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
-		<ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
 		<ProjectReference Include="..\NoelleNet.Security\NoelleNet.Security.csproj" />
 	</ItemGroup>
 

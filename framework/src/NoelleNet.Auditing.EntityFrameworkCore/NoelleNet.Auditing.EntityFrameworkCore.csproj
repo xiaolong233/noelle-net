@@ -10,6 +10,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Auditing\NoelleNet.Auditing.csproj" />
 	</ItemGroup>
 
