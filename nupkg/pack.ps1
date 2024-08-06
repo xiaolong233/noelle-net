@@ -11,7 +11,7 @@ if (-Not (Test-Path $outputDir)) {
 Remove-Item (Join-Path $currentPath $outputDir *.nupkg)
 
 # 查找所有项目文件
-$frameworkPath = Join-Path $rootPath "framework"
+$frameworkPath = Join-Path $rootPath "framework" "src"
 $projectFiles = Get-ChildItem -Path $frameworkPath -Recurse -Filter *.csproj
 
 foreach ($projectFile in $projectFiles) {
