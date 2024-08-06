@@ -1,4 +1,6 @@
-﻿namespace NoelleNet.Security.Claims;
+﻿using System.Security.Claims;
+
+namespace NoelleNet.Security.Claims;
 
 public class NoelleClaimTypes
 {
@@ -8,9 +10,9 @@ public class NoelleClaimTypes
     public static string ClientId { get; set; } = "client_id";
 
     /// <summary>
-    /// 用于表示用户唯一标识符的声明类型，默认值：sub。
+    /// 用于表示用户唯一标识符的声明类型，默认值：ClaimTypes.NameIdentifier。
     /// </summary>
-    public static string Subject { get; set; } = "sub";
+    public static string UserId { get; set; } = ClaimTypes.NameIdentifier;
 
     /// <summary>
     /// 用于表示用户的用户名的声明类型，默认值：username。

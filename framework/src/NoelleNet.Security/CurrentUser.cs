@@ -18,7 +18,7 @@ public class CurrentUser : ICurrentUser
 
     public virtual string? ClientId => FindClaimValue(NoelleClaimTypes.ClientId);
 
-    public virtual string? Id => FindClaimValue(NoelleClaimTypes.Subject);
+    public virtual string? Id => FindClaimValue(NoelleClaimTypes.UserId);
 
     public virtual string? UserName => FindClaimValue(NoelleClaimTypes.UserName);
 

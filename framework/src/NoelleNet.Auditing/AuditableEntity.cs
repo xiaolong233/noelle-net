@@ -3,40 +3,32 @@
 namespace NoelleNet.Auditing;
 
 /// <summary>
-/// 实现了 <see cref="IAuditableEntity{TUser}"/> 的实体类
+/// 实现了 <see cref="IAuditableEntity{TUser}"/> 的实体基类
 /// </summary>
-/// <typeparam name="TIdentifier"></typeparam>
-internal class AuditableEntity<TIdentifier> : Entity<TIdentifier>, IAuditableEntity<TIdentifier>
+/// <typeparam name="TIdentifier">表示实体标识符的类型</typeparam>
+/// <typeparam name="TUser">表示创建和修改实体的用户的标识符的类型</typeparam>
+public class AuditableEntity<TIdentifier, TUser> : Entity<TIdentifier>, IAuditableEntity<TUser>
 {
-    private DateTime _createdAt;
-    public DateTime CreatedAt => _createdAt;
+    public DateTime CreatedAt { get; private set; }
 
-    private TIdentifier _createdBy = default!;
-    public TIdentifier CreatedBy => _createdBy;
+    public TUser? CreatedBy { get; private set; }
 
-    private DateTime? _lastModifiedAt;
-    public DateTime? LastModifiedAt => _lastModifiedAt;
+    public DateTime? LastModifiedAt { get; private set; }
 
-    private TIdentifier _lastModifiedBy = default!;
-    public TIdentifier LastModifiedBy => _lastModifiedBy;
+    public TUser? LastModifiedBy { get; private set; }
 
-    public virtual void SetCreationAudit(DateTime createdAt, TIdentifier createdBy)
+    public void SetCreationAudit(DateTime createdAt, TUser? createdBy)
     {
         if (CreatedAt != default)
-            throw new InvalidOperationException("无法更新创建审核");
+            throw new InvalidOperationException("无法更新创建审计信息");
 
-        if (createdBy is object obj && obj == null)
-            throw new ArgumentNullException(nameof(createdBy), "createdBy不能为null");
-        if (createdBy is Guid guid && guid == Guid.Empty)
-            throw new ArgumentException("createdBy不能为空", nameof(createdBy));
-
-        _createdAt = createdAt;
-        _createdBy = createdBy;
+        CreatedAt = createdAt;
+        CreatedBy = createdBy;
     }
 
-    public virtual void UpdateModificationAudit(DateTime lastModifiedAt, TIdentifier lastModifiedBy)
+    public void UpdateModificationAudit(DateTime lastModifiedAt, TUser? lastModifiedBy)
     {
-        _lastModifiedAt = lastModifiedAt;
-        _lastModifiedBy = lastModifiedBy;
+        LastModifiedAt = lastModifiedAt;
+        LastModifiedBy = lastModifiedBy;
     }
 }

@@ -13,16 +13,16 @@ public class NoelleAuditInterceptor<TUser>(ICurrentUser currentUser) : SaveChang
 {
     private readonly ICurrentUser _currentUser = currentUser;
 
-    public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
+    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         SetAudit(eventData.Context);
-        return base.SavedChanges(eventData, result);
+        return base.SavingChanges(eventData, result);
     }
 
-    public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         SetAudit(eventData.Context);
-        return base.SavedChangesAsync(eventData, result, cancellationToken);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
     /// <summary>
@@ -33,11 +33,11 @@ public class NoelleAuditInterceptor<TUser>(ICurrentUser currentUser) : SaveChang
     {
         var entries = context?.ChangeTracker.Entries()
                                             .Where(e => e.Entity is ICreationAuditable<TUser> || e.Entity is IModificationAuditable<TUser>);
-        if (entries == null)
+        if (entries == null || !entries.Any())
             return;
 
         DateTime currentTime = DateTime.Now;
-        var userId = _currentUser.Id == null ? default : _currentUser.Id.To<TUser>();
+        var userId = string.IsNullOrWhiteSpace(_currentUser.Id) ? default : _currentUser.Id.To<TUser>();
         foreach (var entry in entries)
         {
             if (entry.State == EntityState.Added)
