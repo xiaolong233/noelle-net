@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.Infrastructure.Repositories;
 using NoelleNet.Auditing.EntityFrameworkCore;
+using NoelleNet.EntityFrameworkCore.Interceptors;
 
 namespace Noelle.Todo.Infrastructure;
 
@@ -23,10 +24,12 @@ public static class DependencyInjectionExtensions
 
             // 添加拦截器
             options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAuditInterceptor<long>>());
+            options.AddInterceptors(serviceProvider.GetRequiredService<NoelleDomainEventInterceptor>());
         }, ServiceLifetime.Scoped);
 
         // EF Core拦截器
         services.AddScoped<NoelleAuditInterceptor<long>>();
+        services.AddScoped<NoelleDomainEventInterceptor>();
 
         // 仓储配置
         services.AddScoped<ITodoItemRepository, TodoItemRepository>();

@@ -38,6 +38,9 @@ public class TodoItem : AuditableEntity<Guid, long>, IAggregateRoot
             throw new ArgumentException("新的待办事项名称为空", nameof(newName));
         Name = newName;
         AddDomainEvent(new NoelleEntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
+
+        string? s = null;
+        s.IsNullOrWhiteSpace();
     }
 
     /// <summary>

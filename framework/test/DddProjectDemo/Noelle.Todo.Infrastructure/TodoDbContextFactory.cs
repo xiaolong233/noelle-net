@@ -9,7 +9,7 @@ public class TodoDbContextFactory : IDesignTimeDbContextFactory<TodoDbContext>
 {
     public TodoDbContext CreateDbContext(string[] args)
     {
-        var config = new ConfigurationBuilder().SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../Noelle.Todo.Migratior"))
+        var config = new ConfigurationBuilder().SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../Noelle.Todo.DbMigratior"))
                                                .AddJsonFile("appsettings.json")
                                                .AddEnvironmentVariables()
                                                .Build();
@@ -18,8 +18,6 @@ public class TodoDbContextFactory : IDesignTimeDbContextFactory<TodoDbContext>
         DbContextOptionsBuilder<TodoDbContext> builder = new();
         builder.UseSqlServer(connectionString).UseOpenIddict();
 
-        NoelleNoMediator mediator = new();
-
-        return new TodoDbContext(builder.Options, mediator);
+        return new TodoDbContext(builder.Options);
     }
 }

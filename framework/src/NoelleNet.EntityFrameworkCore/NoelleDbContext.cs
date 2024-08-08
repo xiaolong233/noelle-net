@@ -14,16 +14,10 @@ public class NoelleDbContext(DbContextOptions options, IMediator mediator) : DbC
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        _mediator.DispatchDomainEventsAsync(ChangeTracker).Wait();
+        _mediator.DispatchDomainEventsAsync(ChangeTracker).GetAwaiter().GetResult();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="acceptAllChangesOnSuccess"></param>
-    /// <param name="cancellationToken">传播取消操作的通知</param>
-    /// <returns></returns>
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         await _mediator.DispatchDomainEventsAsync(ChangeTracker, cancellationToken);

@@ -11,7 +11,7 @@ public class DbMigratorHostedService(IHostApplicationLifetime applicationLifetim
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
     /// <summary>
-    /// 
+    /// 服务开始
     /// </summary>
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>
@@ -25,7 +25,7 @@ public class DbMigratorHostedService(IHostApplicationLifetime applicationLifetim
     }
 
     /// <summary>
-    /// 
+    /// 服务结束
     /// </summary>
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>

@@ -10,7 +10,7 @@ public static class NoelleStringExtensions
     /// </summary>
     /// <param name="source">源 <see cref="string"/> 实例</param>
     /// <returns></returns>
-    public static bool IsNullOrEmpty(this string source)
+    public static bool IsNullOrEmpty(this string? source)
     {
         return string.IsNullOrEmpty(source);
     }
@@ -20,7 +20,7 @@ public static class NoelleStringExtensions
     /// </summary>
     /// <param name="source">源 <see cref="string"/> 实例</param>
     /// <returns></returns>
-    public static bool IsNullOrWhiteSpace(this string source)
+    public static bool IsNullOrWhiteSpace(this string? source)
     {
         return string.IsNullOrWhiteSpace(source);
     }
