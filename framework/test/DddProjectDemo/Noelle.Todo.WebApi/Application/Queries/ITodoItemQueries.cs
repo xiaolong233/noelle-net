@@ -13,7 +13,7 @@ public interface ITodoItemQueries
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    Task<NoellePaginationAndSortResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto);
+    Task<NoellePaginationResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto);
 
     /// <summary>
     /// 获取待办事项

@@ -33,7 +33,7 @@ public class TodoItemQueries(TodoDbContext context) : ITodoItemQueries
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    public async Task<NoellePaginationAndSortResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto)
+    public async Task<NoellePaginationResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto)
     {
         IQueryable<TodoItem> query = _context.TodoItems;
 
@@ -44,6 +44,6 @@ public class TodoItemQueries(TodoDbContext context) : ITodoItemQueries
                                .Select(s => new TodoItemDto(s.Id, s.Name, s.IsComplete))
                                .ToListAsync();
 
-        return new NoellePaginationAndSortResultDto<TodoItemDto>(total, items);
+        return new NoellePaginationResultDto<TodoItemDto>(total, items);
     }
 }

@@ -30,7 +30,7 @@ namespace Noelle.Todo.WebApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet]
-        public Task<NoellePaginationAndSortResultDto<TodoItemDto>> GetListAsync([FromQuery] NoellePaginationAndSortDto dto)
+        public Task<NoellePaginationResultDto<TodoItemDto>> GetListAsync([FromQuery] NoellePaginationAndSortDto dto)
         {
             return _todoItemQueries.GetTodoItemsAsync(dto);
         }
