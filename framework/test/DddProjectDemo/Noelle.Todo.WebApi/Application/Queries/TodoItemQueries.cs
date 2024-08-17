@@ -36,8 +36,6 @@ public class TodoItemQueries(TodoDbContext context) : ITodoItemQueries
     public async Task<NoellePaginationAndSortResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto)
     {
         IQueryable<TodoItem> query = _context.TodoItems;
-        if (!string.IsNullOrWhiteSpace(dto.Filter))
-            query = query.Where(s => s.Name.Contains(dto.Filter));
 
         int total = await query.CountAsync();
         var items = await query.OrderByIf(!string.IsNullOrWhiteSpace(dto.Sort), dto.Sort)
