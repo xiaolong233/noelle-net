@@ -13,16 +13,16 @@ public class NoelleResultFilter : IAsyncResultFilter
         string method = context.HttpContext.Request.Method;
         if (context.Result is ObjectResult objectResult)
         {
-            if (method == HttpMethods.Get)
+            if (method == HttpMethods.Get || method == HttpMethods.Patch || method == HttpMethods.Put)
             {
                 context.Result = new OkObjectResult(objectResult.Value);
             }
-            else if (method == HttpMethods.Post || method == HttpMethods.Patch || method == HttpMethods.Put)
+            else if (method == HttpMethods.Post)
             {
                 context.Result = new JsonResult(objectResult.Value) { StatusCode = StatusCodes.Status201Created };
             }
         }
-        else if (method == HttpMethods.Delete)
+        else if (context.Result is EmptyResult)
         {
             context.Result = new NoContentResult();
         }
