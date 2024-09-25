@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using NoelleNet.AspNetCore.ExceptionHandling;
+using NoelleNet.AspNetCore.ExceptionHandling.Models;
 using System.Net;
-using NoelleNet.AspNetCore.ErrorHandling;
 
-namespace NoelleNet.AspNetCore.Exceptions;
+namespace NoelleNet.AspNetCore.Filters;
 
 /// <summary>
 /// 全局异常处理筛选器

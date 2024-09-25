@@ -1,4 +1,4 @@
-﻿namespace NoelleNet.AspNetCore.ErrorHandling;
+﻿namespace NoelleNet.AspNetCore.ExceptionHandling.Models;
 
 /// <summary>
 /// 错误详细信息

@@ -7,7 +7,7 @@ using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.HostedServices;
 using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Queries;
-using NoelleNet.AspNetCore.Exceptions;
+using NoelleNet.AspNetCore.ExceptionHandling;
 using NoelleNet.AspNetCore.Filters;
 using NoelleNet.AspNetCore.Routing;
 using NoelleNet.AspNetCore.Security.Claims;
@@ -62,19 +62,31 @@ public static class DependencyInjectionExtensions
         return services;
     }
 
+    private static readonly string[] configureOptions = ["zh-CN", "en"];
     /// <summary>
     /// 添加Mvc
     /// </summary>
     /// <param name="services"></param>
     private static void AddMvc(IServiceCollection services)
     {
+        // 添加本地化
+        services.AddLocalization();
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = configureOptions;
+            options.SetDefaultCulture(supportedCultures[0])
+                   .AddSupportedCultures(supportedCultures)
+                   .AddSupportedUICultures(supportedCultures)
+                   .ApplyCurrentCultureToResponseHeaders = true;
+        });
+
         services.AddControllers(options =>
         {
             // 全局拦截器配置        
             options.Filters.Add<NoelleExceptionFilter>();
             //options.Filters.Add<NoelleModelValidationFilter>();   //基于ModelState的模型验证
             options.Filters.Add<NoelleFluentValidationFilter>();
-            options.Filters.Add<NoelleResultFilter>();
+            options.Filters.Add<NoelleActionResultStatusCodeFilter>();
 
             // 格式化路由：小写字母+横线
             options.Conventions.Add(new RouteTokenTransformerConvention(new NoelleRouteSnakeCaseTransformer()));

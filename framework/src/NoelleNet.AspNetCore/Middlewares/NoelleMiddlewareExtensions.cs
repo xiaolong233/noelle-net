@@ -1,11 +1,9 @@
-﻿using NoelleNet.AspNetCore.ErrorHandling;
-
-namespace Microsoft.AspNetCore.Builder;
+﻿namespace NoelleNet.AspNetCore.Middlewares;
 
 /// <summary>
 /// 错误处理的扩展方法集
 /// </summary>
-public static class NoelleErrorHandlingExtensions
+public static class NoelleMiddlewareExtensions
 {
     /// <summary>
     /// 启用身份认证失败时的错误信息。必须放在 UseAuthentication() 之前

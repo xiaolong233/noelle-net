@@ -1,5 +1,6 @@
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi;
+using NoelleNet.AspNetCore.Middlewares;
 using Serilog;
 using Serilog.Formatting.Compact;
 

@@ -12,25 +12,26 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Noelle.Todo.WebApi.Controllers
 {
+    /// <summary>
+    /// 身份认证和授权
+    /// </summary>
+    /// <param name="applicationManager"><see cref="IOpenIddictApplicationManager"/> 的实例</param>
+    /// <param name="userManager"><see cref="UserManager{TUser}"/> 的实例</param>
+    /// <param name="signInManager"><see cref="SignInManager{TUser}"/> 的实例</param>
+    /// <param name="tokenManager"><see cref="IOpenIddictTokenManager"/> 的实例</param>
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController(IOpenIddictApplicationManager applicationManager, UserManager<IdentityUser<long>> userManager, SignInManager<IdentityUser<long>> signInManager, IOpenIddictTokenManager tokenManager) : ControllerBase
     {
-        private readonly IOpenIddictApplicationManager _applicationManager;
-        private readonly IOpenIddictAuthorizationManager _authorizationManager;
-        private readonly IOpenIddictTokenManager _tokenManager;
-        private readonly UserManager<IdentityUser<long>> _userManager;
-        private readonly SignInManager<IdentityUser<long>> _signInManager;
+        private readonly IOpenIddictApplicationManager _applicationManager = applicationManager;
+        private readonly IOpenIddictTokenManager _tokenManager = tokenManager;
+        private readonly UserManager<IdentityUser<long>> _userManager = userManager;
+        private readonly SignInManager<IdentityUser<long>> _signInManager = signInManager;
 
-        public AuthController(IOpenIddictApplicationManager applicationManager, IOpenIddictAuthorizationManager authorizationManager, UserManager<IdentityUser<long>> userManager, SignInManager<IdentityUser<long>> signInManager, IOpenIddictTokenManager tokenManager)
-        {
-            _applicationManager = applicationManager;
-            _authorizationManager = authorizationManager;
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _tokenManager = tokenManager;
-        }
-
+        /// <summary>
+        /// 获取身份令牌
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
         [Route("token")]
         [Consumes("application/x-www-form-urlencoded")]
@@ -129,6 +130,10 @@ namespace Noelle.Todo.WebApi.Controllers
             return BadRequest(new OpenIddictResponse { Error = Errors.InvalidGrant, ErrorDescription = "无效的GrantType" });
         }
 
+        /// <summary>
+        /// 退出登录
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
         [Route("logout")]
         [Consumes("application/x-www-form-urlencoded")]
@@ -154,7 +159,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 case Claims.Name or Claims.PreferredUsername:
                     yield return Destinations.AccessToken;
 
-                    if (claim.Subject.HasScope(Scopes.Profile))
+                    if (claim.Subject?.HasScope(Scopes.Profile) ?? false)
                         yield return Destinations.IdentityToken;
 
                     yield break;
@@ -162,7 +167,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 case Claims.Email:
                     yield return Destinations.AccessToken;
 
-                    if (claim.Subject.HasScope(Scopes.Email))
+                    if (claim.Subject?.HasScope(Scopes.Email) ?? false)
                         yield return Destinations.IdentityToken;
 
                     yield break;
@@ -170,7 +175,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 case Claims.Role:
                     yield return Destinations.AccessToken;
 
-                    if (claim.Subject.HasScope(Scopes.Roles))
+                    if (claim.Subject?.HasScope(Scopes.Roles) ?? false)
                         yield return Destinations.IdentityToken;
 
                     yield break;

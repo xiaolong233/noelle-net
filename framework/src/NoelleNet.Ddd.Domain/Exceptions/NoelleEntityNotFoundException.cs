@@ -3,17 +3,29 @@
 namespace NoelleNet.Ddd.Domain.Exceptions;
 
 /// <summary>
-/// 实体未找到时的异常信息
+/// 实体未找到的异常类，继承自 <see cref="NoelleNotFoundException"/>
 /// </summary>
-/// <param name="message">异常信息</param>
-/// <param name="entityType">实体类型</param>
-/// <param name="id">实体的标识符</param>
-/// <param name="innerException">内部异常</param>
-public class NoelleEntityNotFoundException(string message, Type entityType, object? id = default, Exception? innerException = default) : NoelleNotFoundException(message, innerException)
+public class NoelleEntityNotFoundException : NoelleNotFoundException
 {
+    /// <summary>
+    /// 使用指定的错误信息和内部异常初始化 <see cref="NoelleEntityNotFoundException"/> 类的新实例
+    /// </summary>
+    /// <param name="message">错误信息</param>
+    /// <param name="innerException">内部异常对象</param>
+    public NoelleEntityNotFoundException(string message, Exception? innerException) : base(message, innerException)
+    {
+    }
 
     /// <summary>
-    /// 构造函数
+    /// 使用指定的错误信息初始化 <see cref="NoelleEntityNotFoundException"/> 类的新实例
+    /// </summary>
+    /// <param name="message">错误信息</param>
+    public NoelleEntityNotFoundException(string message) : this(message, null)
+    {
+    }
+
+    /// <summary>
+    /// 使用指定的实体类型和标识符初始化 <see cref="NoelleEntityNotFoundException"/> 类的新实例
     /// </summary>
     /// <param name="entityType">实体类型</param>
     /// <param name="id">实体的标识符</param>
@@ -21,18 +33,38 @@ public class NoelleEntityNotFoundException(string message, Type entityType, obje
     public NoelleEntityNotFoundException(Type entityType, object? id = default, Exception? innerException = default)
         : this(id == null ? $"未指定实体的标识符。实体类型：{entityType.FullName}"
                           : $"未找到指定标识符的实体。实体类型：{entityType.FullName}，标识符：{id}",
-               entityType, id, innerException)
+              innerException)
     {
-
+        EntityType = entityType;
+        Id = id;
+        this.WithData(nameof(EntityType), entityType).WithData(nameof(Id), id);
     }
 
+    private Type? _entityType = null;
     /// <summary>
-    /// 实体类型
+    /// 获取或设置实体类型
     /// </summary>
-    public Type EntityType { get; init; } = entityType;
+    public Type? EntityType
+    {
+        get { return _entityType; }
+        set
+        {
+            _entityType = value;
+            this.WithData(nameof(EntityType), value);
+        }
+    }
 
+    private object? _id;
     /// <summary>
-    /// 实体的标识符
+    /// 获取或设置实体标识符
     /// </summary>
-    public object? Id { get; init; } = id;
+    public object? Id
+    {
+        get { return _id; }
+        set
+        {
+            _id = value;
+            this.WithData(nameof(Id), value);
+        }
+    }
 }

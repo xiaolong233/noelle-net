@@ -1,6 +1,6 @@
-﻿using NoelleNet.AspNetCore.ErrorHandling;
+﻿using NoelleNet.AspNetCore.ExceptionHandling.Models;
 
-namespace NoelleNet.AspNetCore.Exceptions;
+namespace NoelleNet.AspNetCore.ExceptionHandling;
 
 /// <summary>
 /// 可以实现此接口以将 <see cref="Exception"/> 对象转换为 <see cref="NoelleErrorDetailDto"/> 对象。

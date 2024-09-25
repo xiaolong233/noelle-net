@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace NoelleNet.AspNetCore.Exceptions;
+namespace NoelleNet.AspNetCore.ExceptionHandling;
 
 /// <summary>
 /// 根据 <see cref="Exception"/> 对象返回HTTP状态码
