@@ -1,5 +1,7 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using NoelleNet.Ddd.Domain.Entities;
 
 namespace NoelleNet.EntityFrameworkCore.Interceptors;
 
@@ -14,7 +16,7 @@ public class NoelleDomainEventInterceptor(IMediator mediator) : SaveChangesInter
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         if (eventData.Context != null)
-            _mediator.DispatchDomainEventsAsync(eventData.Context.ChangeTracker).GetAwaiter().GetResult();
+            DispatchDomainEventsAsync(eventData.Context.ChangeTracker).GetAwaiter().GetResult();
 
         return base.SavingChanges(eventData, result);
     }
@@ -22,8 +24,34 @@ public class NoelleDomainEventInterceptor(IMediator mediator) : SaveChangesInter
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         if (eventData.Context != null)
-            await _mediator.DispatchDomainEventsAsync(eventData.Context.ChangeTracker, cancellationToken);
+            await DispatchDomainEventsAsync(eventData.Context.ChangeTracker, cancellationToken);
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    /// <summary>
+    /// 派发领域事件
+    /// </summary>
+    /// <param name="changeTracker"><see cref="ChangeTracker"/> 实例</param>
+    /// <param name="cancellationToken">传播取消操作的通知</param>
+    /// <returns></returns>
+    private async Task DispatchDomainEventsAsync(ChangeTracker changeTracker, CancellationToken cancellationToken = default)
+    {
+        // 获取所有发生更改，且含有领域事件的实体对象
+        var entities = changeTracker.Entries<IHasDomainEvents>()
+                                    .Where(e => e.Entity.DomainEvents != null && e.Entity.DomainEvents.Count > 0)
+                                    .ToList();
+
+        // 获取所有领域事件
+        var domainEvents = entities.SelectMany(e => e.Entity.DomainEvents).ToList();
+
+        // 清空实体里的领域事件
+        entities.ForEach(e => e.Entity.ClearDomainEvents());
+
+        // 发布领域事件
+        foreach (var domainEvent in domainEvents)
+        {
+            await _mediator.Publish(domainEvent, cancellationToken);
+        }
     }
 }

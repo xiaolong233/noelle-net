@@ -1,4 +1,4 @@
-﻿using NoelleNet.Ddd.Domain.Entities;
+﻿using NoelleNet.Ddd.Domain.Repositories;
 
 namespace Noelle.Todo.Domain.Todo.Entities;
 

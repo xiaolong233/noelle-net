@@ -1,4 +1,6 @@
-﻿namespace NoelleNet.Ddd.Domain.Entities;
+﻿using NoelleNet.Ddd.Domain.Entities;
+
+namespace NoelleNet.Ddd.Domain.Repositories;
 
 /// <summary>
 /// 仓储基类
