@@ -20,8 +20,14 @@ public class DateTimeConverter(string serializationFormat = "yyyy-MM-dd HH:mm:ss
     /// <returns></returns>
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string dateString = reader.GetString() ?? string.Empty;
-        return DateTime.Parse(dateString);
+        string? dateString = reader.GetString();
+        if (string.IsNullOrWhiteSpace(dateString))
+            return DateTime.MinValue;
+
+        if (DateTime.TryParse(dateString, out DateTime result))
+            return result;
+
+        return DateTime.MinValue;
     }
 
     /// <summary>
