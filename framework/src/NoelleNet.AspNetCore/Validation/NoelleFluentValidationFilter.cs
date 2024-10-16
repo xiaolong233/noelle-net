@@ -26,9 +26,9 @@ public class NoelleFluentValidationFilter : IAsyncActionFilter
             Type validatorType = typeof(IValidator<>).MakeGenericType(parameter.ParameterType);
             if (context.HttpContext.RequestServices.GetService(validatorType) is not IValidator validator)
                 continue;
-            
+
             // 获取参数值
-            var value = context.ActionArguments[parameter.Name];
+            context.ActionArguments.TryGetValue(parameter.Name, out object? value);
 
             // 创建IValidationContext实例
             Type validationContextType = typeof(ValidationContext<>).MakeGenericType(parameter.ParameterType);
