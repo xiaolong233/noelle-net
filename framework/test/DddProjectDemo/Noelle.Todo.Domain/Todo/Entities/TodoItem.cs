@@ -1,4 +1,5 @@
-﻿using NoelleNet.Auditing;
+﻿using NoelleNet;
+using NoelleNet.Auditing;
 using NoelleNet.Ddd.Domain.Entities;
 using NoelleNet.Ddd.Domain.Events;
 

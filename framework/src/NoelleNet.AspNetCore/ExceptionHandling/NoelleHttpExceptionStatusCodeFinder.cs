@@ -1,4 +1,4 @@
-﻿using NoelleNet.Core.Exceptions;
+﻿using NoelleNet.ExceptionHandling;
 using NoelleNet.Validation;
 using System.Net;
 
@@ -19,14 +19,14 @@ public class NoelleHttpExceptionStatusCodeFinder : IHttpExceptionStatusCodeFinde
     {
         if (exception is IHasHttpStatusCode statusCodeException)
             return (HttpStatusCode)statusCodeException.StatusCode;
+        if (exception is NoelleBusinessException)
+            return HttpStatusCode.Forbidden;
         if (exception is NoelleNotFoundException)
             return HttpStatusCode.NotFound;
         if (exception is System.ComponentModel.DataAnnotations.ValidationException || exception is IHasValidationResults)
             return HttpStatusCode.BadRequest;
         if (exception is NoelleConflictException)
             return HttpStatusCode.Conflict;
-        if (exception is NoelleBusinessException)
-            return HttpStatusCode.Forbidden;
         return HttpStatusCode.InternalServerError;
     }
 }

@@ -1,6 +1,5 @@
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi;
-using NoelleNet.AspNetCore.Middlewares;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -37,9 +36,6 @@ try
     }
 
     app.UseHttpsRedirection();
-
-    app.UseUnauthorizedError();
-    app.UseForbiddenError();
 
     // 身份启用身份认证和授权
     app.UseAuthentication();

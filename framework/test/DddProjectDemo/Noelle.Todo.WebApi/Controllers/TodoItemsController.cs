@@ -5,8 +5,8 @@ using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.WebApi.Application.Commands;
 using Noelle.Todo.WebApi.Application.Models;
 using Noelle.Todo.WebApi.Application.Queries;
+using NoelleNet;
 using NoelleNet.AspNetCore.Queries;
-using NoelleNet.Ddd.Domain.Exceptions;
 
 namespace Noelle.Todo.WebApi.Controllers
 {

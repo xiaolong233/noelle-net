@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.WebApi.Application.Models;
-using NoelleNet.Ddd.Domain.Exceptions;
+using NoelleNet;
 
 namespace Noelle.Todo.WebApi.Application.Commands;
 

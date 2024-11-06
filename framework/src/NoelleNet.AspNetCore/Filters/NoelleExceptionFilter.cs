@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NoelleNet.AspNetCore.ExceptionHandling;
-using NoelleNet.AspNetCore.ExceptionHandling.Models;
+using NoelleNet.Http;
 using System.Net;
 
 namespace NoelleNet.AspNetCore.Filters;

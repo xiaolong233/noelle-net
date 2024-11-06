@@ -7,6 +7,7 @@ using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.HostedServices;
 using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Queries;
+using NoelleNet;
 using NoelleNet.AspNetCore.ExceptionHandling;
 using NoelleNet.AspNetCore.Filters;
 using NoelleNet.AspNetCore.Routing;

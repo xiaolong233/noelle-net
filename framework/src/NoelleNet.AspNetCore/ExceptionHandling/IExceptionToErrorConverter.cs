@@ -1,4 +1,4 @@
-﻿using NoelleNet.AspNetCore.ExceptionHandling.Models;
+﻿using NoelleNet.Http;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 

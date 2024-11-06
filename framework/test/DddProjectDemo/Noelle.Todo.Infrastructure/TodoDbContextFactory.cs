@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using NoelleNet;
 using NoelleNet.Extensions.MediatR;
 
 namespace Noelle.Todo.Infrastructure;

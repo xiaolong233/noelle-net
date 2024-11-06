@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Noelle.Todo.Domain.Todo.Entities;
-using NoelleNet.Ddd.Domain.Exceptions;
+using NoelleNet;
 
 namespace Noelle.Todo.WebApi.Application.Commands;
 

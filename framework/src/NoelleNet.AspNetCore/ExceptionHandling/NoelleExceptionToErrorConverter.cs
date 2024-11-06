@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using NoelleNet.AspNetCore.ExceptionHandling.Models;
-using NoelleNet.AspNetCore.Localization;
-using NoelleNet.Core.Exceptions;
+using NoelleNet.AspNetCore.ExceptionHandling.Localization;
+using NoelleNet.ExceptionHandling;
+using NoelleNet.ExceptionHandling.Localization;
 using NoelleNet.Http;
 using NoelleNet.Validation;
 using System.ComponentModel.DataAnnotations;
@@ -12,9 +12,13 @@ namespace NoelleNet.AspNetCore.ExceptionHandling;
 /// <summary>
 /// 提供默认的实现此接口以将 <see cref="Exception"/> 对象转换为 <see cref="NoelleErrorDetailDto"/> 对象。
 /// </summary>
-public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreResource> localizer, IStringLocalizerFactory localizerFactory, IOptions<NoelleExceptionLocalizationOptions> localizationOptions) : IExceptionToErrorConverter
+public class NoelleExceptionToErrorConverter(
+    IStringLocalizer<NoelleExceptionHandlingResource> localizer,
+    IStringLocalizerFactory localizerFactory,
+    IOptions<NoelleExceptionLocalizationOptions> localizationOptions
+    ) : IExceptionToErrorConverter
 {
-    private readonly IStringLocalizer<NoelleAspNetCoreResource> _localizer = localizer;
+    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer;
     private readonly IStringLocalizerFactory _localizerFactory = localizerFactory;
     private readonly IOptions<NoelleExceptionLocalizationOptions> _localizationOptions = localizationOptions;
 
@@ -56,11 +60,11 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
         if (detailDto != null)
             return detailDto;
 
-        string message = TryGetMessageFromErrorCode(e);
+        string message = TryGetMessageFromErrorCode(e) ?? e.Message;
         if (string.IsNullOrWhiteSpace(message))
-            message = _localizer[NoelleConstants.ErrorCodes.InternalServerError];
+            message = _localizer["InternalServerErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleConstants.ErrorCodes.InternalServerError };
+        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.InternalServerError };
     }
 
     /// <summary>
@@ -70,12 +74,16 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
     /// <returns>如果异常包含验证错误，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
     protected virtual NoelleErrorDetailDto? TryCreateValidationFailError(Exception e)
     {
+        string message = e.Message;
+        if (string.IsNullOrWhiteSpace(message))
+            message = _localizer["ValidationFailedErrorMessage"];
+
         if (e is ValidationException validationException)
         {
             var errors = validationException.ValidationResult.MemberNames.Select(m => new NoelleErrorDetailDto(validationException.ValidationResult.ErrorMessage ?? string.Empty) { Target = m });
-            var detailDto = new NoelleErrorDetailDto(_localizer[NoelleConstants.ErrorCodes.ValidationFailed])
+            var detailDto = new NoelleErrorDetailDto(message)
             {
-                Code = NoelleConstants.ErrorCodes.ValidationFailed,
+                Code = NoelleErrorCodeConstants.ValidationFailed,
                 Details = errors
             };
             return detailDto;
@@ -83,9 +91,9 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
 
         if (e is IHasValidationResults validationResults)
         {
-            var detailDto = new NoelleErrorDetailDto(_localizer[NoelleConstants.ErrorCodes.ValidationFailed])
+            var detailDto = new NoelleErrorDetailDto(message)
             {
-                Code = NoelleConstants.ErrorCodes.ValidationFailed,
+                Code = NoelleErrorCodeConstants.ValidationFailed,
                 Details = validationResults.ValidationResults.SelectMany(s => s.MemberNames.Select(m => new NoelleErrorDetailDto(s.ErrorMessage ?? string.Empty) { Target = m }))
             };
             return detailDto;
@@ -105,11 +113,12 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
             return null;
 
         string message = e.Message;
-        Type? entityType = e.Data["EntityType"] as Type;
-        if (entityType != null)
-            message = string.Format(_localizer[NoelleConstants.ErrorCodes.NotFound], e.Data["Id"], entityType);
+        if (e is NoelleEntityNotFoundException entityNotFoundException && entityNotFoundException.EntityType != null)
+            message = string.Format(_localizer["EntityNotFoundErrorMessage"], entityNotFoundException.Id, entityNotFoundException.EntityType.Name);
+        else if (string.IsNullOrWhiteSpace(message))
+            message = _localizer["NotFoundErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleConstants.ErrorCodes.NotFound };
+        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.NotFound };
     }
 
     /// <summary>
@@ -124,9 +133,9 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
 
         string message = e.Message;
         if (string.IsNullOrWhiteSpace(message))
-            message = _localizer[NoelleConstants.ErrorCodes.Conflict];
+            message = _localizer["ConflictErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleConstants.ErrorCodes.Conflict };
+        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.Conflict };
     }
 
     /// <summary>
@@ -136,14 +145,17 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
     /// <returns>如果异常是 <see cref="NoelleRemoteCallException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
     protected virtual NoelleErrorDetailDto? TryCreateRemoteCallError(Exception e)
     {
-        if (e is not NoelleRemoteCallException)
+        if (e is not NoelleRemoteCallException remoteCallException)
             return null;
+
+        if (remoteCallException.ErrorDetail != null)
+            return remoteCallException.ErrorDetail;
 
         string message = e.Message;
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["RemoteCallErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleConstants.ErrorCodes.RemoteCallFailed };
+        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.RemoteCallFailed };
     }
 
     /// <summary>
@@ -151,25 +163,25 @@ public class NoelleExceptionToErrorConverter(IStringLocalizer<NoelleAspNetCoreRe
     /// </summary>
     /// <param name="e">捕获的异常对象。</param>
     /// <returns>如果成功获取到本地化的错误消息，返回该消息；否则返回空字符串。</returns>
-    protected virtual string TryGetMessageFromErrorCode(Exception e)
+    protected virtual string? TryGetMessageFromErrorCode(Exception e)
     {
         if (e is not IHasErrorCode errorCodeException)
-            return string.Empty;
+            return null;
 
         if (string.IsNullOrWhiteSpace(errorCodeException.ErrorCode) || !errorCodeException.ErrorCode.Contains(':'))
-            return string.Empty;
+            return null;
 
         string resourceSourceKey = errorCodeException.ErrorCode.Split(':')[0];
         if (!_localizationOptions.Value.ResourceSources.TryGetValue(resourceSourceKey, out Type? value))
-            return string.Empty;
+            return null;
         Type resourceSource = value;
         if (resourceSource == null)
-            return string.Empty;
+            return null;
 
         var localizer = _localizerFactory.Create(resourceSource);
         LocalizedString localizedString = localizer[errorCodeException.ErrorCode];
         if (localizedString.ResourceNotFound)
-            return string.Empty;
+            return null;
 
         string localizedValue = localizedString.Value;
         if (e.Data != null && e.Data.Count > 0)

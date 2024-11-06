@@ -3,6 +3,7 @@ using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.Models;
 using NoelleNet.AspNetCore.Queries;
+using NoelleNet.Linq;
 
 namespace Noelle.Todo.WebApi.Application.Queries;
 
