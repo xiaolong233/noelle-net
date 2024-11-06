@@ -23,7 +23,11 @@ public class NullableDateTimeConverter(string serializationFormat = "yyyy-MM-dd 
         string? dateString = reader.GetString();
         if (string.IsNullOrWhiteSpace(dateString))
             return null;
-        return DateTime.Parse(dateString);
+
+        if (DateTime.TryParse(dateString, out DateTime result))
+            return result;
+
+        return null;
     }
 
     /// <summary>
