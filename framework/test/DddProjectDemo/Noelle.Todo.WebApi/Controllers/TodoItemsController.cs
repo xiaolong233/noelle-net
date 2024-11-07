@@ -17,7 +17,7 @@ namespace Noelle.Todo.WebApi.Controllers
     /// <param name="mediator"></param>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "User")]
     public class TodoItemsController(ITodoItemQueries todoItemQueries, IMediator mediator) : ControllerBase
     {
         private readonly ITodoItemQueries _todoItemQueries = todoItemQueries;

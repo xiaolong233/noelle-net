@@ -1,5 +1,7 @@
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi;
+using NoelleNet.AspNetCore.Authentication;
+using NoelleNet.AspNetCore.Authorization;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -36,6 +38,9 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.UseAuthenticationErrorResponse();
+    app.UseAuthorizationErrorResponse();
 
     // 身份启用身份认证和授权
     app.UseAuthentication();

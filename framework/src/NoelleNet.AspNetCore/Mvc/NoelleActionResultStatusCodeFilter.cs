@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace NoelleNet.AspNetCore.Filters;
+namespace NoelleNet.AspNetCore.Mvc;
 
 /// <summary>
 /// 根据 <see cref="IActionResult"/> 和 HTTP方法 设置 HTTP状态码

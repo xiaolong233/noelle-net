@@ -9,7 +9,7 @@ using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Queries;
 using NoelleNet;
 using NoelleNet.AspNetCore.ExceptionHandling;
-using NoelleNet.AspNetCore.Filters;
+using NoelleNet.AspNetCore.Mvc;
 using NoelleNet.AspNetCore.Routing;
 using NoelleNet.AspNetCore.Security.Claims;
 using NoelleNet.AspNetCore.Validation;
@@ -84,7 +84,7 @@ public static class DependencyInjectionExtensions
         services.AddControllers(options =>
         {
             // 全局拦截器配置        
-            options.Filters.Add<NoelleExceptionFilter>();
+            options.Filters.Add<NoelleExceptionHandlingFilter>();
             //options.Filters.Add<NoelleModelValidationFilter>();   //基于ModelState的模型验证
             options.Filters.Add<NoelleFluentValidationFilter>();
             options.Filters.Add<NoelleActionResultStatusCodeFilter>();

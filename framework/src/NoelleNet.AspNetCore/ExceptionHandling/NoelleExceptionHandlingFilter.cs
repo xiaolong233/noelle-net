@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using NoelleNet.AspNetCore.ExceptionHandling;
 using NoelleNet.Http;
 using System.Net;
 
-namespace NoelleNet.AspNetCore.Filters;
+namespace NoelleNet.AspNetCore.ExceptionHandling;
 
 /// <summary>
 /// 全局异常处理筛选器
@@ -14,7 +13,7 @@ namespace NoelleNet.AspNetCore.Filters;
 /// </remarks>
 /// <param name="converter"></param>
 /// <param name="finder"></param>
-public class NoelleExceptionFilter(IExceptionToErrorConverter converter, IHttpExceptionStatusCodeFinder finder) : IAsyncExceptionFilter
+public class NoelleExceptionHandlingFilter(IExceptionToErrorConverter converter, IHttpExceptionStatusCodeFinder finder) : IAsyncExceptionFilter
 {
     private readonly IExceptionToErrorConverter _converter = converter;
     private readonly IHttpExceptionStatusCodeFinder _finder = finder;
@@ -35,7 +34,7 @@ public class NoelleExceptionFilter(IExceptionToErrorConverter converter, IHttpEx
         // 记录服务器内部错误
         if (statusCode == HttpStatusCode.InternalServerError)
         {
-            ILogger<NoelleExceptionFilter> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<NoelleExceptionFilter>>();
+            ILogger<NoelleExceptionHandlingFilter> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<NoelleExceptionHandlingFilter>>();
             logger.LogError(new EventId(context.Exception.HResult), context.Exception, message: context.Exception.Message, args: []);
         }
 
