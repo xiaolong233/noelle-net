@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using NoelleNet.Core;
 using NoelleNet.Ddd.Domain.Entities;
 
 namespace NoelleNet.EntityFrameworkCore.Interceptors;

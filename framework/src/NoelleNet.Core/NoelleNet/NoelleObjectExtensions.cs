@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace NoelleNet;
+namespace System;
 
 /// <summary>
 /// <see cref="object"/> 的扩展方法集

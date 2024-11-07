@@ -6,7 +6,7 @@
 public class NoelleEntityNotFoundException : NoelleNotFoundException
 {
     /// <summary>
-    /// 构造一个 <see cref="NoelleEntityNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleEntityNotFoundException"/> 实例
     /// </summary>
     public NoelleEntityNotFoundException()
     {
@@ -14,7 +14,7 @@ public class NoelleEntityNotFoundException : NoelleNotFoundException
     }
 
     /// <summary>
-    /// 构造一个 <see cref="NoelleEntityNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleEntityNotFoundException"/> 实例
     /// </summary>
     /// <param name="message">错误信息</param>
     /// <param name="innerException">内部异常对象</param>
@@ -23,7 +23,7 @@ public class NoelleEntityNotFoundException : NoelleNotFoundException
     }
 
     /// <summary>
-    /// 构造一个 <see cref="NoelleEntityNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleEntityNotFoundException"/> 实例
     /// </summary>
     /// <param name="message">错误信息</param>
     public NoelleEntityNotFoundException(string message) : this(message, null)
@@ -31,7 +31,7 @@ public class NoelleEntityNotFoundException : NoelleNotFoundException
     }
 
     /// <summary>
-    /// 构造一个 <see cref="NoelleEntityNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleEntityNotFoundException"/> 实例
     /// </summary>
     /// <param name="entityType">实体类型</param>
     /// <param name="id">实体的标识符</param>

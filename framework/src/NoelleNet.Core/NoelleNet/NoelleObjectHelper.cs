@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace NoelleNet;
+namespace System;
 
 /// <summary>
 /// <see cref="object"/> 的帮助类

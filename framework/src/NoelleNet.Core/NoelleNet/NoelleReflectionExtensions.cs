@@ -1,4 +1,4 @@
-﻿namespace NoelleNet;
+﻿namespace System;
 
 /// <summary>
 /// 反射的扩展方法集

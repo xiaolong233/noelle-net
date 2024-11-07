@@ -1,4 +1,4 @@
-﻿namespace NoelleNet.Linq;
+﻿namespace System.Collections.Generic;
 
 /// <summary>
 /// <see cref="IEnumerable"/> 的扩展方法集

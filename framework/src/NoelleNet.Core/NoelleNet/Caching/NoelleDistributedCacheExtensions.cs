@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using System.Text.Json;
+﻿using System.Text.Json;
 
-namespace NoelleNet.Caching;
+namespace Microsoft.Extensions.Caching.Distributed;
 
 /// <summary>
 /// 分布式缓存扩展方法集

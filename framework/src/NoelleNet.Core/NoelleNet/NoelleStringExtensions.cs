@@ -1,4 +1,4 @@
-﻿namespace NoelleNet;
+﻿namespace System;
 
 /// <summary>
 /// <see cref="string"/> 的扩展方法集

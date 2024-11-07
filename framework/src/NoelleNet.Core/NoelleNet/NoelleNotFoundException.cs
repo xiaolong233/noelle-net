@@ -6,7 +6,7 @@
 public class NoelleNotFoundException : Exception
 {
     /// <summary>
-    /// 构造一个 <see cref="NoelleNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleNotFoundException"/> 实例
     /// </summary>
 
     public NoelleNotFoundException()
@@ -14,7 +14,7 @@ public class NoelleNotFoundException : Exception
     }
 
     /// <summary>
-    /// 构造一个 <see cref="NoelleNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleNotFoundException"/> 实例
     /// </summary>
     /// <param name="message">错误消息字符串</param>
     /// <param name="innerException">内部异常引用</param>
@@ -23,7 +23,7 @@ public class NoelleNotFoundException : Exception
     }
 
     /// <summary>
-    /// 构造一个 <see cref="NoelleNotFoundException"/> 实例
+    /// 创建一个新的 <see cref="NoelleNotFoundException"/> 实例
     /// </summary>
     /// <param name="message">错误消息字符串</param>
     public NoelleNotFoundException(string message) : base(message)

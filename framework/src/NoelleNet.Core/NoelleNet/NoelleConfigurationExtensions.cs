@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace NoelleNet;
+﻿namespace Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// <see cref="IConfiguration"/> 的扩展方法集

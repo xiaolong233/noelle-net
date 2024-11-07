@@ -1,7 +1,7 @@
 ﻿using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 
-namespace NoelleNet.Linq;
+namespace System.Linq;
 
 /// <summary>
 /// <see cref="IQueryable"/> 的扩展方法集

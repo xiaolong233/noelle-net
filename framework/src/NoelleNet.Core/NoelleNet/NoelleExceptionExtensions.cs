@@ -1,4 +1,4 @@
-﻿namespace NoelleNet;
+﻿namespace System;
 
 /// <summary>
 /// <see cref="Exception"/> 扩展方法集
