@@ -8,47 +8,42 @@ namespace NoelleNet.Security;
 public interface ICurrentUser
 {
     /// <summary>
-    /// 获取客户端标识符（Client ID），表示当前用户关联的客户端或应用程序的唯一标识。
+    /// 获取客户端的唯一标识。
     /// </summary>
     string? ClientId { get; }
 
     /// <summary>
-    /// 获取用户的唯一标识符（ID）。这是用户的唯一标识符，通常用于在系统中唯一标识用户。
+    /// 获取用户的唯一标识。
     /// </summary>
     string? Id { get; }
 
     /// <summary>
-    /// 获取用户的用户名。通常用于显示用户名或用于系统中的用户标识。
+    /// 获取所属部门的唯一标识。
+    /// </summary>
+    string? DeptId { get; }
+
+    /// <summary>
+    /// 获取用户的用户名。
     /// </summary>
     string? UserName { get; }
 
     /// <summary>
-    /// 获取用户的全名。通常用于显示用户的完整姓名。
+    /// 获取用户姓名的名字部分。
     /// </summary>
-    string? Name { get; }
+    string? GivenName { get; }
 
     /// <summary>
-    /// 获取用户的名字（Given Name）。表示用户的名。
+    /// 获取用户姓名的姓氏部分。
     /// </summary>
-    string? FirstName { get; }
+    string? Surname { get; }
 
     /// <summary>
-    /// 获取用户的姓氏（Family Name）。表示用户的姓。
-    /// </summary>
-    string? LastName { get; }
-
-    /// <summary>
-    /// 获取用户的中间名。表示用户的中间名或第二个名字。
-    /// </summary>
-    string? MiddleName { get; }
-
-    /// <summary>
-    /// 获取用户的昵称（Nickname）。通常用于表示用户的别名或显示名。
+    /// 获取用户的昵称。
     /// </summary>
     string? NickName { get; }
 
     /// <summary>
-    /// 获取用户的电子邮件地址。用于通信和标识用户。
+    /// 获取用户的电子邮件地址。
     /// </summary>
     string? Email { get; }
 
@@ -58,7 +53,7 @@ public interface ICurrentUser
     bool EmailConfirmed { get; }
 
     /// <summary>
-    /// 获取用户的手机号码。用于通信或身份验证。
+    /// 获取用户的手机号码。
     /// </summary>
     string? PhoneNumber { get; }
 
@@ -68,14 +63,14 @@ public interface ICurrentUser
     bool PhoneNumberConfirmed { get; }
 
     /// <summary>
-    /// 获取用户的性别。表示用户的性别信息。
+    /// 获取用户的性别。
     /// </summary>
     string? Gender { get; }
 
     /// <summary>
-    /// 获取用户的出生日期。通常用于用户的个人资料信息。
+    /// 获取用户的出生日期。
     /// </summary>
-    string? DateOfBirth { get; }
+    DateTime? DateOfBirth { get; }
 
     /// <summary>
     /// 获取用户的角色列表。表示用户在系统中的角色或权限。
@@ -88,6 +83,28 @@ public interface ICurrentUser
     /// <param name="roleName">要检查的角色名称。</param>
     /// <returns>如果用户具有指定角色，则返回 true；否则返回 false。</returns>
     bool IsInRole(string roleName);
+
+    /// <summary>
+    /// 获取用户的权限列表
+    /// </summary>
+    string[] Permissions { get; }
+
+    /// <summary>
+    /// 返回一个值，指示用户是否拥有指定的权限。
+    /// </summary>
+    /// <param name="permission">权限名</param>
+    /// <returns></returns>
+    bool HasPermission(string permission);
+
+    /// <summary>
+    /// 获取用户的数据访问范围。
+    /// </summary>
+    string? DataAccessScope { get; }
+
+    /// <summary>
+    /// 获取用户可以访问的部门列表。
+    /// </summary>
+    string[] AccessibleDepts { get; }
 
     /// <summary>
     /// 查找指定类型的声明。
@@ -109,6 +126,13 @@ public interface ICurrentUser
     /// <param name="claimType">要查找的声明类型。</param>
     /// <returns>匹配的声明数组，如果没有匹配项则返回空数组。</returns>
     Claim[] FindClaims(string claimType);
+
+    /// <summary>
+    /// 查找指定类型的所有声明值。
+    /// </summary>
+    /// <param name="claimType">要查找的声明类型。</param>
+    /// <returns></returns>
+    string[] FindClaimValues(string claimType);
 
     /// <summary>
     /// 获取所有声明。

@@ -2,80 +2,93 @@
 
 namespace NoelleNet.Security.Claims;
 
-public class NoelleClaimTypes
+/// <summary>
+/// 定义声明类型
+/// </summary>
+public static class NoelleClaimTypes
 {
     /// <summary>
-    /// 用于表示客户端标识符的声明类型，默认值：client_id。
+    /// 获取或设置客户端标识符的声明类型，默认值：client_id。
     /// </summary>
     public static string ClientId { get; set; } = "client_id";
 
     /// <summary>
-    /// 用于表示用户唯一标识符的声明类型，默认值：ClaimTypes.NameIdentifier。
+    /// 获取或设置用户唯一标识符的声明类型，默认值：<see cref="ClaimTypes.NameIdentifier"/>。
     /// </summary>
     public static string UserId { get; set; } = ClaimTypes.NameIdentifier;
 
     /// <summary>
-    /// 用于表示用户的用户名的声明类型，默认值：username。
+    /// 获取或设置用户名的声明类型，默认值：<see cref="ClaimTypes.Name"/>。
     /// </summary>
-    public static string UserName { get; set; } = "username";
+    public static string UserName { get; set; } = ClaimTypes.Name;
 
     /// <summary>
-    /// 用于表示用的完整姓名的声明类型，默认值：name。
+    /// 获取或设置名字的声明类型，通常表示用户的名，默认值：<see cref="ClaimTypes.GivenName"/>。
     /// </summary>
-    public static string Name { get; set; } = "name";
+    public static string GivenName { get; set; } = ClaimTypes.GivenName;
 
     /// <summary>
-    /// 用于表示用户的名字（First Name）的声明类型，通常表示用户的名，默认值：given_name。
+    /// 获取或设置姓氏的声明类型，通常表示用户的姓，默认值：<see cref="ClaimTypes.Surname"/>。
     /// </summary>
-    public static string GivenName { get; set; } = "given_name";
+    public static string Surname { get; set; } = ClaimTypes.Surname;
 
     /// <summary>
-    /// 用于表示用户的姓氏（Last Name）的声明类型，通常表示用户的姓，默认值：family_name。
-    /// </summary>
-    public static string FamilyName { get; set; } = "family_name";
-
-    /// <summary>
-    /// 用于表示用户的中间名（Middle Name）的声明类型，通常用于存储用户的中间名或第二个名字，默认值：middle_name。
-    /// </summary>
-    public static string MiddleName { get; set; } = "middle_name";
-
-    /// <summary>
-    /// 用于表示用户昵称的声明类型，默认值：nickname。
+    /// 获取或设置用户昵称的声明类型，默认值：nickname。
     /// </summary>
     public static string NickName { get; set; } = "nickname";
 
     /// <summary>
-    /// 用于表示用户电子邮件地址的声明类型，默认值：email。
+    /// 获取或设置用户电子邮箱地址的声明类型，默认值：<see cref="ClaimTypes.Email"/>。
     /// </summary>
-    public static string Email { get; set; } = "email";
+    public static string Email { get; set; } = ClaimTypes.Email;
 
     /// <summary>
-    /// 用于表示用户的电子邮件地址是否已验证的声明类型，默认值：email_verified。
+    /// 获取或设置用户的电子邮箱地址是否已验证的声明类型，默认值：email_verified。
     /// </summary>
     public static string EmailVerified { get; set; } = "email_verified";
 
     /// <summary>
-    /// 用于表示用户手机号码的声明类型，默认值：phone_number。
+    /// 获取或设置用户手机号码的声明类型，默认值：phone_number。
     /// </summary>
     public static string PhoneNumber { get; set; } = "phone_number";
 
     /// <summary>
-    /// 用于表示用户的手机号码是否已验证的声明类型，默认值：phone_number_verified。
+    /// 获取或设置用户的手机号码是否已验证的声明类型，默认值：phone_number_verified。
     /// </summary>
     public static string PhoneNumberVerified { get; set; } = "phone_number_verified";
 
     /// <summary>
-    /// 用于表示用户性别的声明类型，默认值：。
+    /// 获取或设置用户性别的声明类型，默认值：<see cref="ClaimTypes.Gender"/>。
     /// </summary>
-    public static string Gender { get; set; } = "gender";
+    public static string Gender { get; set; } = ClaimTypes.Gender;
 
     /// <summary>
-    /// 用于表示用户出生日期的声明类型，默认值：birthdate。
+    /// 获取或设置用户出生日期的声明类型，默认值：<see cref="ClaimTypes.DateOfBirth"/>。
     /// </summary>
-    public static string BirthDate { get; set; } = "birthdate";
+    public static string DateOfBirth { get; set; } = ClaimTypes.DateOfBirth;
 
     /// <summary>
-    /// 用于表示用户角色的声明类型，默认值：roles。
+    /// 获取或设置用户角色的声明类型，默认值：<see cref="ClaimTypes.Role"/>。
     /// </summary>
-    public static string Roles { get; set; } = "roles";
+    public static string Role { get; set; } = ClaimTypes.Role;
+
+    /// <summary>
+    /// 获取或设置用户权限的声明类型，默认值：permission。
+    /// </summary>
+    public static string Permission { get; set; } = "permission";
+
+    /// <summary>
+    /// 获取或设置用户的数据访问范围的声明类型，默认值：data_access_scope。
+    /// </summary>
+    public static string DataAccessScope { get; set; } = "data_access_scope";
+
+    /// <summary>
+    /// 获取或设置用户可以访问的部门的声明类型，默认值：accessible_dept。
+    /// </summary>
+    public static string AccessibleDept { get; set; } = "accessible_dept";
+
+    /// <summary>
+    /// 获取或设置用户所属部门唯一标识的声明类型，默认值：dept_id。
+    /// </summary>
+    public static string DeptId { get; set; } = "dept_id";
 }

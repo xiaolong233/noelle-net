@@ -78,7 +78,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 identity.SetClaim(Claims.Email, await _userManager.GetEmailAsync(user));
                 identity.SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user));
                 identity.SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user));
-                identity.SetClaim(NoelleClaimTypes.Roles, JsonSerializer.Serialize(await _userManager.GetRolesAsync(user)));
+                identity.SetClaims(NoelleClaimTypes.Role, [.. (await _userManager.GetRolesAsync(user))]);
 
                 identity.SetScopes(request.GetScopes());
                 identity.SetDestinations(GetDestinations);
