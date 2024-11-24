@@ -121,7 +121,7 @@
     <value>请求与服务器的当前状态冲突，请放弃当前的更改并重新操作。</value>
   </data>
   <data name="EntityNotFoundErrorMessage" xml:space="preserve">
-    <value>未找到标识符为 {0} 的实体 {1}。</value>
+    <value>未找到标识符为 {0} 的 {1} 实体。</value>
   </data>
   <data name="ForbiddenErrorMessage" xml:space="preserve">
     <value>不允许执行当前的操作。</value>
