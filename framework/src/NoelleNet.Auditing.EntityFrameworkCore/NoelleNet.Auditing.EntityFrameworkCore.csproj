@@ -11,11 +11,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Auditing\NoelleNet.Auditing.csproj" />
+		<ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
 	</ItemGroup>
 
 </Project>
