@@ -20,7 +20,7 @@ public class SeedIdentityHostedService : IHostedService
 
         var dbContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-        if (await manager.FindByClientIdAsync("admin-app") is null)
+        if (await manager.FindByClientIdAsync("admin-app", cancellationToken) is null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
@@ -30,7 +30,7 @@ public class SeedIdentityHostedService : IHostedService
                 {
                     Permissions.Endpoints.Token,
                     Permissions.Endpoints.Authorization,
-                    Permissions.Endpoints.Logout,
+                    Permissions.Endpoints.EndSession,
                     Permissions.GrantTypes.ClientCredentials,
                     Permissions.GrantTypes.Password,
                     Permissions.GrantTypes.RefreshToken,
@@ -38,7 +38,7 @@ public class SeedIdentityHostedService : IHostedService
                     "gt:quick_login",
                     Permissions.ResponseTypes.Code,
                 }
-            });
+            }, cancellationToken);
         }
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<long>>>();

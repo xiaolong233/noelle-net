@@ -145,7 +145,7 @@ public static class DependencyInjectionExtensions
                     // 设置路由
                     options.SetAuthorizationEndpointUris("/api/auth/authorize");
                     options.SetTokenEndpointUris("/api/auth/token");
-                    options.SetLogoutEndpointUris("/api/auth/logout");
+                    options.SetEndSessionEndpointUris("/api/auth/logout");
 
                     // 设置令牌的生命周期
                     options.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
@@ -191,7 +191,7 @@ public static class DependencyInjectionExtensions
                     options.UseAspNetCore()
                            .EnableTokenEndpointPassthrough()
                            .EnableAuthorizationEndpointPassthrough()
-                           .EnableLogoutEndpointPassthrough();
+                           .EnableEndSessionEndpointPassthrough();
                 })
                 .AddValidation(options =>
                 {
@@ -263,7 +263,7 @@ public static class DependencyInjectionExtensions
             });
 
             string schemeName = "Bearer";
-            OpenApiSecurityScheme scheme = new OpenApiSecurityScheme
+            var scheme = new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                 Name = "Authorization",
