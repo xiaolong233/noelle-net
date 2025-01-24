@@ -9,12 +9,16 @@ namespace NoelleNet.EntityFrameworkCore.Storage;
 /// 基于 <see cref="ICapTransaction"/> 的数据库事务管道
 /// </summary>
 /// <remarks>CAP在发布消息时需要通过 <see cref="ICapTransaction"/> 的实例来提交事务</remarks>
-/// <typeparam name="TRequest"></typeparam>
-/// <typeparam name="TResponse"></typeparam>
-/// <param name="logger">日志组件</param>
+/// <typeparam name="TRequest">请求类型</typeparam>
+/// <typeparam name="TResponse">响应类型</typeparam>
+/// <param name="logger">日志记录器</param>
 /// <param name="dbContext">数据库上下文实例</param>
-/// <param name="capPublisher">分布式事件总线实例</param>
-public class NoelleCapTransactionBehavior<TRequest, TResponse>(ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ICapPublisher capPublisher) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
+/// <param name="capPublisher">分布式事件总线</param>
+public class NoelleCapTransactionBehavior<TRequest, TResponse>(
+    ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> logger,
+    DbContext dbContext,
+    ICapPublisher capPublisher
+    ) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
 {
     private readonly ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> _logger = logger;
     private readonly DbContext _dbContext = dbContext;
@@ -23,8 +27,8 @@ public class NoelleCapTransactionBehavior<TRequest, TResponse>(ILogger<NoelleCap
     /// <summary>
     /// 管道处理函数
     /// </summary>
-    /// <param name="request"></param>
-    /// <param name="next"></param>
+    /// <param name="request">请求对象</param>
+    /// <param name="next">请求处理委托</param>
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
@@ -38,24 +42,24 @@ public class NoelleCapTransactionBehavior<TRequest, TResponse>(ILogger<NoelleCap
         await strategy.ExecuteAsync(async () =>
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync(_capPublisher, false, cancellationToken) ?? throw new InvalidOperationException("数据库事务开启失败");
-            _logger.LogInformation("Begin transaction {TransactionId} for {CommandName} ({@Command})", transaction?.TransactionId, cmdName, request);
+            _logger.LogInformation("开始事务 {TransactionId} - 命令: {CommandName} ({@Command})", transaction.TransactionId, cmdName, request);
 
             try
             {
                 response = await next();
 
-                _logger.LogInformation("Commit transaction {TransactionId} for {CommandName} ({@Response})", transaction?.TransactionId, cmdName, response);
+                _logger.LogInformation("提交事务 {TransactionId} - 命令: {CommandName} ({@Response})", transaction.TransactionId, cmdName, response);
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                await transaction!.CommitAsync();
+                await transaction.CommitAsync(cancellationToken);
 
-                _logger.LogInformation("Transaction finished {TransactionId} for {CommandName} ({@Response})", transaction?.TransactionId, cmdName, response);
+                _logger.LogInformation("事务完成 {TransactionId} - 命令: {CommandName} ({@Response})", transaction.TransactionId, cmdName, response);
             }
             catch (Exception e)
             {
-                await transaction!.RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(cancellationToken);
 
-                _logger.LogError(e, "ERROR Handling transaction for {CommandName} ({@Command})", cmdName, request);
+                _logger.LogError(e, "事务处理错误 - 命令: {CommandName} ({@Command})", cmdName, request);
                 throw;
             }
 

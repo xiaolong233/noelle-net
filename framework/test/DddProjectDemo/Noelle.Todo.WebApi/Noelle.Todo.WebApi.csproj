@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.Core\NoelleNet.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.EntityFrameworkCore.CAP.SqlServer.csproj" />
+    <ProjectReference Include="..\..\..\src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.Extensions.CAP.SqlServer.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
 
