@@ -4,69 +4,62 @@ using System.Security.Claims;
 namespace NoelleNet.Security;
 
 /// <summary>
-/// 当前用户信息 <see cref="ICurrentUser"/> 的默认实现
+/// <see cref="ICurrentUser"/> 的默认实现
 /// </summary>
 public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrentUser
 {
     private readonly ICurrentPrincipalProvider _principalProvider = principalProvider;
 
-    public virtual string? ClientId => FindClaimValue(NoelleClaimTypes.ClientId);
+    public string? ClientId => FindClaimValue(NoelleClaimTypes.ClientId);
 
-    public virtual string? Id => FindClaimValue(NoelleClaimTypes.UserId);
-
-    public virtual string? UserName => FindClaimValue(NoelleClaimTypes.UserName);
-
-    public virtual string? NickName => FindClaimValue(NoelleClaimTypes.NickName);
-
-    public virtual string? Email => FindClaimValue(NoelleClaimTypes.Email);
-
-    public virtual bool EmailConfirmed => FindClaimBooleanValue(NoelleClaimTypes.EmailVerified);
-
-    public virtual string? PhoneNumber => FindClaimValue(NoelleClaimTypes.PhoneNumber);
-
-    public virtual bool PhoneNumberConfirmed => FindClaimBooleanValue(NoelleClaimTypes.PhoneNumberVerified);
-
-    public virtual string? Gender => FindClaimValue(NoelleClaimTypes.Gender);
-
-    public virtual DateTime? DateOfBirth => FindClaimDateTimeValue(NoelleClaimTypes.DateOfBirth);
-
-    public virtual string[] Roles => FindClaimValues(NoelleClaimTypes.Role);
+    public string? Id => FindClaimValue(NoelleClaimTypes.UserId);
 
     public string? DeptId => FindClaimValue(NoelleClaimTypes.DeptId);
+
+    public string? UserName => FindClaimValue(NoelleClaimTypes.UserName);
 
     public string? GivenName => FindClaimValue(NoelleClaimTypes.GivenName);
 
     public string? Surname => FindClaimValue(NoelleClaimTypes.Surname);
 
+    public string? NickName => FindClaimValue(NoelleClaimTypes.NickName);
+
+    public string? Email => FindClaimValue(NoelleClaimTypes.Email);
+
+    public bool EmailConfirmed => FindClaimBooleanValue(NoelleClaimTypes.EmailVerified);
+
+    public string? PhoneNumber => FindClaimValue(NoelleClaimTypes.PhoneNumber);
+
+    public bool PhoneNumberConfirmed => FindClaimBooleanValue(NoelleClaimTypes.PhoneNumberVerified);
+
+    public string? Gender => FindClaimValue(NoelleClaimTypes.Gender);
+
+    public DateTime? DateOfBirth => FindClaimDateTimeValue(NoelleClaimTypes.DateOfBirth);
+
+    public string[] Roles => FindClaimValues(NoelleClaimTypes.Role);
+
     public string[] Permissions => FindClaimValues(NoelleClaimTypes.Permission);
 
-    public string? DataAccessScope => FindClaimValue(NoelleClaimTypes.DataAccessScope);
+    public Claim[] Claims => _principalProvider.Principal?.Claims.ToArray() ?? [];
 
-    public string[] AccessibleDepts => FindClaimValues(NoelleClaimTypes.AccessibleDept);
-
-    public virtual Claim? FindClaim(string claimType)
+    public Claim? FindClaim(string claimType)
     {
-        return _principalProvider.Principal?.Claims.FirstOrDefault(c => c.Type == claimType);
+        return _principalProvider.Principal?.FindFirst(claimType);
     }
 
-    public virtual Claim[] FindClaims(string claimType)
+    public Claim[] FindClaims(string claimType)
     {
-        return _principalProvider.Principal?.Claims.Where(c => c.Type == claimType).ToArray() ?? [];
+        return _principalProvider.Principal?.FindAll(claimType).ToArray() ?? [];
     }
 
-    public virtual string? FindClaimValue(string claimType)
+    public string? FindClaimValue(string claimType)
     {
-        return FindClaim(claimType)?.Value;
+        return _principalProvider.Principal?.FindFirst(claimType)?.Value;
     }
 
-    public virtual Claim[] GetAllClaims()
+    public string[] FindClaimValues(string claimType)
     {
-        return _principalProvider.Principal?.Claims.ToArray() ?? [];
-    }
-
-    public virtual bool IsInRole(string roleName)
-    {
-        return Roles.Any(r => r == roleName);
+        return _principalProvider.Principal?.FindAll(claimType).Select(c => c.Value).ToArray() ?? [];
     }
 
     public bool HasPermission(string permission)
@@ -74,11 +67,12 @@ public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrent
         return Permissions.Any(p => p == permission);
     }
 
-    public string[] FindClaimValues(string claimType)
+    public bool IsInRole(string roleName)
     {
-        return FindClaims(claimType).Select(c => c.Value).ToArray();
+        return Roles.Any(r => r == roleName);
     }
 
+    #region 私有方法
     private bool FindClaimBooleanValue(string claimType)
     {
         return string.Equals(FindClaimValue(claimType), "true", StringComparison.InvariantCultureIgnoreCase);
@@ -88,4 +82,5 @@ public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrent
     {
         return DateTime.TryParse(FindClaimValue(claimType), out DateTime value) ? value : null;
     }
+    #endregion
 }
