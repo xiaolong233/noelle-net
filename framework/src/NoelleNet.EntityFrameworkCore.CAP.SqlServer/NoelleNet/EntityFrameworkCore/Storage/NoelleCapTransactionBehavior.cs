@@ -20,9 +20,9 @@ public class NoelleCapTransactionBehavior<TRequest, TResponse>(
     ICapPublisher capPublisher
     ) : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
 {
-    private readonly ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> _logger = logger;
-    private readonly DbContext _dbContext = dbContext;
-    private readonly ICapPublisher _capPublisher = capPublisher;
+    private readonly ILogger<NoelleCapTransactionBehavior<TRequest, TResponse>> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly DbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    private readonly ICapPublisher _capPublisher = capPublisher ?? throw new ArgumentNullException(nameof(capPublisher));
 
     /// <summary>
     /// 管道处理函数

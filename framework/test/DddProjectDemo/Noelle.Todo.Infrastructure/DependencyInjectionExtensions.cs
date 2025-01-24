@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.Infrastructure.Repositories;
-using NoelleNet;
 using NoelleNet.Auditing.EntityFrameworkCore;
 using NoelleNet.EntityFrameworkCore.Interceptors;
 
