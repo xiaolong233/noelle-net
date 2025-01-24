@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Noelle.Todo.Domain.Todo.Entities;
-using NoelleNet.Ddd.Domain.Repositories.EntityFrameworkCore;
+using NoelleNet.EntityFrameworkCore.Domain.Repositories;
 
 namespace Noelle.Todo.Infrastructure.Repositories;
 
