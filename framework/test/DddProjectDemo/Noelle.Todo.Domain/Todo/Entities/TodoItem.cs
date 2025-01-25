@@ -14,7 +14,7 @@ public class TodoItem : AuditableEntity<Guid, long>, IAggregateRoot
 
         Id = Guid.NewGuid();
         Name = name;
-
+        
         AddDomainEvent(new NoelleEntityCreatedEvent<TodoItem>(this));
     }
 

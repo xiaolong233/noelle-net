@@ -6,5 +6,5 @@ namespace NoelleNet.Ddd.Domain.Events;
 /// 实体更新后触发的事件
 /// </summary>
 /// <typeparam name="TEntity">实体类型</typeparam>
-/// <param name="Entity"></param>
+/// <param name="Entity">实体实例</param>
 public record NoelleEntityUpdatedEvent<TEntity>(TEntity Entity) : INotification;

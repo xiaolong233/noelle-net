@@ -1,7 +1,7 @@
 ﻿namespace NoelleNet.AspNetCore.Queries;
 
 /// <summary>
-/// 分页查询和排序的参数
+/// 分页查询和排序参数的数据传输对象
 /// </summary>
 public class NoellePaginationAndSortDto : NoellePaginationDto
 {

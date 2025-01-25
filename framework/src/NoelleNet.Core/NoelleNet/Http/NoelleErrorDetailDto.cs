@@ -1,7 +1,7 @@
 ﻿namespace NoelleNet.Http;
 
 /// <summary>
-/// 错误详细信息
+/// 错误详细信息的数据传输对象
 /// </summary>
 /// <param name="message">错误消息</param>
 public class NoelleErrorDetailDto(string message)

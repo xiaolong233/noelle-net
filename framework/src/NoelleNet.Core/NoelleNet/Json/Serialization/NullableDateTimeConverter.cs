@@ -4,12 +4,22 @@ using System.Text.Json.Serialization;
 namespace NoelleNet.Json.Serialization;
 
 /// <summary>
-/// 自定义的 <see cref="DateTime"/>? 类型转换器，用于在序列化和反序列化过程中处理特定格式的日期字符串。
+/// 自定义的 <see cref="DateTime"/>? 类型转换器，用于在序列化和反序列化过程中处理特定格式的日期字符串
 /// </summary>
-/// <param name="serializationFormat">自定义序列化时的日期格式，默认为 "yyyy-MM-dd HH:mm:ss"</param>
-public class NullableDateTimeConverter(string serializationFormat = "yyyy-MM-dd HH:mm:ss") : JsonConverter<DateTime?>
+public class NullableDateTimeConverter : JsonConverter<DateTime?>
 {
-    private readonly string _serializationFormat = serializationFormat;
+    private readonly string _serializationFormat;
+
+    /// <summary>
+    /// 创建一个新的 <see cref="NullableDateTimeConverter"/> 实例
+    /// </summary>
+    /// <param name="serializationFormat">自定义序列化时的日期格式，默认为 "yyyy-MM-dd HH:mm:ss"</param>
+    public NullableDateTimeConverter(string serializationFormat = "yyyy-MM-dd HH:mm:ss")
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(serializationFormat);
+
+        _serializationFormat = serializationFormat;
+    }
 
     /// <summary>
     /// 反序列化方法，将 JSON 字符串转换为 <see cref="DateTime"/>?

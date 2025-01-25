@@ -11,7 +11,7 @@ namespace NoelleNet.EntityFrameworkCore.Interceptors;
 /// <param name="mediator"><see cref="IMediator"/> 实例</param>
 public class NoelleDomainEventInterceptor(IMediator mediator) : SaveChangesInterceptor
 {
-    private readonly IMediator _mediator = mediator;
+    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {

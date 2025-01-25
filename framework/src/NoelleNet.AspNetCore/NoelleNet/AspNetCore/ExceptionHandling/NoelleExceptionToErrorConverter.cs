@@ -10,17 +10,20 @@ using System.ComponentModel.DataAnnotations;
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 
 /// <summary>
-/// 提供默认的实现此接口以将 <see cref="Exception"/> 对象转换为 <see cref="NoelleErrorDetailDto"/> 对象。
+/// <see cref="IExceptionToErrorConverter"/> 的默认实现
 /// </summary>
+/// <param name="localizer">字符串本地化器</param>
+/// <param name="localizerFactory">字符串本地化工厂</param>
+/// <param name="localizationOptions">本地化选项</param>
 public class NoelleExceptionToErrorConverter(
     IStringLocalizer<NoelleExceptionHandlingResource> localizer,
     IStringLocalizerFactory localizerFactory,
     IOptions<NoelleExceptionLocalizationOptions> localizationOptions
     ) : IExceptionToErrorConverter
 {
-    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer;
-    private readonly IStringLocalizerFactory _localizerFactory = localizerFactory;
-    private readonly IOptions<NoelleExceptionLocalizationOptions> _localizationOptions = localizationOptions;
+    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
+    private readonly IStringLocalizerFactory _localizerFactory = localizerFactory ?? throw new ArgumentNullException(nameof(localizerFactory));
+    private readonly IOptions<NoelleExceptionLocalizationOptions> _localizationOptions = localizationOptions ?? throw new ArgumentNullException(nameof(localizationOptions));
 
     /// <summary>
     /// 转换处理
@@ -38,10 +41,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 根据传入的异常创建相应的错误详情对象。
+    /// 根据传入的异常创建相应的错误详情对象
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象</returns>
     protected virtual NoelleErrorDetailDto CreateError(Exception e)
     {
         NoelleErrorDetailDto? detailDto = TryCreateValidationFailError(e);
@@ -68,10 +71,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 尝试创建验证失败错误详情对象。
+    /// 尝试创建验证失败错误详情对象
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>如果异常包含验证错误，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>如果异常包含验证错误，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
     protected virtual NoelleErrorDetailDto? TryCreateValidationFailError(Exception e)
     {
         string message = e.Message;
@@ -103,10 +106,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 尝试创建资源未找到错误详情对象。
+    /// 尝试创建资源未找到错误详情对象
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>如果异常是 <see cref="NoelleNotFoundException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>如果异常是 <see cref="NoelleNotFoundException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
     protected virtual NoelleErrorDetailDto? TryCreateNotFoundError(Exception e)
     {
         if (e is not NoelleNotFoundException)
@@ -122,10 +125,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 尝试创建冲突错误详情对象。
+    /// 尝试创建冲突错误详情对象
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>如果异常是 <see cref="NoelleConflictException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>如果异常是 <see cref="NoelleConflictException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
     protected virtual NoelleErrorDetailDto? TryCreateConflictError(Exception e)
     {
         if (e is not NoelleConflictException)
@@ -139,10 +142,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 尝试创建远程调用错误详情对象。
+    /// 尝试创建远程调用错误详情对象
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>如果异常是 <see cref="NoelleRemoteCallException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>如果异常是 <see cref="NoelleRemoteCallException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
     protected virtual NoelleErrorDetailDto? TryCreateRemoteCallError(Exception e)
     {
         if (e is not NoelleRemoteCallException remoteCallException)
@@ -159,10 +162,10 @@ public class NoelleExceptionToErrorConverter(
     }
 
     /// <summary>
-    /// 尝试从异常中的错误代码获取本地化的错误消息。
+    /// 尝试从异常中的错误代码获取本地化的错误消息
     /// </summary>
-    /// <param name="e">捕获的异常对象。</param>
-    /// <returns>如果成功获取到本地化的错误消息，返回该消息；否则返回空字符串。</returns>
+    /// <param name="e">捕获的异常对象</param>
+    /// <returns>如果成功获取到本地化的错误消息，返回该消息；否则返回空字符串</returns>
     protected virtual string? TryGetMessageFromErrorCode(Exception e)
     {
         if (e is not IHasErrorCode errorCodeException)

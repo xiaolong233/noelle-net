@@ -6,9 +6,10 @@ namespace NoelleNet.Security;
 /// <summary>
 /// <see cref="ICurrentUser"/> 的默认实现
 /// </summary>
+/// <param name="principalProvider"></param>
 public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrentUser
 {
-    private readonly ICurrentPrincipalProvider _principalProvider = principalProvider;
+    private readonly ICurrentPrincipalProvider _principalProvider = principalProvider ?? throw new ArgumentNullException(nameof(principalProvider));
 
     public string? ClientId => FindClaimValue(NoelleClaimTypes.ClientId);
 

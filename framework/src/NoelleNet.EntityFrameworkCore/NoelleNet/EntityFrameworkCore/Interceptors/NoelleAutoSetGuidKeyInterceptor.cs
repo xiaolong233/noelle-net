@@ -5,12 +5,12 @@ using NoelleNet.Ddd.Domain.Entities;
 namespace NoelleNet.EntityFrameworkCore.Interceptors;
 
 /// <summary>
-/// 拦截器，当 <see cref="Entity{TIdentifier}"/> 的标识符为 <see cref="Guid"/> 类型并且为空时，自动设置一个新的 <see cref="Guid"/> 值。
+/// 自动设置实体标识符拦截器，当 <see cref="Entity{TIdentifier}"/> 的标识符为 <see cref="Guid"/> 类型并且为空时，自动设置一个新的 <see cref="Guid"/> 值
 /// </summary>
 /// <param name="guidGenerator"><see cref="Guid"/> 的生成器</param>
 public class NoelleAutoSetGuidKeyInterceptor(IGuidGenerator guidGenerator) : SaveChangesInterceptor
 {
-    private readonly IGuidGenerator _guidGenerator = guidGenerator;
+    private readonly IGuidGenerator _guidGenerator = guidGenerator ?? throw new ArgumentNullException(nameof(guidGenerator));
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -36,9 +36,7 @@ public class NoelleAutoSetGuidKeyInterceptor(IGuidGenerator guidGenerator) : Sav
             if (entry.Entity.Id != Guid.Empty)
                 continue;
 
-            var entityType = entry.Entity.GetType();
-            var idProperty = entityType.GetProperty(nameof(entry.Entity.Id));
-            idProperty?.SetValue(entry.Entity, _guidGenerator.Generate());
+            NoelleObjectHelper.TrySetProperty(entry.Entity, s => s.Id, _ => _guidGenerator.Generate());
         }
     }
 }

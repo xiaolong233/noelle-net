@@ -8,44 +8,44 @@ namespace NoelleNet.Http;
 public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatusCode
 {
     /// <summary>
-    /// 获取或设置错误代码
+    /// 错误代码
     /// </summary>
     public string? ErrorCode { get; set; }
 
     /// <summary>
-    /// 获取或设置HTTP状态码
+    /// HTTP状态码
     /// </summary>
     public int StatusCode { get; set; }
 
     /// <summary>
-    /// 获取或设置发生远程调用的URL地址
+    /// 发生远程调用的URL地址
     /// </summary>
     public string? Url { get; set; }
 
     /// <summary>
-    /// 获取或设置发生远程调用的HTTP方法
+    /// 发生远程调用的HTTP方法
     /// </summary>
     public string? Method { get; set; }
 
     /// <summary>
-    /// 获取或设置发送的请求数据
+    /// 发送的请求数据
     /// </summary>
     public object? Payload { get; set; }
 
     /// <summary>
-    /// 获取或设置错误详情 <see cref="NoelleErrorDetailDto"/> 
+    /// 错误详情 <see cref="NoelleErrorDetailDto"/> 
     /// </summary>
     public NoelleErrorDetailDto? ErrorDetail { get; set; }
 
     /// <summary>
-    /// 初始化 <see cref="NoelleRemoteCallException"/> 类的新实例
+    /// 创建一个新的 <see cref="NoelleRemoteCallException"/> 实例
     /// </summary>
     public NoelleRemoteCallException()
     {
     }
 
     /// <summary>
-    /// 使用指定的错误信息和内部异常初始化 <see cref="NoelleRemoteCallException"/> 类的新实例
+    /// 创建一个新的 <see cref="NoelleRemoteCallException"/> 实例
     /// </summary>
     /// <param name="message">错误信息</param>
     /// <param name="innerException">内部异常对象</param>

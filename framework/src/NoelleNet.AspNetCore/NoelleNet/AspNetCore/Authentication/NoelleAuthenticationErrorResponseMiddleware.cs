@@ -7,19 +7,19 @@ using System.Net;
 namespace NoelleNet.AspNetCore.Authentication;
 
 /// <summary>
-/// 处理身份认证错误响应的中间件。如果请求未通过身份认证，返回身份认证错误响应。
+/// 处理身份认证错误响应的中间件。如果请求未通过身份认证，返回身份认证错误响应
 /// </summary>
-/// <param name="next">下一个中间件请求委托。</param>
-/// <param name="localizer">本地化 <see cref="IStringLocalizer{T}"/> 的实例</param>
+/// <param name="next">下一个处理 HTTP 请求的函数</param>
+/// <param name="localizer">字符串本地化器</param>
 public class NoelleAuthenticationErrorResponseMiddleware(RequestDelegate next, IStringLocalizer<NoelleExceptionHandlingResource> localizer)
 {
-    private readonly RequestDelegate _next = next;
-    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer;
+    private readonly RequestDelegate _next = next ?? throw new ArgumentNullException(nameof(next));
+    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
 
     /// <summary>
     /// 处理请求。
     /// </summary>
-    /// <param name="context">当前 <see cref="HttpContext"/> 。</param>
+    /// <param name="context">当前的 <see cref="HttpContext"/></param>
     /// <returns></returns>
     public async Task InvokeAsync(HttpContext context)
     {
