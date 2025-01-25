@@ -9,11 +9,11 @@ namespace NoelleNet.Auditing;
 /// <typeparam name="TUser">创建和修改实体的用户标识符的类型</typeparam>
 public class AuditableEntity<TIdentifier, TUser> : Entity<TIdentifier>, IAuditableEntity<TUser>
 {
-    public DateTime CreatedAt { get; }
+    public DateTime CreatedAt { get; init; }
 
-    public TUser? CreatedBy { get; }
+    public TUser? CreatedBy { get; init; }
 
-    public DateTime? LastModifiedAt { get; }
+    public DateTime? LastModifiedAt { get; protected set; }
 
-    public TUser? LastModifiedBy { get; }
+    public TUser? LastModifiedBy { get; protected set; }
 }

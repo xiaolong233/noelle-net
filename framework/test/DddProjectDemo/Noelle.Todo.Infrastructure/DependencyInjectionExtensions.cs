@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.Infrastructure.Repositories;
+using NoelleNet;
 using NoelleNet.Auditing.EntityFrameworkCore;
 using NoelleNet.EntityFrameworkCore.Interceptors;
 
@@ -23,16 +24,21 @@ public static class DependencyInjectionExtensions
             options.UseOpenIddict();
 
             // 添加拦截器
+            options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAutoSetGuidKeyInterceptor>());
             options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAuditInterceptor<long>>());
             options.AddInterceptors(serviceProvider.GetRequiredService<NoelleDomainEventInterceptor>());
         }, ServiceLifetime.Scoped);
 
         // EF Core拦截器
+        services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
         services.AddScoped<NoelleAuditInterceptor<long>>();
         services.AddScoped<NoelleDomainEventInterceptor>();
 
         // 仓储配置
         services.AddScoped<ITodoItemRepository, TodoItemRepository>();
+
+        // 通用服务配置
+        services.AddSingleton<IGuidGenerator, NoelleGuidGenerator>();
 
         return services;
     }
