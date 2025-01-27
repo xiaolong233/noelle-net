@@ -12,9 +12,8 @@ public class TodoItem : AuditableEntity<Guid, long>, IAggregateRoot
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("待办事项名称为空", nameof(name));
 
-        Id = Guid.NewGuid();
         Name = name;
-
+        
         AddDomainEvent(new NoelleEntityCreatedEvent<TodoItem>(this));
     }
 

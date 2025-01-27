@@ -8,10 +8,10 @@ namespace System;
 public static class NoelleObjectExtensions
 {
     /// <summary>
-    /// 将源对象转换为指定类型 <typeparamref name="T"/>。
+    /// 将源对象转换为指定类型 <typeparamref name="T"/>
     /// </summary>
-    /// <typeparam name="T">目标类型。</typeparam>
-    /// <param name="source">需要转换的源对象。</param>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="source">需要转换的源对象</param>
     /// <returns></returns>
     public static T To<T>(this object source)
     {

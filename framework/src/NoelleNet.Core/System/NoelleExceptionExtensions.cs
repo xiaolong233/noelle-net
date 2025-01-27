@@ -15,8 +15,11 @@ public static class NoelleExceptionExtensions
     /// <returns></returns>
     public static T WithData<T>(this T e, string name, object? value) where T : Exception
     {
-        ArgumentNullException.ThrowIfNull(e, nameof(e));
+        ArgumentNullException.ThrowIfNull(e);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
         e.Data[name] = value;
+
         return e;
     }
 }

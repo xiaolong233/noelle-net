@@ -4,10 +4,16 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace NoelleNet.AspNetCore.Mvc;
 
 /// <summary>
-/// 根据 <see cref="IActionResult"/> 和 HTTP方法 设置 HTTP状态码
+/// 根据 <see cref="IActionResult"/> 和 HTTP 方法 设置 HTTP状态码
 /// </summary>
 public class NoelleActionResultStatusCodeFilter : IAsyncResultFilter
 {
+    /// <summary>
+    /// 在操作结果之前异步调用
+    /// </summary>
+    /// <param name="context">结果筛选器的上下文</param>
+    /// <param name="next">调用以执行下一个结果筛选器或结果本身</param>
+    /// <returns></returns>
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {
         string method = context.HttpContext.Request.Method;

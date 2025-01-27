@@ -9,7 +9,7 @@ public static class NoelleEnumerableExtensions
     /// 只有在 condition 为 true 时，才会根据 predicate 进行过滤
     /// </summary>
     /// <typeparam name="T">泛型类型</typeparam>
-    /// <param name="source">源 <see cref="IEnumerable"/> 实例</param>
+    /// <param name="source"><see cref="IEnumerable"/> 的实例</param>
     /// <param name="condition">条件</param>
     /// <param name="predicate">筛选表达式</param>
     /// <returns></returns>

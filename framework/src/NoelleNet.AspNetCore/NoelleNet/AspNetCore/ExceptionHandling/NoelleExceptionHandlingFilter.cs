@@ -11,17 +11,17 @@ namespace NoelleNet.AspNetCore.ExceptionHandling;
 /// <remarks>
 /// 构造函数
 /// </remarks>
-/// <param name="converter"></param>
-/// <param name="finder"></param>
+/// <param name="converter">异常信息转换器</param>
+/// <param name="finder">HTTP错误状态码查找器</param>
 public class NoelleExceptionHandlingFilter(IExceptionToErrorConverter converter, IHttpExceptionStatusCodeFinder finder) : IAsyncExceptionFilter
 {
-    private readonly IExceptionToErrorConverter _converter = converter;
-    private readonly IHttpExceptionStatusCodeFinder _finder = finder;
+    private readonly IExceptionToErrorConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    private readonly IHttpExceptionStatusCodeFinder _finder = finder ?? throw new ArgumentNullException(nameof(finder));
 
     /// <summary>
-    /// 处理异常
+    /// 在操作引发 <see cref="Exception"/> 后调用 
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">异常上下文</param>
     /// <returns></returns>
     public Task OnExceptionAsync(ExceptionContext context)
     {
@@ -35,7 +35,7 @@ public class NoelleExceptionHandlingFilter(IExceptionToErrorConverter converter,
         if (statusCode == HttpStatusCode.InternalServerError)
         {
             ILogger<NoelleExceptionHandlingFilter> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<NoelleExceptionHandlingFilter>>();
-            logger.LogError(new EventId(context.Exception.HResult), context.Exception, message: context.Exception.Message, args: []);
+            logger.LogError(new EventId(context.Exception.HResult), context.Exception, context.Exception.Message, []);
         }
 
         context.HttpContext.Response.StatusCode = (int)statusCode;

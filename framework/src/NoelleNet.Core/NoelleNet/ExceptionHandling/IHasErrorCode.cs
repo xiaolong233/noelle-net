@@ -6,7 +6,7 @@
 public interface IHasErrorCode
 {
     /// <summary>
-    /// 获取或设置错误代码
+    /// 错误代码
     /// </summary>
     string? ErrorCode { get; }
 }

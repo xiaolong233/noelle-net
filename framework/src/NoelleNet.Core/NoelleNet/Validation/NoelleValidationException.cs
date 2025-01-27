@@ -8,7 +8,7 @@ namespace NoelleNet.Validation;
 public class NoelleValidationException : Exception, IHasValidationResults
 {
     /// <summary>
-    /// 构造函数
+    /// 创建一个新的 <see cref="NoelleValidationException"/> 实例
     /// </summary>
     /// <param name="message">异常信息</param>
     /// <param name="validationResults">模型验证结果集</param>
@@ -20,7 +20,7 @@ public class NoelleValidationException : Exception, IHasValidationResults
     }
 
     /// <summary>
-    /// 构造函数
+    /// 创建一个新的 <see cref="NoelleValidationException"/> 实例
     /// </summary>
     /// <param name="validationResults">模型验证结果集</param>
     public NoelleValidationException(IEnumerable<ValidationResult> validationResults) : this("发生一个或多个验证错误", validationResults)

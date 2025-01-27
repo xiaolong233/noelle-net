@@ -13,9 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.AspNetCore", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Extensions.MediatR", "src\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj", "{DEA0D74A-4B59-4262-9983-2AD1DB702F37}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.MySql", "src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.EntityFrameworkCore.CAP.MySql.csproj", "{DC511E97-499A-4850-BA66-4D8FDAAF6312}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Extensions.CAP.MySql", "src\NoelleNet.EntityFrameworkCore.CAP.MySql\NoelleNet.Extensions.CAP.MySql.csproj", "{DC511E97-499A-4850-BA66-4D8FDAAF6312}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.EntityFrameworkCore.CAP.SqlServer", "src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.EntityFrameworkCore.CAP.SqlServer.csproj", "{A6D38978-EAF2-4EA7-9516-29392561B32F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Extensions.CAP.SqlServer", "src\NoelleNet.EntityFrameworkCore.CAP.SqlServer\NoelleNet.Extensions.CAP.SqlServer.csproj", "{A6D38978-EAF2-4EA7-9516-29392561B32F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoelleNet.Auditing", "src\NoelleNet.Auditing\NoelleNet.Auditing.csproj", "{66E8DE4E-A4F0-4A63-B221-55430D225E52}"
 EndProject
