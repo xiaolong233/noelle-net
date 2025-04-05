@@ -8,15 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetCore.CAP" Version="8.3.2" />
-    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.3.2" />
-    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.2" />
-    <PackageReference Include="OpenIddict.AspNetCore" Version="6.0.0" />
-    <PackageReference Include="OpenIddict.Quartz" Version="6.0.0" />
-    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
+    <PackageReference Include="DotNetCore.CAP" Version="8.3.3" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.3.3" />
+    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.3" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="6.2.0" />
+    <PackageReference Include="OpenIddict.Quartz" Version="6.2.0" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>
