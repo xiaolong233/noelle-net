@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\CommonProps.props" />
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace />
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="8.3.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
+	  <ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
+	</ItemGroup>
+
+</Project>
