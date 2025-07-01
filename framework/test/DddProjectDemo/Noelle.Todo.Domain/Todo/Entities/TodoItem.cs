@@ -1,19 +1,19 @@
-﻿using NoelleNet;
-using NoelleNet.Auditing;
+﻿using NoelleNet.Auditing;
 using NoelleNet.Ddd.Domain.Entities;
 using NoelleNet.Ddd.Domain.Events;
 
 namespace Noelle.Todo.Domain.Todo.Entities;
 
-public class TodoItem : AuditableEntity<Guid, long>, IAggregateRoot
+public class TodoItem : AuditableEntityBase<Guid, long>, IAggregateRoot
 {
     public TodoItem(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("待办事项名称为空", nameof(name));
 
+        Id = Guid.NewGuid();
         Name = name;
-        
+
         AddDomainEvent(new NoelleEntityCreatedEvent<TodoItem>(this));
     }
 

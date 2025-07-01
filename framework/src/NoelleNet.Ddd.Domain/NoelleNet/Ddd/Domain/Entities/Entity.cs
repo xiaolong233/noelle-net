@@ -13,7 +13,7 @@ public class Entity<TIdentifier> : IHasDomainEvents
     /// <summary>
     /// 实体标识符
     /// </summary>
-    public virtual TIdentifier? Id { get; init; }
+    public virtual TIdentifier? Id { get; protected set; }
 
     /// <summary>
     /// 判断该实体是否为瞬时的

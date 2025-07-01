@@ -28,7 +28,7 @@ public class CreateTodoItemCommandHandler(ITodoItemRepository repository, ICapPu
 
         _repository.AddTodoItem(item);
 
-        await _capPublisher.PublishAsync("todo.create_todo_item", new CreateTodoItemIntegrationEvent(item.Name));
+        await _capPublisher.PublishAsync("todo.create_todo_item", new CreateTodoItemIntegrationEvent(item.Name), string.Empty, cancellationToken);
 
         //throw new Exception("发生异常了喵！");
 
