@@ -12,7 +12,7 @@ public interface IModificationAuditable<TLastModifiedBy>
     DateTime? LastModifiedAt { get; }
 
     /// <summary>
-    /// 最后修改者
+    /// 最后修改人
     /// </summary>
     TLastModifiedBy? LastModifiedBy { get; }
 }

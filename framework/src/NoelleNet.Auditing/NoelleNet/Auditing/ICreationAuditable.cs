@@ -12,7 +12,7 @@ public interface ICreationAuditable<TCreatedBy>
     DateTime CreatedAt { get; }
 
     /// <summary>
-    /// 创建者
+    /// 创建人
     /// </summary>
     TCreatedBy? CreatedBy { get; }
 }
