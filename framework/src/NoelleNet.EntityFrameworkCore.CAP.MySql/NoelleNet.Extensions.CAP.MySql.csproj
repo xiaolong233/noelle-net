@@ -11,7 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DotNetCore.CAP.MySql" Version="8.3.3" />
+		<PackageReference Include="DotNetCore.CAP.MySql" Version="8.3.5" />
 	</ItemGroup>
 
 	<ItemGroup>

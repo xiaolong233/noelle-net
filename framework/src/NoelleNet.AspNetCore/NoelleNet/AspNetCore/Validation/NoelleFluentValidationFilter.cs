@@ -39,7 +39,7 @@ public class NoelleFluentValidationFilter : IAsyncActionFilter
             if (validationResult.IsValid)
                 continue;
 
-            results.AddRange(validationResult.Errors.Select(e => new ValidationResult(e.ErrorMessage, new string[] { e.PropertyName })));
+            results.AddRange(validationResult.Errors.Select(e => new ValidationResult(e.ErrorMessage, [e.PropertyName])));
         }
 
         if (results.Count > 0)
