@@ -11,6 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\NoelleNet.Auditing\NoelleNet.Auditing.csproj" />
 		<ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
 		<ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
 	</ItemGroup>
