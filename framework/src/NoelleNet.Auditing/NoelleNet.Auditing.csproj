@@ -10,8 +10,4 @@
 		<RootNamespace />
 	</PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
-	</ItemGroup>
-
 </Project>
