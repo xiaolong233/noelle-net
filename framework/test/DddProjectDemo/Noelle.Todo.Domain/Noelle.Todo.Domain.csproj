@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\NoelleNet.Auditing\NoelleNet.Auditing.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.Core\NoelleNet.Core.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
   </ItemGroup>
