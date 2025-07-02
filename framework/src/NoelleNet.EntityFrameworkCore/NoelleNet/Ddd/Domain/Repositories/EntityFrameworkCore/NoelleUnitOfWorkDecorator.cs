@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NoelleNet.Ddd.Domain.Repositories;
 
-namespace NoelleNet.EntityFrameworkCore.Domain.Repositories;
+namespace NoelleNet.Ddd.Domain.Repositories.EntityFrameworkCore;
 
 /// <summary>
 /// 工作单元装饰器

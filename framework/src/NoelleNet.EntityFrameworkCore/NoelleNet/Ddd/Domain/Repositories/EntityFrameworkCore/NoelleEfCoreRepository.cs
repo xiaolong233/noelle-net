@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoelleNet.Ddd.Domain.Entities;
-using NoelleNet.Ddd.Domain.Repositories;
 
-namespace NoelleNet.EntityFrameworkCore.Domain.Repositories;
+namespace NoelleNet.Ddd.Domain.Repositories.EntityFrameworkCore;
 
 /// <summary>
 /// 基于EfCore的 <see cref="INoelleRepository{T}"/> 实现
