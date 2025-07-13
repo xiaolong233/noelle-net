@@ -31,9 +31,9 @@ public class NoelleExceptionToErrorConverter(
     /// <param name="exception">需要进行转换处理的异常对象</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public NoelleErrorDetailDto Covert(Exception exception)
+    public NoelleErrorDto Covert(Exception exception)
     {
-        NoelleErrorDetailDto error = CreateError(exception);
+        NoelleErrorDto error = CreateError(exception);
         if (exception is IHasErrorCode hasErrorCode)
             error.Code = hasErrorCode.ErrorCode;
 
@@ -44,10 +44,10 @@ public class NoelleExceptionToErrorConverter(
     /// 根据传入的异常创建相应的错误详情对象
     /// </summary>
     /// <param name="e">捕获的异常对象</param>
-    /// <returns>返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象</returns>
-    protected virtual NoelleErrorDetailDto CreateError(Exception e)
+    /// <returns>返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象</returns>
+    protected virtual NoelleErrorDto CreateError(Exception e)
     {
-        NoelleErrorDetailDto? detailDto = TryCreateValidationFailError(e);
+        NoelleErrorDto? detailDto = TryCreateValidationFailError(e);
         if (detailDto != null)
             return detailDto;
 
@@ -67,15 +67,15 @@ public class NoelleExceptionToErrorConverter(
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["InternalServerErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.InternalServerError };
+        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.InternalServerError };
     }
 
     /// <summary>
     /// 尝试创建验证失败错误详情对象
     /// </summary>
     /// <param name="e">捕获的异常对象</param>
-    /// <returns>如果异常包含验证错误，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
-    protected virtual NoelleErrorDetailDto? TryCreateValidationFailError(Exception e)
+    /// <returns>如果异常包含验证错误，返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象；否则返回 null</returns>
+    protected virtual NoelleErrorDto? TryCreateValidationFailError(Exception e)
     {
         string message = e.Message;
         if (string.IsNullOrWhiteSpace(message))
@@ -83,8 +83,8 @@ public class NoelleExceptionToErrorConverter(
 
         if (e is ValidationException validationException)
         {
-            var errors = validationException.ValidationResult.MemberNames.Select(m => new NoelleErrorDetailDto(validationException.ValidationResult.ErrorMessage ?? string.Empty) { Target = m });
-            var detailDto = new NoelleErrorDetailDto(message)
+            var errors = validationException.ValidationResult.MemberNames.Select(m => new NoelleErrorDto(validationException.ValidationResult.ErrorMessage ?? string.Empty) { Target = m });
+            var detailDto = new NoelleErrorDto(message)
             {
                 Code = NoelleErrorCodeConstants.ValidationFailed,
                 Details = errors
@@ -94,10 +94,10 @@ public class NoelleExceptionToErrorConverter(
 
         if (e is IHasValidationResults validationResults)
         {
-            var detailDto = new NoelleErrorDetailDto(message)
+            var detailDto = new NoelleErrorDto(message)
             {
                 Code = NoelleErrorCodeConstants.ValidationFailed,
-                Details = validationResults.ValidationResults.SelectMany(s => s.MemberNames.Select(m => new NoelleErrorDetailDto(s.ErrorMessage ?? string.Empty) { Target = m }))
+                Details = validationResults.ValidationResults.SelectMany(s => s.MemberNames.Select(m => new NoelleErrorDto(s.ErrorMessage ?? string.Empty) { Target = m }))
             };
             return detailDto;
         }
@@ -109,8 +109,8 @@ public class NoelleExceptionToErrorConverter(
     /// 尝试创建资源未找到错误详情对象
     /// </summary>
     /// <param name="e">捕获的异常对象</param>
-    /// <returns>如果异常是 <see cref="NoelleNotFoundException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
-    protected virtual NoelleErrorDetailDto? TryCreateNotFoundError(Exception e)
+    /// <returns>如果异常是 <see cref="NoelleNotFoundException"/>，返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象；否则返回 null</returns>
+    protected virtual NoelleErrorDto? TryCreateNotFoundError(Exception e)
     {
         if (e is not NoelleNotFoundException)
             return null;
@@ -121,15 +121,15 @@ public class NoelleExceptionToErrorConverter(
         else if (string.IsNullOrWhiteSpace(message))
             message = _localizer["NotFoundErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.NotFound };
+        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.NotFound };
     }
 
     /// <summary>
     /// 尝试创建冲突错误详情对象
     /// </summary>
     /// <param name="e">捕获的异常对象</param>
-    /// <returns>如果异常是 <see cref="NoelleConflictException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
-    protected virtual NoelleErrorDetailDto? TryCreateConflictError(Exception e)
+    /// <returns>如果异常是 <see cref="NoelleConflictException"/>，返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象；否则返回 null</returns>
+    protected virtual NoelleErrorDto? TryCreateConflictError(Exception e)
     {
         if (e is not NoelleConflictException)
             return null;
@@ -138,15 +138,15 @@ public class NoelleExceptionToErrorConverter(
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["ConflictErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.Conflict };
+        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.Conflict };
     }
 
     /// <summary>
     /// 尝试创建远程调用错误详情对象
     /// </summary>
     /// <param name="e">捕获的异常对象</param>
-    /// <returns>如果异常是 <see cref="NoelleRemoteCallException"/>，返回包含错误详情的 <see cref="NoelleErrorDetailDto"/> 对象；否则返回 null</returns>
-    protected virtual NoelleErrorDetailDto? TryCreateRemoteCallError(Exception e)
+    /// <returns>如果异常是 <see cref="NoelleRemoteCallException"/>，返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象；否则返回 null</returns>
+    protected virtual NoelleErrorDto? TryCreateRemoteCallError(Exception e)
     {
         if (e is not NoelleRemoteCallException remoteCallException)
             return null;
@@ -158,7 +158,7 @@ public class NoelleExceptionToErrorConverter(
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["RemoteCallErrorMessage"];
 
-        return new NoelleErrorDetailDto(message) { Code = NoelleErrorCodeConstants.RemoteCallFailed };
+        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.RemoteCallFailed };
     }
 
     /// <summary>

@@ -26,7 +26,7 @@ public class NoelleExceptionHandlingFilter(IExceptionToErrorConverter converter,
     public Task OnExceptionAsync(ExceptionContext context)
     {
         // 把异常对象转换成错误信息对象
-        NoelleErrorDetailDto error = _converter.Covert(context.Exception);
+        NoelleErrorDto error = _converter.Covert(context.Exception);
 
         // 根据异常获取对应的HTTP状态码
         HttpStatusCode statusCode = _finder.GetStatusCode(context.HttpContext, context.Exception);
