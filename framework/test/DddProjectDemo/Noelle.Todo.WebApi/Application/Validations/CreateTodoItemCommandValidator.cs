@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 using Noelle.Todo.WebApi.Application.Commands;
 
 namespace Noelle.Todo.WebApi.Application.Validations;
@@ -13,6 +14,9 @@ public class CreateTodoItemCommandValidator : AbstractValidator<CreateTodoItemCo
     /// </summary>
     public CreateTodoItemCommandValidator()
     {
+        RuleFor(x => x)
+            .NotNull();
+
         RuleFor(s => s.Name)
             .NotEmpty()
             .WithMessage("待办事项名称为空");
