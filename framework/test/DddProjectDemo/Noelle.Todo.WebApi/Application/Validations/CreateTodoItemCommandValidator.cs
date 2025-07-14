@@ -13,6 +13,8 @@ public class CreateTodoItemCommandValidator : AbstractValidator<CreateTodoItemCo
     /// </summary>
     public CreateTodoItemCommandValidator()
     {
-        RuleFor(s => s.Name).NotNull().NotEmpty().WithMessage("待办事项名称为空");
+        RuleFor(s => s.Name)
+            .NotEmpty()
+            .WithMessage("待办事项名称为空");
     }
 }

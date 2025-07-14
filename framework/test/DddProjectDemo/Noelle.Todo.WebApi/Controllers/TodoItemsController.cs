@@ -54,6 +54,7 @@ namespace Noelle.Todo.WebApi.Controllers
         /// <param name="command"></param>
         /// <returns></returns>
         [HttpPost]
+        [AllowAnonymous]
         public Task<TodoItemDto> CreateAsync(CreateTodoItemCommand command)
         {
             return _mediator.Send(command);
