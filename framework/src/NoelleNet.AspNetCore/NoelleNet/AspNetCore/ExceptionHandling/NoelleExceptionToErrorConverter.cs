@@ -12,30 +12,51 @@ namespace NoelleNet.AspNetCore.ExceptionHandling;
 /// <summary>
 /// <see cref="IExceptionToErrorConverter"/> 的默认实现
 /// </summary>
-/// <param name="localizer">字符串本地化器</param>
-/// <param name="localizerFactory">字符串本地化工厂</param>
-/// <param name="localizationOptions">本地化选项</param>
-public class NoelleExceptionToErrorConverter(
-    IStringLocalizer<NoelleExceptionHandlingResource> localizer,
-    IStringLocalizerFactory localizerFactory,
-    IOptions<NoelleExceptionLocalizationOptions> localizationOptions
-    ) : IExceptionToErrorConverter
+public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
 {
-    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
-    private readonly IStringLocalizerFactory _localizerFactory = localizerFactory ?? throw new ArgumentNullException(nameof(localizerFactory));
-    private readonly IOptions<NoelleExceptionLocalizationOptions> _localizationOptions = localizationOptions ?? throw new ArgumentNullException(nameof(localizationOptions));
+    private readonly IStringLocalizer<NoelleExceptionHandlingResource> _localizer;
+    private readonly IStringLocalizerFactory _localizerFactory;
+    private readonly IOptions<NoelleExceptionLocalizationOptions> _localizationOptions;
+    private readonly IWebHostEnvironment _env;
 
     /// <summary>
-    /// 转换处理
+    /// 创建一个新的 <see cref="NoelleExceptionToErrorConverter"/> 实例
     /// </summary>
-    /// <param name="exception">需要进行转换处理的异常对象</param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public NoelleErrorDto Covert(Exception exception)
+    /// <param name="localizer">字符串本地化器</param>
+    /// <param name="localizerFactory">字符串本地化工厂</param>
+    /// <param name="localizationOptions">本地化选项</param>
+    /// <param name="env">环境变量</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public NoelleExceptionToErrorConverter(
+        IStringLocalizer<NoelleExceptionHandlingResource> localizer,
+        IStringLocalizerFactory localizerFactory,
+        IOptions<NoelleExceptionLocalizationOptions> localizationOptions,
+        IWebHostEnvironment env)
     {
+        _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
+        _localizerFactory = localizerFactory ?? throw new ArgumentNullException(nameof(localizerFactory));
+        _localizationOptions = localizationOptions ?? throw new ArgumentNullException(nameof(localizationOptions));
+        _env = env ?? throw new ArgumentNullException(nameof(env));
+    }
+
+    /// <inheritdoc />
+    public NoelleErrorDto Covert(Exception exception, Action<NoelleExceptionToErrorConvertOptions>? optionsBuilder = null)
+    {
+        var options = CreateDefaultOptions();
+        optionsBuilder?.Invoke(options);
+
         NoelleErrorDto error = CreateError(exception);
-        if (exception is IHasErrorCode hasErrorCode)
+
+        // 处理错误代码
+        if (exception is IHasErrorCode hasErrorCode && !string.IsNullOrWhiteSpace(hasErrorCode.ErrorCode))
             error.Code = hasErrorCode.ErrorCode;
+
+        // 处理调试信息
+        if (options.IncludeDebugInfo || _env.IsDevelopment())
+        {
+            string traceId = options.TraceIdProvider?.Invoke() ?? Guid.NewGuid().ToString();
+            error.InnerError = TryCreateInnerError(traceId, exception);
+        }
 
         return error;
     }
@@ -47,27 +68,27 @@ public class NoelleExceptionToErrorConverter(
     /// <returns>返回包含错误详情的 <see cref="NoelleErrorDto"/> 对象</returns>
     protected virtual NoelleErrorDto CreateError(Exception e)
     {
-        NoelleErrorDto? detailDto = TryCreateValidationFailError(e);
-        if (detailDto != null)
-            return detailDto;
+        NoelleErrorDto? error = TryCreateValidationFailError(e);
+        if (error != null)
+            return error;
 
-        detailDto = TryCreateNotFoundError(e);
-        if (detailDto != null)
-            return detailDto;
+        error = TryCreateNotFoundError(e);
+        if (error != null)
+            return error;
 
-        detailDto = TryCreateConflictError(e);
-        if (detailDto != null)
-            return detailDto;
+        error = TryCreateConflictError(e);
+        if (error != null)
+            return error;
 
-        detailDto = TryCreateRemoteCallError(e);
-        if (detailDto != null)
-            return detailDto;
+        error = TryCreateRemoteCallError(e);
+        if (error != null)
+            return error;
 
         string message = TryGetMessageFromErrorCode(e) ?? e.Message;
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["InternalServerErrorMessage"];
 
-        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.InternalServerError };
+        return new NoelleErrorDto(NoelleErrorCodeConstants.InternalServerError, message);
     }
 
     /// <summary>
@@ -121,7 +142,7 @@ public class NoelleExceptionToErrorConverter(
         else if (string.IsNullOrWhiteSpace(message))
             message = _localizer["NotFoundErrorMessage"];
 
-        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.NotFound };
+        return new NoelleErrorDto(NoelleErrorCodeConstants.NotFound, message);
     }
 
     /// <summary>
@@ -138,7 +159,7 @@ public class NoelleExceptionToErrorConverter(
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["ConflictErrorMessage"];
 
-        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.Conflict };
+        return new NoelleErrorDto(NoelleErrorCodeConstants.Conflict, message);
     }
 
     /// <summary>
@@ -158,7 +179,7 @@ public class NoelleExceptionToErrorConverter(
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["RemoteCallErrorMessage"];
 
-        return new NoelleErrorDto(message) { Code = NoelleErrorCodeConstants.RemoteCallFailed };
+        return new NoelleErrorDto(NoelleErrorCodeConstants.RemoteCallFailed, message);
     }
 
     /// <summary>
@@ -199,5 +220,37 @@ public class NoelleExceptionToErrorConverter(
         }
 
         return localizedValue;
+    }
+
+    /// <summary>
+    /// 尝试创建内部错误对象
+    /// </summary>
+    /// <param name="traceId">跟踪标识</param>
+    /// <param name="e">异常信息实例</param>
+    /// <returns></returns>
+    protected virtual NoelleInnerErrorDto? TryCreateInnerError(string traceId, Exception e)
+    {
+        var innerError = new NoelleDebugInnerErrorDto(traceId, e)
+        {
+            Code = e.GetType().Name,
+        };
+
+        if (e.InnerException != null)
+            innerError.InnerError = TryCreateInnerError(traceId, e.InnerException);
+
+        return innerError;
+    }
+
+    /// <summary>
+    /// 创建默认选项的实例
+    /// </summary>
+    /// <returns></returns>
+    protected virtual NoelleExceptionToErrorConvertOptions CreateDefaultOptions()
+    {
+        return new NoelleExceptionToErrorConvertOptions
+        {
+            TraceIdProvider = () => Guid.NewGuid().ToString(),
+            IncludeDebugInfo = false
+        };
     }
 }

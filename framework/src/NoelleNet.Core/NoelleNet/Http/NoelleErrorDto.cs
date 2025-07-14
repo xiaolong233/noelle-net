@@ -6,6 +6,22 @@
 /// <param name="message">错误消息</param>
 public class NoelleErrorDto
 {
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleErrorDto"/> 实例
+    /// </summary>
+    /// <param name="message">错误信息</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public NoelleErrorDto(string message)
+    {
+        Message = message ?? throw new ArgumentNullException(nameof(message));
+    }
+
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleErrorDto"/> 实例
+    /// </summary>
+    /// <param name="code">错误代码</param>
+    /// <param name="message">错误信息</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public NoelleErrorDto(string code, string message)
     {
         Code = code ?? throw new ArgumentNullException(nameof(code));
@@ -15,10 +31,10 @@ public class NoelleErrorDto
     /// <summary>
     /// 错误代码
     /// </summary>
-    public string Code { get; set; }
+    public string? Code { get; set; }
 
     /// <summary>
-    /// 错误消息
+    /// 错误信息
     /// </summary>
     public string Message { get; set; }
 
