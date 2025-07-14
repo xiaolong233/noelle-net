@@ -51,5 +51,5 @@ public class NoelleErrorDto
     /// <summary>
     /// 内部错误
     /// </summary>
-    public NoelleInnerErrorDto? InnerError { get; set; }
+    public dynamic? InnerError { get; set; }
 }
