@@ -18,21 +18,22 @@ public class NoelleFluentValidationFilter : IAsyncActionFilter
     /// <returns></returns>
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        // 遍历Action的参数
         List<ValidationResult> results = [];
-        foreach (var parameter in context.ActionDescriptor.Parameters)
+
+        // 遍历所有参数
+        foreach (var argument in context.ActionArguments.Values)
         {
+            if (argument == null)
+                continue;
+
             // 获取该参数类型的IValidator的实例对象
-            Type validatorType = typeof(IValidator<>).MakeGenericType(parameter.ParameterType);
+            Type validatorType = typeof(IValidator<>).MakeGenericType(argument.GetType());
             if (context.HttpContext.RequestServices.GetService(validatorType) is not IValidator validator)
                 continue;
 
-            // 获取参数值
-            context.ActionArguments.TryGetValue(parameter.Name, out object? value);
-
             // 创建IValidationContext实例
-            Type validationContextType = typeof(ValidationContext<>).MakeGenericType(parameter.ParameterType);
-            IValidationContext? validationContext = Activator.CreateInstance(validationContextType, value) as IValidationContext;
+            Type validationContextType = typeof(ValidationContext<>).MakeGenericType(argument.GetType());
+            IValidationContext? validationContext = Activator.CreateInstance(validationContextType, argument) as IValidationContext;
 
             // 验证模型，并获取验证结果
             var validationResult = await validator.ValidateAsync(validationContext);

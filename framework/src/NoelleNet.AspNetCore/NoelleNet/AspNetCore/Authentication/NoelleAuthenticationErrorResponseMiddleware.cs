@@ -28,7 +28,7 @@ public class NoelleAuthenticationErrorResponseMiddleware(RequestDelegate next, I
         if (context.Response.HasStarted || context.Response.StatusCode != (int)HttpStatusCode.Unauthorized)
             return;
 
-        var error = new NoelleErrorDetailDto(_localizer["UnauthorizedErrorMessage"]) { Code = NoelleErrorCodeConstants.Unauthorized };
+        var error = new NoelleErrorDto(_localizer["UnauthorizedErrorMessage"]) { Code = NoelleErrorCodes.Unauthorized };
         var response = new NoelleErrorResponseDto(error);
         await context.Response.WriteAsJsonAsync(response);
     }

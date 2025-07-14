@@ -33,9 +33,9 @@ public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatu
     public object? Payload { get; set; }
 
     /// <summary>
-    /// 错误详情 <see cref="NoelleErrorDetailDto"/> 
+    /// 错误详情 <see cref="NoelleErrorDto"/> 
     /// </summary>
-    public NoelleErrorDetailDto? ErrorDetail { get; set; }
+    public NoelleErrorDto? ErrorDetail { get; set; }
 
     /// <summary>
     /// 创建一个新的 <see cref="NoelleRemoteCallException"/> 实例

@@ -13,6 +13,7 @@ public class ChangeTodoItemNameCommandValidator : AbstractValidator<ChangeTodoIt
     /// </summary>
     public ChangeTodoItemNameCommandValidator()
     {
-        RuleFor(s => s.NewName).NotNull().NotEmpty().WithMessage("新的待办事项名称为空");
+        RuleFor(s => s.NewName)
+            .NotEmpty().WithMessage("新的待办事项名称为空");
     }
 }
