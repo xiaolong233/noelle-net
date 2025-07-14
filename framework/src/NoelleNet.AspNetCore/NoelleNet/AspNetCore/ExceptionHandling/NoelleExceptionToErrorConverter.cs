@@ -88,7 +88,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["InternalServerErrorMessage"];
 
-        return new NoelleErrorDto(NoelleErrorCodeConstants.InternalServerError, message);
+        return new NoelleErrorDto(NoelleErrorCodes.InternalServerError, message);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
             var errors = validationException.ValidationResult.MemberNames.Select(m => new NoelleErrorDto(validationException.ValidationResult.ErrorMessage ?? string.Empty) { Target = m });
             var detailDto = new NoelleErrorDto(message)
             {
-                Code = NoelleErrorCodeConstants.ValidationFailed,
+                Code = NoelleErrorCodes.ValidationFailed,
                 Details = errors
             };
             return detailDto;
@@ -117,7 +117,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         {
             var detailDto = new NoelleErrorDto(message)
             {
-                Code = NoelleErrorCodeConstants.ValidationFailed,
+                Code = NoelleErrorCodes.ValidationFailed,
                 Details = validationResults.ValidationResults.SelectMany(s => s.MemberNames.Select(m => new NoelleErrorDto(s.ErrorMessage ?? string.Empty) { Target = m }))
             };
             return detailDto;
@@ -142,7 +142,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         else if (string.IsNullOrWhiteSpace(message))
             message = _localizer["NotFoundErrorMessage"];
 
-        return new NoelleErrorDto(NoelleErrorCodeConstants.NotFound, message);
+        return new NoelleErrorDto(NoelleErrorCodes.NotFound, message);
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["ConflictErrorMessage"];
 
-        return new NoelleErrorDto(NoelleErrorCodeConstants.Conflict, message);
+        return new NoelleErrorDto(NoelleErrorCodes.Conflict, message);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         if (string.IsNullOrWhiteSpace(message))
             message = _localizer["RemoteCallErrorMessage"];
 
-        return new NoelleErrorDto(NoelleErrorCodeConstants.RemoteCallFailed, message);
+        return new NoelleErrorDto(NoelleErrorCodes.RemoteCallFailed, message);
     }
 
     /// <summary>

@@ -28,7 +28,7 @@ public class NoelleAuthorizationErrorResponseMiddleware(RequestDelegate next, IS
         if (context.Response.HasStarted || context.Response.StatusCode != (int)HttpStatusCode.Forbidden)
             return;
 
-        var error = new NoelleErrorDto(NoelleErrorCodeConstants.Forbidden, _localizer["ForbiddenErrorMessage"]);
+        var error = new NoelleErrorDto(NoelleErrorCodes.Forbidden, _localizer["ForbiddenErrorMessage"]);
         var response = new NoelleErrorResponseDto(error);
         await context.Response.WriteAsJsonAsync(response);
     }
