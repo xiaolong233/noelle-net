@@ -40,6 +40,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.Extensions.CAP.My
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.Extensions.CAP.SqlServer", "src\NoelleNet.Extensions.CAP.SqlServer\NoelleNet.Extensions.CAP.SqlServer.csproj", "{D3066BC9-B5DF-F10B-18EC-E41BB622F9FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoelleNet.EventBus", "src\NoelleNet.EventBus\NoelleNet.EventBus.csproj", "{311746ED-46B2-4F05-B847-CDF067B7E6C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +100,10 @@ Global
 		{D3066BC9-B5DF-F10B-18EC-E41BB622F9FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3066BC9-B5DF-F10B-18EC-E41BB622F9FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3066BC9-B5DF-F10B-18EC-E41BB622F9FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311746ED-46B2-4F05-B847-CDF067B7E6C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311746ED-46B2-4F05-B847-CDF067B7E6C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311746ED-46B2-4F05-B847-CDF067B7E6C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311746ED-46B2-4F05-B847-CDF067B7E6C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +123,7 @@ Global
 		{71597299-F13E-4680-BF82-847DCFAA07CF} = {F25EE19B-87D4-43F0-A082-4E280B7C9BD9}
 		{75498301-7FD3-E970-741A-9EFA7EF6D09B} = {F25EE19B-87D4-43F0-A082-4E280B7C9BD9}
 		{D3066BC9-B5DF-F10B-18EC-E41BB622F9FD} = {F25EE19B-87D4-43F0-A082-4E280B7C9BD9}
+		{311746ED-46B2-4F05-B847-CDF067B7E6C2} = {F25EE19B-87D4-43F0-A082-4E280B7C9BD9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8564D89B-3ADA-4DE6-939B-15439B435EAA}
