@@ -1,4 +1,6 @@
-﻿namespace NoelleNet.Uow;
+﻿using System.Data;
+
+namespace NoelleNet.Uow;
 
 /// <summary>
 /// 事务管理器接口
@@ -21,6 +23,14 @@ public interface ITransactionManager : IDisposable, IAsyncDisposable
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>
     Task BeginAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 启用一个新的事务
+    /// </summary>
+    /// <param name="isolationLevel">指定连接的事务锁定行为</param>
+    /// <param name="cancellationToken">传播取消操作的通知</param>
+    /// <returns></returns>
+    Task BeginAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 提交对当前事务中数据库所做的所有更改

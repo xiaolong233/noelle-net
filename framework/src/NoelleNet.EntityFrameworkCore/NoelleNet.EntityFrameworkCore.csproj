@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Ddd.Domain\NoelleNet.Ddd.Domain.csproj" />
+		<ProjectReference Include="..\NoelleNet.Uow\NoelleNet.Uow.csproj" />
 	</ItemGroup>
 
 </Project>
