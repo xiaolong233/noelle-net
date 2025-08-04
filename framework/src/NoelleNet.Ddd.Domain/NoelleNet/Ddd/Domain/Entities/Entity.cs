@@ -4,7 +4,7 @@
 /// 实体基类
 /// </summary>
 /// <typeparam name="TIdentifier">实体标识符的数据类型</typeparam>
-public class Entity<TIdentifier>
+public class Entity<TIdentifier> : IEntity
 {
     private int? _requestedHashCode;
 

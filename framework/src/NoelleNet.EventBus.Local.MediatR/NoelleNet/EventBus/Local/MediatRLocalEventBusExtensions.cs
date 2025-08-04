@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoelleNet.EventBus.Abstractions.Local;
 using NoelleNet.EventBus.Local.MediatR;
 
@@ -22,6 +24,7 @@ public static class MediatRLocalEventBusExtensions
 
         // 注册MediatR
         configuration.Services.AddMediatR(configure);
+        configuration.Services.TryAddTransient<INotificationHandler<LocalEventAdapter>, LocalEventHandlerAdapter>();
 
         return configuration;
     }

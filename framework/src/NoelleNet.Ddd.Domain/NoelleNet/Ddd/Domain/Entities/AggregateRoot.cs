@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using NoelleNet.Ddd.Domain.Events;
 
 namespace NoelleNet.Ddd.Domain.Entities;
 
@@ -9,34 +9,30 @@ namespace NoelleNet.Ddd.Domain.Entities;
 public class AggregateRoot<TIdentifier> : Entity<TIdentifier>, IAggregateRoot, IHasDomainEvents
 {
     #region 领域事件
-    private readonly List<INotification> _domainEvents = [];
+    private readonly List<IDomainEvent> _domainEvents = [];
+
+    /// <inheritdoc/>
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     /// <summary>
-    /// 返回当前实体的领域事件的只读集合
+    /// 添加一个领域事件
     /// </summary>
-    public IReadOnlyCollection<INotification> DomainEvents => _domainEvents.AsReadOnly();
-
-    /// <summary>
-    /// 添加一个领域事件项 
-    /// </summary>
-    /// <param name="eventItem">领域事件项</param>
-    public void AddDomainEvent(INotification eventItem)
+    /// <param name="eventData">待添加的领域事件</param>
+    protected void AddDomainEvent(IDomainEvent eventData)
     {
-        _domainEvents.Add(eventItem);
+        _domainEvents.Add(eventData);
     }
 
     /// <summary>
-    /// 删除一个领域事件项
+    /// 移除一个领域事件
     /// </summary>
-    /// <param name="eventItem">领域事件项</param>
-    public void RemoveDomainEvent(INotification eventItem)
+    /// <param name="eventData">待移除的领域事件</param>
+    protected void RemoveDomainEvent(IDomainEvent eventData)
     {
-        _domainEvents.Remove(eventItem);
+        _domainEvents.Remove(eventData);
     }
 
-    /// <summary>
-    /// 清空所有领域事件
-    /// </summary>
+    /// <inheritdoc/>
     public void ClearDomainEvents()
     {
         _domainEvents.Clear();

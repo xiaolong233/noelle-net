@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoelleNet.EventBus.Abstractions.Local;
 
 namespace NoelleNet.EventBus.Local;
@@ -34,7 +35,7 @@ public static class LocalEventBusExtensions
         {
             var interfaceType = handlerInterfaceType.MakeGenericType(handlerMateInfo.EventType);
 
-            services.AddTransient(interfaceType, handlerMateInfo.HandlerType);
+            services.TryAddTransient(interfaceType, handlerMateInfo.HandlerType);
         }
 
         return services;

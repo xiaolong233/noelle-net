@@ -14,6 +14,8 @@ using NoelleNet.AspNetCore.Routing;
 using NoelleNet.AspNetCore.Security.Claims;
 using NoelleNet.AspNetCore.Validation;
 using NoelleNet.EntityFrameworkCore.Storage;
+using NoelleNet.EventBus.Distributed;
+using NoelleNet.EventBus.Local;
 using NoelleNet.Extensions.MediatR;
 using NoelleNet.Security;
 using NoelleNet.Security.Claims;
@@ -211,13 +213,17 @@ public static class DependencyInjectionExtensions
     /// <param name="services"></param>
     private static void AddMediatR(IServiceCollection services)
     {
-        services.AddMediatR(cfg =>
+        services.AddLocalEventBus(cfg =>
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            cfg.UseMediatR(o =>
+            {
+                o.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
 
-            // 添加行为管道
-            cfg.AddOpenBehavior(typeof(NoelleLoggingBehavior<,>));
-            cfg.AddOpenBehavior(typeof(NoelleTransactionBehavior<,>));
+                // 添加行为管道
+                o.AddOpenBehavior(typeof(NoelleLoggingBehavior<,>));
+                o.AddOpenBehavior(typeof(NoelleCapTransactionBehavior<,>));
+            });
         });
     }
 
@@ -228,19 +234,22 @@ public static class DependencyInjectionExtensions
     /// <param name="configuration"></param>
     private static void AddIntegrationEvent(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddCap(options =>
+        services.AddDistributedEventBus(cfg =>
         {
-            options.UseEntityFramework<TodoDbContext>();
-            options.UseRabbitMQ(rb =>
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            cfg.UseCap(options =>
             {
-                rb.HostName = configuration.GetRequiredValue("RabbitMQ:Host");
-                rb.Port = Convert.ToInt32(configuration.GetRequiredValue("RabbitMQ:Port"));
-                rb.UserName = configuration.GetRequiredValue("RabbitMQ:UserName");
-                rb.Password = configuration.GetRequiredValue("RabbitMQ:Password");
+                options.UseEntityFramework<TodoDbContext>();
+                options.UseRabbitMQ(rb =>
+                {
+                    rb.HostName = configuration.GetRequiredValue("RabbitMQ:Host");
+                    rb.Port = Convert.ToInt32(configuration.GetRequiredValue("RabbitMQ:Port"));
+                    rb.UserName = configuration.GetRequiredValue("RabbitMQ:UserName");
+                    rb.Password = configuration.GetRequiredValue("RabbitMQ:Password");
+                });
+                options.DefaultGroupName = configuration.GetRequiredValue("RabbitMQ:GroupName");
             });
-            options.DefaultGroupName = configuration.GetRequiredValue("RabbitMQ:GroupName");
         });
-        services.AddTransient<CreateTodoItemIntegrationEventHandler>();
     }
 
     /// <summary>

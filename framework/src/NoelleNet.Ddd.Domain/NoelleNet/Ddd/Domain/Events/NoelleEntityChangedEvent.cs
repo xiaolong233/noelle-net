@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using NoelleNet.Ddd.Domain.Entities;
 
 namespace NoelleNet.Ddd.Domain.Events;
 
@@ -27,4 +27,6 @@ public enum EntityChangeType
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <param name="Entity">实体实例</param>
 /// <param name="ChangeType">修改类型</param>
-public record NoelleEntityChangedEvent<TEntity>(TEntity Entity, EntityChangeType ChangeType) : INotification;
+public record NoelleEntityChangedEvent<TEntity>(
+    TEntity Entity,
+    EntityChangeType ChangeType) : IDomainEvent where TEntity : IEntity;

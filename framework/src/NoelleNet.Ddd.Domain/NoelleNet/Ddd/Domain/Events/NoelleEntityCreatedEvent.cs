@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using NoelleNet.Ddd.Domain.Entities;
 
 namespace NoelleNet.Ddd.Domain.Events;
 
@@ -7,4 +7,4 @@ namespace NoelleNet.Ddd.Domain.Events;
 /// </summary>
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <param name="Entity">实体实例</param>
-public record NoelleEntityCreatedEvent<TEntity>(TEntity Entity) : INotification;
+public record NoelleEntityCreatedEvent<TEntity>(TEntity Entity) : IDomainEvent where TEntity : IEntity;

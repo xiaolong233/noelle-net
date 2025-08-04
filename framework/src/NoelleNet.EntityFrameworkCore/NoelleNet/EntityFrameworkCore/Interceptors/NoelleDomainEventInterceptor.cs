@@ -1,7 +1,7 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using NoelleNet.Ddd.Domain.Entities;
+using NoelleNet.Ddd.Domain.Events;
+using NoelleNet.EventBus.Abstractions.Local;
 
 namespace NoelleNet.EntityFrameworkCore.Interceptors;
 
@@ -9,9 +9,14 @@ namespace NoelleNet.EntityFrameworkCore.Interceptors;
 /// 在保存所有更改前，调度所有领域事件。在注册拦截器时，该拦截器需要放在其他 <see cref="SaveChangesInterceptor"/> 之后，确保是最后一个被调用
 /// </summary>
 /// <param name="mediator"><see cref="IMediator"/> 实例</param>
-public class NoelleDomainEventInterceptor(IMediator mediator) : SaveChangesInterceptor
+public class NoelleDomainEventInterceptor : SaveChangesInterceptor
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    private readonly ILocalEventBus _localEventBus;
+
+    public NoelleDomainEventInterceptor(ILocalEventBus localEventBus)
+    {
+        _localEventBus = localEventBus ?? throw new ArgumentNullException(nameof(localEventBus));
+    }
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -51,7 +56,7 @@ public class NoelleDomainEventInterceptor(IMediator mediator) : SaveChangesInter
         // 发布领域事件
         foreach (var domainEvent in domainEvents)
         {
-            await _mediator.Publish(domainEvent, cancellationToken);
+            await _localEventBus.PublishAsync(domainEvent, cancellationToken);
         }
     }
 }

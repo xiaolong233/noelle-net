@@ -22,6 +22,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\NoelleNet.AspNetCore\NoelleNet.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.Core\NoelleNet.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\NoelleNet.EventBus.Distributed.CAP\NoelleNet.EventBus.Distributed.CAP.csproj" />
+    <ProjectReference Include="..\..\..\src\NoelleNet.EventBus.Local.MediatR\NoelleNet.EventBus.Local.MediatR.csproj" />
+    <ProjectReference Include="..\..\..\src\NoelleNet.Extensions.CAP.SqlServer\NoelleNet.Extensions.CAP.SqlServer.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
 

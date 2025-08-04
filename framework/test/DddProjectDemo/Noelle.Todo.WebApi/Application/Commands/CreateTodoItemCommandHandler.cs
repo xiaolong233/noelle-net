@@ -1,20 +1,30 @@
-﻿using DotNetCore.CAP;
-using MediatR;
+﻿using MediatR;
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Models;
+using NoelleNet.EventBus.Abstractions.Distributed;
 
 namespace Noelle.Todo.WebApi.Application.Commands;
 
 /// <summary>
 /// 创建待办事项命令的处理器
 /// </summary>
-/// <param name="repository">代办事项仓储的实例</param>
-/// <param name="capPublisher">分布式事件总线实例</param>
-public class CreateTodoItemCommandHandler(ITodoItemRepository repository, ICapPublisher capPublisher) : IRequestHandler<CreateTodoItemCommand, TodoItemDto>
+public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemCommand, TodoItemDto>
 {
-    private readonly ITodoItemRepository _repository = repository;
-    private readonly ICapPublisher _capPublisher = capPublisher;
+    private readonly ITodoItemRepository _repository;
+    private readonly IDistributedEventBus _distributedEventBus;
+
+    /// <summary>
+    /// 创建一个新的 <see cref="CreateTodoItemCommandHandler"/> 实例
+    /// </summary>
+    /// <param name="repository">待办事项仓储</param>
+    /// <param name="distributedEventBus">分布式事件总线</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public CreateTodoItemCommandHandler(ITodoItemRepository repository, IDistributedEventBus distributedEventBus)
+    {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _distributedEventBus = distributedEventBus ?? throw new ArgumentNullException(nameof(distributedEventBus));
+    }
 
     /// <summary>
     /// 命令处理函数
@@ -28,7 +38,7 @@ public class CreateTodoItemCommandHandler(ITodoItemRepository repository, ICapPu
 
         _repository.AddTodoItem(item);
 
-        await _capPublisher.PublishAsync("todo.create_todo_item", new CreateTodoItemIntegrationEvent(item.Name), string.Empty, cancellationToken);
+        await _distributedEventBus.PublishAsync(new CreateTodoItemIntegrationEvent(item.Name), cancellationToken);
 
         //throw new Exception("发生异常了喵！");
 
