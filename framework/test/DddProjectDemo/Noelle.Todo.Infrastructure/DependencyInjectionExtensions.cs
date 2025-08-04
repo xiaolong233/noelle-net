@@ -7,6 +7,7 @@ using Noelle.Todo.Infrastructure.Repositories;
 using NoelleNet;
 using NoelleNet.Auditing.EntityFrameworkCore;
 using NoelleNet.EntityFrameworkCore.Interceptors;
+using NoelleNet.Uow;
 
 namespace Noelle.Todo.Infrastructure;
 
@@ -33,6 +34,10 @@ public static class DependencyInjectionExtensions
         services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
         services.AddScoped<NoelleAuditInterceptor<long>>();
         services.AddScoped<NoelleDomainEventInterceptor>();
+
+        // 工作单元
+        services.AddScoped<IUnitOfWork, NoelleUnitOfWork>();
+        services.AddScoped<ITransactionManager, NoelleCapTransactionManager>();
 
         // 仓储配置
         services.AddScoped<ITodoItemRepository, TodoItemRepository>();

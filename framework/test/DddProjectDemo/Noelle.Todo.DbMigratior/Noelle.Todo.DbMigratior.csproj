@@ -8,16 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.18">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\NoelleNet.EventBus.Local.MediatR\NoelleNet.EventBus.Local.MediatR.csproj" />
+    <ProjectReference Include="..\..\..\src\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
 

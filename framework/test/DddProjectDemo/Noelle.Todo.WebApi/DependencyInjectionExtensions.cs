@@ -5,15 +5,12 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.OpenApi.Models;
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.HostedServices;
-using Noelle.Todo.WebApi.Application.IntegrationEvents;
 using Noelle.Todo.WebApi.Application.Queries;
-using NoelleNet;
 using NoelleNet.AspNetCore.ExceptionHandling;
 using NoelleNet.AspNetCore.Mvc;
 using NoelleNet.AspNetCore.Routing;
 using NoelleNet.AspNetCore.Security.Claims;
 using NoelleNet.AspNetCore.Validation;
-using NoelleNet.EntityFrameworkCore.Storage;
 using NoelleNet.EventBus.Distributed;
 using NoelleNet.EventBus.Local;
 using NoelleNet.Extensions.MediatR;
@@ -222,7 +219,7 @@ public static class DependencyInjectionExtensions
 
                 // 添加行为管道
                 o.AddOpenBehavior(typeof(NoelleLoggingBehavior<,>));
-                o.AddOpenBehavior(typeof(NoelleCapTransactionBehavior<,>));
+                o.AddOpenBehavior(typeof(NoelleTransactionBehavior<,>));
             });
         });
     }

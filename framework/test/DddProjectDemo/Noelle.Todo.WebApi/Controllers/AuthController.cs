@@ -78,7 +78,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 identity.SetClaim(Claims.Email, await _userManager.GetEmailAsync(user));
                 identity.SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user));
                 identity.SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user));
-                identity.SetClaims(NoelleClaimTypes.Role, [.. (await _userManager.GetRolesAsync(user))]);
+                identity.SetClaims(NoelleClaimTypes.Role, value: [.. (await _userManager.GetRolesAsync(user))]);
 
                 identity.SetScopes(request.GetScopes());
                 identity.SetDestinations(GetDestinations);
@@ -105,7 +105,7 @@ namespace Noelle.Todo.WebApi.Controllers
                 identity.SetClaim(Claims.Email, await _userManager.GetEmailAsync(user));
                 identity.SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user));
                 identity.SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user));
-                identity.SetClaims(Claims.Role, [.. (await _userManager.GetRolesAsync(user))]);
+                identity.SetClaims(Claims.Role, value: [.. (await _userManager.GetRolesAsync(user))]);
 
                 identity.SetScopes(request.GetScopes());
                 identity.SetDestinations(GetDestinations);
