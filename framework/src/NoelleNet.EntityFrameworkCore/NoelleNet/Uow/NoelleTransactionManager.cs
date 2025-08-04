@@ -10,8 +10,6 @@ namespace NoelleNet.Uow;
 public class NoelleTransactionManager : ITransactionManager
 {
     private readonly DbContext _dbContext;
-    private IDbContextTransaction? _currentTransaction;
-    private bool _disposed;
 
     /// <summary>
     /// 创建一个新的 <see cref="NoelleTransactionManager"/> 实例
@@ -23,76 +21,79 @@ public class NoelleTransactionManager : ITransactionManager
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <inheritdoc/>
-    public bool HasActiveTransaction => _currentTransaction != null;
+    /// <summary>
+    /// 当前已激活的事务
+    /// </summary>
+    protected IDbContextTransaction? CurrentTransaction { get; set; }
 
     /// <inheritdoc/>
-    public Guid? TransactionId => _currentTransaction?.TransactionId;
+    public virtual bool HasActiveTransaction => CurrentTransaction != null;
 
     /// <inheritdoc/>
-    public async Task BeginAsync(CancellationToken cancellationToken = default)
+    public virtual Guid? TransactionId => CurrentTransaction?.TransactionId;
+
+    /// <inheritdoc/>
+    public virtual async Task BeginAsync(CancellationToken cancellationToken = default)
     {
         if (HasActiveTransaction)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("当前已经存在一个活动的事务。请确保之前的事务已提交或回滚后，再开始新的事务。");
 
-        _currentTransaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        CurrentTransaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task BeginAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
+    public virtual async Task BeginAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
     {
         if (HasActiveTransaction)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("当前已经存在一个活动的事务。请确保之前的事务已提交或回滚后，再开始新的事务。");
 
-        _currentTransaction = await _dbContext.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+        CurrentTransaction = await _dbContext.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task CommitAsync(CancellationToken cancellationToken = default)
+    public virtual async Task CommitAsync(CancellationToken cancellationToken = default)
     {
-        if (_currentTransaction == null)
-            throw new InvalidOperationException();
+        if (CurrentTransaction == null)
+            throw new InvalidOperationException("没有活动事务可提交。请确保在提交之前已经开始一个有效的事务。");
 
-        await _currentTransaction.CommitAsync(cancellationToken);
-        await _currentTransaction.DisposeAsync();
+        await CurrentTransaction.CommitAsync(cancellationToken);
+        await CurrentTransaction.DisposeAsync();
 
-        _currentTransaction = null;
+        CurrentTransaction = null;
     }
 
     /// <inheritdoc/>
-    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    public virtual async Task RollbackAsync(CancellationToken cancellationToken = default)
     {
-        if (_currentTransaction == null)
-            throw new InvalidOperationException();
+        if (CurrentTransaction == null)
+            throw new InvalidOperationException("没有活动事务可回滚。请确保在回滚之前已经开始一个有效的事务。");
 
-        await _currentTransaction.RollbackAsync(cancellationToken);
-        await _currentTransaction.DisposeAsync();
+        await CurrentTransaction.RollbackAsync(cancellationToken);
+        await CurrentTransaction.DisposeAsync();
 
-        _currentTransaction = null;
+        CurrentTransaction = null;
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public virtual void Dispose()
     {
-        if (_disposed || _currentTransaction == null)
+        if (CurrentTransaction == null)
             return;
 
-        _currentTransaction.Dispose();
-        _currentTransaction = null;
-        _disposed = true;
+        CurrentTransaction.Dispose();
+        CurrentTransaction = null;
 
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc/>
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
-        if (_disposed || _currentTransaction == null)
+        if (CurrentTransaction == null)
             return;
 
-        await _currentTransaction.DisposeAsync();
-        _currentTransaction = null;
-        _disposed = true;
+        await CurrentTransaction.DisposeAsync();
+        CurrentTransaction = null;
 
         GC.SuppressFinalize(this);
     }
