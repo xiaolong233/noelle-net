@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NoelleNet.Uow;
 
-namespace NoelleNet.EntityFrameworkCore.Storage;
+namespace NoelleNet.Extensions.MediatR;
 
 /// <summary>
 /// 事务处理管道
@@ -15,8 +15,15 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
     private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger;
     private readonly DbContext _dbContext;
     private readonly ITransactionManager _transactionManager;
-
-    public NoelleTransactionBehavior(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, IUnitOfWork unitOfWork, DbContext dbContext, ITransactionManager transactionManager)
+    
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleTransactionBehavior{TRequest, TResponse}"/> 实例
+    /// </summary>
+    /// <param name="logger">日志记录器</param>
+    /// <param name="dbContext">数据库上下文</param>
+    /// <param name="transactionManager">事务管理器</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public NoelleTransactionBehavior(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ITransactionManager transactionManager)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));

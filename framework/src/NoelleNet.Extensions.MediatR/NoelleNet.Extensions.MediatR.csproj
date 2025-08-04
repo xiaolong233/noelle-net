@@ -12,10 +12,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="MediatR" Version="12.5.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.18" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
+		<ProjectReference Include="..\NoelleNet.Uow\NoelleNet.Uow.csproj" />
 	</ItemGroup>
 
 </Project>
