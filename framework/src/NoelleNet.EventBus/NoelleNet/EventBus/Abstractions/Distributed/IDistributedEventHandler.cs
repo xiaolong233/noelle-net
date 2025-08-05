@@ -1,7 +1,7 @@
 ﻿namespace NoelleNet.EventBus.Abstractions.Distributed;
 
 /// <summary>
-/// 分布式事件处理器接口
+/// 分布式事件处理程序接口
 /// </summary>
 /// <typeparam name="TEvent">事件类型</typeparam>
 public interface IDistributedEventHandler<in TEvent> : IEventHandler

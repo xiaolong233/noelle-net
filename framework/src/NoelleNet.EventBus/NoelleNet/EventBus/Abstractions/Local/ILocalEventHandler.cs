@@ -1,7 +1,7 @@
 ﻿namespace NoelleNet.EventBus.Abstractions.Local;
 
 /// <summary>
-/// 本地事件处理器接口
+/// 本地事件处理程序接口
 /// </summary>
 /// <typeparam name="TEvent">事件类型</typeparam>
 public interface ILocalEventHandler<in TEvent> : IEventHandler

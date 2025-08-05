@@ -3,7 +3,7 @@
 namespace NoelleNet.EventBus.Abstractions;
 
 /// <summary>
-/// 用于标记事件名称
+/// 用于设置事件名称
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public class EventNameAttribute : Attribute
