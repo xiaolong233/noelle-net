@@ -15,7 +15,7 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
     private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger;
     private readonly DbContext _dbContext;
     private readonly ITransactionManager _transactionManager;
-    
+
     /// <summary>
     /// 创建一个新的 <see cref="NoelleTransactionBehavior{TRequest, TResponse}"/> 实例
     /// </summary>
@@ -52,18 +52,19 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
         await strategy.ExecuteAsync(async () =>
         {
             await _transactionManager.BeginAsync(cancellationToken);
-            _logger.LogInformation("开始事务 {TransactionId} - 命令: {CommandName} ({@Command})", _transactionManager.TransactionId, cmdName, request);
+            var transactionId = _transactionManager.TransactionId;
+            _logger.LogInformation("开始事务 {TransactionId} - 命令: {CommandName} ({@Command})", transactionId, cmdName, request);
 
             try
             {
-                response = await next();
+                response = await next(cancellationToken);
 
-                _logger.LogInformation("提交事务 {TransactionId} - 命令: {CommandName} ({@Response})", _transactionManager.TransactionId, cmdName, response);
+                _logger.LogInformation("提交事务 {TransactionId} - 命令: {CommandName} ({@Response})", transactionId, cmdName, response);
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                await _transactionManager.CommitAsync();
+                await _transactionManager.CommitAsync(cancellationToken);
 
-                _logger.LogInformation("事务完成 {TransactionId} - 命令: {CommandName} ({@Response})", _transactionManager.TransactionId, cmdName, response);
+                _logger.LogInformation("事务完成 {TransactionId} - 命令: {CommandName} ({@Response})", transactionId, cmdName, response);
             }
             catch (Exception e)
             {

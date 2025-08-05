@@ -25,20 +25,26 @@ public class NoelleCapTransactionManager : NoelleTransactionManager
     }
 
     /// <inheritdoc/>
-    public override async Task BeginAsync(CancellationToken cancellationToken = default)
+    public override Task BeginAsync(CancellationToken cancellationToken = default)
     {
         if (HasActiveTransaction)
             throw new InvalidOperationException("当前已经存在一个活动的事务。请确保之前的事务已提交或回滚后，再开始新的事务。");
 
-        CurrentTransaction = await _dbContext.Database.BeginTransactionAsync(_capPublisher, false, cancellationToken);
+        // 使用同步方法开启事务，避免 CAP 的 AsyncLocal 在异步上下文中失效
+        CurrentTransaction = _dbContext.Database.BeginTransaction(_capPublisher, false);
+
+        return Task.FromResult(CurrentTransaction);
     }
 
     /// <inheritdoc/>
-    public override async Task BeginAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
+    public override Task BeginAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
     {
         if (HasActiveTransaction)
             throw new InvalidOperationException("当前已经存在一个活动的事务。请确保之前的事务已提交或回滚后，再开始新的事务。");
 
-        CurrentTransaction = await _dbContext.Database.BeginTransactionAsync(isolationLevel, _capPublisher, false, cancellationToken);
+        // 使用同步方法开启事务，避免 CAP 的 AsyncLocal 在异步上下文中失效
+        CurrentTransaction = _dbContext.Database.BeginTransaction(isolationLevel, _capPublisher, false);
+
+        return Task.FromResult(CurrentTransaction);
     }
 }

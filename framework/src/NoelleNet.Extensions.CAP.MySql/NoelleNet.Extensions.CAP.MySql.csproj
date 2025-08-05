@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
+	  <ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
 	</ItemGroup>
 
 </Project>
