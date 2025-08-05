@@ -25,7 +25,7 @@ public class NoelleLoggingBehavior<TRequest, TResponse>(
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         _logger.LogInformation("命令开始 {CommandName} ({@Command})", request.GetGenericTypeName(), request);
-        var response = await next();
+        var response = await next(cancellationToken);
         _logger.LogInformation("命令完成 {CommandName} ({@Response})", request.GetGenericTypeName(), response);
 
         return response;

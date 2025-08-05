@@ -9,15 +9,22 @@ namespace NoelleNet.Ddd.Domain.Repositories.EntityFrameworkCore;
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <typeparam name="TDbContext">数据库上下文类型</typeparam>
 /// <param name="dbContext">数据库上下文</param>
-public class NoelleEfCoreRepository<TEntity, TDbContext>(TDbContext dbContext) : INoelleRepository<TEntity> where TEntity : IAggregateRoot where TDbContext : DbContext
+public class NoelleEfCoreRepository<TEntity, TDbContext> : INoelleRepository<TEntity> where TEntity : IAggregateRoot where TDbContext : DbContext
 {
-    private readonly TDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-    private readonly IUnitOfWork _unitOfWork = new NoelleUnitOfWorkDecorator(dbContext);
+    private readonly TDbContext _dbContext;
+
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleEfCoreRepository{TEntity, TDbContext}"/> 实例
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public NoelleEfCoreRepository(TDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
 
     /// <summary>
     /// 数据库上下文
     /// </summary>
     protected TDbContext DbContext => _dbContext;
-
-    public IUnitOfWork UnitOfWork => _unitOfWork;
 }

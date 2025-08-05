@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Noelle.Todo.Infrastructure;
 using Noelle.Todo.DbMigratior;
+using Noelle.Todo.Infrastructure;
+using NoelleNet.EventBus.Local;
+using NoelleNet.Security;
+using NoelleNet.Security.Claims;
 using Serilog;
 using Serilog.Formatting.Compact;
 using System.Reflection;
-using NoelleNet.Security;
-using NoelleNet.Security.Claims;
 
 Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -30,10 +31,14 @@ try
     builder.Services.AddScoped<ICurrentUser, CurrentUser>();
     builder.Services.AddScoped<ICurrentPrincipalProvider, NoelleEmptyCurrentPrincipalProvider>();
 
-    // 添加MediatR
-    builder.Services.AddMediatR(options =>
+    // 添加本地事件总线
+    builder.Services.AddLocalEventBus(cfg =>
     {
-        options.RegisterServicesFromAssembly(Assembly.GetCallingAssembly());
+        cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+        cfg.UseMediatR(o =>
+        {
+            o.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+        });
     });
 
     // 添加主机服务

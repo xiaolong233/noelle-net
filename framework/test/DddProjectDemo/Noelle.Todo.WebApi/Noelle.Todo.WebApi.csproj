@@ -11,12 +11,12 @@
     <PackageReference Include="DotNetCore.CAP" Version="8.3.5" />
     <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.3.5" />
     <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.5" />
-    <PackageReference Include="OpenIddict.AspNetCore" Version="6.4.0" />
-    <PackageReference Include="OpenIddict.Quartz" Version="6.4.0" />
-    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="OpenIddict.Quartz" Version="7.0.0" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +24,6 @@
     <ProjectReference Include="..\..\..\src\NoelleNet.Core\NoelleNet.Core.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.EventBus.Distributed.CAP\NoelleNet.EventBus.Distributed.CAP.csproj" />
     <ProjectReference Include="..\..\..\src\NoelleNet.EventBus.Local.MediatR\NoelleNet.EventBus.Local.MediatR.csproj" />
-    <ProjectReference Include="..\..\..\src\NoelleNet.Extensions.CAP.SqlServer\NoelleNet.Extensions.CAP.SqlServer.csproj" />
     <ProjectReference Include="..\Noelle.Todo.Infrastructure\Noelle.Todo.Infrastructure.csproj" />
   </ItemGroup>
 

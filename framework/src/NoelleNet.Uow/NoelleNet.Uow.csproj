@@ -6,16 +6,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Description>暂无</Description>
 		<RootNamespace />
 	</PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="DotNetCore.CAP.MySql" Version="8.3.5" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\NoelleNet.EntityFrameworkCore\NoelleNet.EntityFrameworkCore.csproj" />
-	</ItemGroup>
 
 </Project>
