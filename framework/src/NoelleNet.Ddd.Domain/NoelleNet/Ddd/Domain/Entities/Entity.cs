@@ -138,8 +138,10 @@ public abstract class Entity<TIdentifier> : Entity, IEntity<TIdentifier>
         Id = id;
     }
 
+    /// <inheritdoc/>
     public virtual TIdentifier Id { get; protected set; } = default!;
 
+    /// <inheritdoc/>
     public override object?[] GetIdentifiers()
     {
         return [Id];
