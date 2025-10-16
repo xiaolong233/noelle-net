@@ -10,7 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DotNetCore.CAP" Version="8.3.5" />
+	  <PackageReference Include="DotNetCore.CAP" Version="8.4.0" />
 	</ItemGroup>
 
 	<ItemGroup>
