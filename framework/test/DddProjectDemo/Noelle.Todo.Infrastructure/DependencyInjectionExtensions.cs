@@ -26,13 +26,13 @@ public static class DependencyInjectionExtensions
 
             // 添加拦截器
             options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAutoSetGuidKeyInterceptor>());
-            options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAuditInterceptor<long>>());
+            options.AddInterceptors(serviceProvider.GetRequiredService<NoelleAuditInterceptor>());
             options.AddInterceptors(serviceProvider.GetRequiredService<NoelleDomainEventInterceptor>());
         }, ServiceLifetime.Scoped);
 
         // EF Core拦截器
         services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
-        services.AddScoped<NoelleAuditInterceptor<long>>();
+        services.AddScoped<NoelleAuditInterceptor>();
         services.AddScoped<NoelleDomainEventInterceptor>();
 
         // 工作单元

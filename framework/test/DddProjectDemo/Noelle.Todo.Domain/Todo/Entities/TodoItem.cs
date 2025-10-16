@@ -3,7 +3,7 @@ using NoelleNet.Ddd.Domain.Events;
 
 namespace Noelle.Todo.Domain.Todo.Entities;
 
-public class TodoItem : AuditedAggregateRoot<Guid, long>
+public class TodoItem : AuditedAggregateRoot<Guid>
 {
     public TodoItem(string name)
     {

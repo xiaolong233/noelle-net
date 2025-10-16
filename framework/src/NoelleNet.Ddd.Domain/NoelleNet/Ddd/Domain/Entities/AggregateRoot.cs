@@ -5,8 +5,7 @@ namespace NoelleNet.Ddd.Domain.Entities;
 /// <summary>
 /// 聚合根基类
 /// </summary>
-/// <typeparam name="TIdentifier">实体标识符的数据类型</typeparam>
-public class AggregateRoot<TIdentifier> : Entity<TIdentifier>, IAggregateRoot, IHasDomainEvents
+public abstract class AggregateRoot : Entity, IAggregateRoot, IHasDomainEvents
 {
     #region 领域事件
     private readonly List<IDomainEvent> _domainEvents = [];
@@ -14,19 +13,58 @@ public class AggregateRoot<TIdentifier> : Entity<TIdentifier>, IAggregateRoot, I
     /// <inheritdoc/>
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
-    /// <summary>
-    /// 添加一个领域事件
-    /// </summary>
-    /// <param name="eventData">待添加的领域事件</param>
+    /// <inheritdoc/>
     protected void AddDomainEvent(IDomainEvent eventData)
     {
         _domainEvents.Add(eventData);
     }
 
+    /// <inheritdoc/>
+    protected void RemoveDomainEvent(IDomainEvent eventData)
+    {
+        _domainEvents.Remove(eventData);
+    }
+
+    /// <inheritdoc/>
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
+    #endregion
+}
+
+/// <summary>
+/// 聚合根基类
+/// </summary>
+/// <typeparam name="TIdentifier">实体标识符的数据类型</typeparam>
+public abstract class AggregateRoot<TIdentifier> : Entity<TIdentifier>, IAggregateRoot, IHasDomainEvents
+{
     /// <summary>
-    /// 移除一个领域事件
+    /// 创建一个新的 <see cref="AggregateRoot{TIdentifier}"/> 实例
     /// </summary>
-    /// <param name="eventData">待移除的领域事件</param>
+    protected AggregateRoot() { }
+
+    /// <summary>
+    /// 创建一个新的 <see cref="AggregateRoot{TIdentifier}"/> 实例
+    /// </summary>
+    /// <param name="id">实体的标识符</param>
+    protected AggregateRoot(TIdentifier id) : base(id)
+    {
+    }
+
+    #region 领域事件
+    private readonly List<IDomainEvent> _domainEvents = [];
+
+    /// <inheritdoc/>
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc/>
+    protected void AddDomainEvent(IDomainEvent eventData)
+    {
+        _domainEvents.Add(eventData);
+    }
+
+    /// <inheritdoc/>
     protected void RemoveDomainEvent(IDomainEvent eventData)
     {
         _domainEvents.Remove(eventData);
