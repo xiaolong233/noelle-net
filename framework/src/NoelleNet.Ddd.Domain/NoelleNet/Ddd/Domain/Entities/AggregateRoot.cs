@@ -3,7 +3,7 @@
 namespace NoelleNet.Ddd.Domain.Entities;
 
 /// <summary>
-/// 定义一个表示聚合根的实体
+/// 聚合根基类
 /// </summary>
 public abstract class AggregateRoot : Entity, IAggregateRoot, IHasDomainEvents
 {
@@ -34,7 +34,7 @@ public abstract class AggregateRoot : Entity, IAggregateRoot, IHasDomainEvents
 }
 
 /// <summary>
-/// 定义一个表示聚合根的实体
+/// 聚合根基类
 /// </summary>
 /// <typeparam name="TIdentifier">实体标识符的数据类型</typeparam>
 public abstract class AggregateRoot<TIdentifier> : Entity<TIdentifier>, IAggregateRoot, IHasDomainEvents
