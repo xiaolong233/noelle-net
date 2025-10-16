@@ -1,70 +1,61 @@
-﻿namespace NoelleNet.Ddd.Domain.Entities;
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
+
+namespace NoelleNet.Ddd.Domain.Entities;
 
 /// <summary>
 /// 值对象基类
 /// </summary>
 public abstract class ValueObject
 {
-    /// <summary>
-    /// 比较两个值对象是否相等
-    /// </summary>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.General) { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    #region 运算符重载
+    /// <inheritdoc/>
     public static bool operator ==(ValueObject? left, ValueObject? right)
     {
-        if (left is null ^ right is null)
+        if (ReferenceEquals(left, right))
+            return true;
+
+        if (left is null || right is null)
             return false;
-        return left is null || left.Equals(right);
+
+        return left.Equals(right);
     }
 
-    /// <summary>
-    /// 比较两个值对象是否不相等
-    /// </summary>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
-    public static bool operator !=(ValueObject? left, ValueObject? right)
-    {
-        return !(left == right);
-    }
+    /// <inheritdoc/>
+    public static bool operator !=(ValueObject? left, ValueObject? right) => !(left == right);
+    #endregion
 
-    /// <summary>
-    /// 获取用于比较两个值对象实例是否相等的元素
-    /// </summary>
-    /// <returns></returns>
-    protected abstract IEnumerable<object> GetEqualityCompareItems();
+    /// <inheritdoc/>
+    protected abstract IEnumerable<object?> GetEqualityComponents();
 
-    /// <summary>
-    /// 确定指定对象是否等于当前对象
-    /// </summary>
-    /// <param name="obj">要与当前对象进行比较的对象</param>
-    /// <returns>如果指定的对象是等于当前对象，则为 true；否则为 false</returns>
+    /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj == null || obj.GetType() != GetType())
+        if (obj is null || obj.GetType() != GetType())
             return false;
 
-        return GetEqualityCompareItems().SequenceEqual(((ValueObject)obj).GetEqualityCompareItems());
+        var other = (ValueObject)obj;
+
+        return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }
 
-    /// <summary>
-    /// 获取当前值对象的哈希代码
-    /// </summary>
-    /// <returns>当前值对象的哈希代码</returns>
+    /// <inheritdoc/>
     public override int GetHashCode()
     {
-        return GetEqualityCompareItems().Select(x => x != null ? x.GetHashCode() : 0)
-                                        .Aggregate((x, y) => x ^ y);
+        var hash = new HashCode();
+        foreach (var item in GetEqualityComponents())
+        {
+            hash.Add(item);
+        }
+        return hash.ToHashCode();
     }
 
-    /// <summary>
-    /// 创建当前值对象的浅拷贝对象
-    /// </summary>
-    /// <returns>当前值对象的浅拷贝对象</returns>
-    public ValueObject Copy()
+    /// <inheritdoc/>
+    public override string ToString()
     {
-        return (ValueObject)MemberwiseClone();
+        return JsonSerializer.Serialize(this, _jsonOptions);
     }
 }
 
