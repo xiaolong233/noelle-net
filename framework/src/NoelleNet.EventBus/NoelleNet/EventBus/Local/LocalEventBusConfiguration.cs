@@ -17,6 +17,9 @@ public class LocalEventBusConfiguration
         Services = services;
     }
 
+    /// <summary>
+    /// 服务集合
+    /// </summary>
     public IServiceCollection Services { get; }
 
     private List<Assembly> _assembliesToRegister = [];

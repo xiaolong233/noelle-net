@@ -9,6 +9,7 @@ namespace NoelleNet.AspNetCore.ExceptionHandling;
 /// </summary>
 public class NoelleHttpExceptionStatusCodeFinder : IHttpExceptionStatusCodeFinder
 {
+    /// <inheritdoc/>
     public virtual HttpStatusCode GetStatusCode(HttpContext context, Exception exception)
     {
         if (exception is IHasHttpStatusCode statusCodeException)

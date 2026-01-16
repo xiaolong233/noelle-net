@@ -12,6 +12,7 @@ public class NoelleAutoSetGuidKeyInterceptor(IGuidGenerator guidGenerator) : Sav
 {
     private readonly IGuidGenerator _guidGenerator = guidGenerator ?? throw new ArgumentNullException(nameof(guidGenerator));
 
+    /// <inheritdoc/>
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         Handle(eventData.Context);
@@ -19,6 +20,7 @@ public class NoelleAutoSetGuidKeyInterceptor(IGuidGenerator guidGenerator) : Sav
         return base.SavingChanges(eventData, result);
     }
 
+    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         Handle(eventData.Context);

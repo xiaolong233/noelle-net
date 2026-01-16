@@ -21,12 +21,14 @@ public class NoelleAuditInterceptor : SaveChangesInterceptor
         _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
     }
 
+    /// <inheritdoc/>
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         SetAudit(eventData.Context);
         return base.SavingChanges(eventData, result);
     }
 
+    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         SetAudit(eventData.Context);

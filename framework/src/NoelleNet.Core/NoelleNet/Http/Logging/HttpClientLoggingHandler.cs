@@ -15,12 +15,19 @@ public class HttpClientLoggingHandler : DelegatingHandler
     private readonly ILogger<HttpClientLoggingHandler> _logger;
     private readonly HttpClientLoggingOptions _options;
 
+    /// <summary>
+    /// 创建一个新的 <see cref="HttpClientLoggingHandler"/> 实例
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="options"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public HttpClientLoggingHandler(ILogger<HttpClientLoggingHandler> logger, IOptions<HttpClientLoggingOptions> options)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = options.Value;
     }
 
+    /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var logEntry = new HttpLogEntry

@@ -8,6 +8,7 @@
 		<Nullable>enable</Nullable>
 		<Description>Noelle.Net的基础库</Description>
 		<RootNamespace />
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>

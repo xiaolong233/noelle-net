@@ -5,6 +5,7 @@
 /// </summary>
 public class NoelleGuidGenerator : IGuidGenerator
 {
+    /// <inheritdoc/>
     public Guid Generate()
     {
         return Guid.NewGuid();

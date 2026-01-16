@@ -5,6 +5,7 @@
 /// </summary>
 public abstract class Entity : IEntity
 {
+    /// <inheritdoc/>
     public abstract object?[] GetIdentifiers();
 
     /// <summary>
@@ -28,6 +29,7 @@ public abstract class Entity : IEntity
         });
     }
 
+    /// <inheritdoc/>
     public override string ToString()
     {
         var identifiers = GetIdentifiers();
@@ -42,11 +44,13 @@ public abstract class Entity : IEntity
     }
 
     #region 重载运算符
+    /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
         return Equals(obj as Entity);
     }
 
+    /// <inheritdoc/>
     public virtual bool Equals(Entity? other)
     {
         if (other is null)
@@ -85,6 +89,7 @@ public abstract class Entity : IEntity
         return true;
     }
 
+    /// <inheritdoc/>
     public override int GetHashCode()
     {
         var identifiers = GetIdentifiers();
@@ -100,6 +105,7 @@ public abstract class Entity : IEntity
         return hash.ToHashCode();
     }
 
+    /// <inheritdoc/>
     public static bool operator ==(Entity? left, Entity? right)
     {
         if (left is null && right is null)
@@ -111,6 +117,7 @@ public abstract class Entity : IEntity
         return left.Equals(right);
     }
 
+    /// <inheritdoc/>
     public static bool operator !=(Entity? left, Entity? right)
     {
         return !(left == right);

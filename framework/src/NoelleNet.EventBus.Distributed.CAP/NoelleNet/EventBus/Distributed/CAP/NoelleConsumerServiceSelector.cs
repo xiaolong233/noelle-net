@@ -7,12 +7,20 @@ using System.Reflection;
 
 namespace NoelleNet.EventBus.Distributed.CAP;
 
+/// <summary>
+/// 重写了 <see cref="ConsumerServiceSelector"/>
+/// </summary>
 public class NoelleConsumerServiceSelector : ConsumerServiceSelector
 {
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleConsumerServiceSelector"/> 实例
+    /// </summary>
+    /// <param name="serviceProvider"><see cref="IServiceProvider"/> 实例</param>
     public NoelleConsumerServiceSelector(IServiceProvider serviceProvider) : base(serviceProvider)
     {
     }
 
+    /// <inheritdoc/>
     protected override IEnumerable<ConsumerExecutorDescriptor> FindConsumersFromInterfaceTypes(IServiceProvider provider)
     {
         var descriptors = base.FindConsumersFromInterfaceTypes(provider).ToList();
@@ -46,6 +54,13 @@ public class NoelleConsumerServiceSelector : ConsumerServiceSelector
         return descriptors;
     }
 
+    /// <summary>
+    /// 获取指定事件类型和处理程序类型的描述信息
+    /// </summary>
+    /// <param name="eventType">事件类型</param>
+    /// <param name="handlerType">处理程序类型</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     protected virtual IEnumerable<ConsumerExecutorDescriptor> GetHandlerDescription(Type eventType, Type handlerType)
     {
         var serviceTypeInfo = typeof(IDistributedEventHandler<>).MakeGenericType(eventType);
@@ -74,7 +89,7 @@ public class NoelleConsumerServiceSelector : ConsumerServiceSelector
                 {
                     Name = parameter.Name!,
                     ParameterType = parameter.ParameterType,
-                    IsFromCap = parameter.GetCustomAttributes(typeof(FromCapAttribute)).Any()
+                    IsFromCap = parameter.GetCustomAttributes<FromCapAttribute>().Any()
                                 || typeof(CancellationToken).IsAssignableFrom(parameter.ParameterType)
                 }).ToList();
 

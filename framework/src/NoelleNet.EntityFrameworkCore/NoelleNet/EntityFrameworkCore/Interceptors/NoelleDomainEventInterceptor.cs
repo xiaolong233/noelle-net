@@ -8,16 +8,21 @@ namespace NoelleNet.EntityFrameworkCore.Interceptors;
 /// <summary>
 /// 在保存所有更改前，调度所有领域事件。在注册拦截器时，该拦截器需要放在其他 <see cref="SaveChangesInterceptor"/> 之后，确保是最后一个被调用
 /// </summary>
-/// <param name="mediator"><see cref="IMediator"/> 实例</param>
 public class NoelleDomainEventInterceptor : SaveChangesInterceptor
 {
     private readonly ILocalEventBus _localEventBus;
 
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleDomainEventInterceptor"/> 实例
+    /// </summary>
+    /// <param name="localEventBus"><see cref="ILocalEventBus"/> 实例</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public NoelleDomainEventInterceptor(ILocalEventBus localEventBus)
     {
         _localEventBus = localEventBus ?? throw new ArgumentNullException(nameof(localEventBus));
     }
 
+    /// <inheritdoc/>
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         if (eventData.Context != null)
@@ -26,6 +31,7 @@ public class NoelleDomainEventInterceptor : SaveChangesInterceptor
         return base.SavingChanges(eventData, result);
     }
 
+    /// <inheritdoc/>
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         if (eventData.Context != null)

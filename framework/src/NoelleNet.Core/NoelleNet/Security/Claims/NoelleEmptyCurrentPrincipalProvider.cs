@@ -7,5 +7,6 @@ namespace NoelleNet.Security.Claims;
 /// </summary>
 public class NoelleEmptyCurrentPrincipalProvider : ICurrentPrincipalProvider
 {
+    /// <inheritdoc/>
     public ClaimsPrincipal? Principal => new();
 }
