@@ -10,6 +10,7 @@
 		<IsPackable>true</IsPackable>
 		<Description>暂无</Description>
 		<RootNamespace />
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
