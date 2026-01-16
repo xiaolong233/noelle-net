@@ -2,7 +2,7 @@
 using Noelle.Todo.Domain.Todo.Entities;
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.Models;
-using NoelleNet.AspNetCore.Queries;
+using NoelleNet.Application.Dtos;
 
 namespace Noelle.Todo.WebApi.Application.Queries;
 
@@ -33,7 +33,7 @@ public class TodoItemQueries(TodoDbContext context) : ITodoItemQueries
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    public async Task<NoellePaginationResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto)
+    public async Task<PaginationResultDto<TodoItemDto>> GetTodoItemsAsync(PaginationAndSortDto dto)
     {
         IQueryable<TodoItem> query = _context.TodoItems;
 
@@ -44,6 +44,6 @@ public class TodoItemQueries(TodoDbContext context) : ITodoItemQueries
                                .Select(s => new TodoItemDto(s.Id, s.Name, s.IsComplete))
                                .ToListAsync();
 
-        return new NoellePaginationResultDto<TodoItemDto>(total, items);
+        return new PaginationResultDto<TodoItemDto>(total, items);
     }
 }

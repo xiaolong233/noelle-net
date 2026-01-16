@@ -6,7 +6,7 @@ using Noelle.Todo.WebApi.Application.Commands;
 using Noelle.Todo.WebApi.Application.Models;
 using Noelle.Todo.WebApi.Application.Queries;
 using NoelleNet;
-using NoelleNet.AspNetCore.Queries;
+using NoelleNet.Application.Dtos;
 
 namespace Noelle.Todo.WebApi.Controllers
 {
@@ -29,7 +29,7 @@ namespace Noelle.Todo.WebApi.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet]
-        public Task<NoellePaginationResultDto<TodoItemDto>> GetListAsync([FromQuery] NoellePaginationAndSortDto dto)
+        public Task<PaginationResultDto<TodoItemDto>> GetListAsync([FromQuery] PaginationAndSortDto dto)
         {
             return _todoItemQueries.GetTodoItemsAsync(dto);
         }

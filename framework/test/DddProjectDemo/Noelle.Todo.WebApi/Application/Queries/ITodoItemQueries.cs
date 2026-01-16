@@ -1,5 +1,6 @@
 ﻿using Noelle.Todo.WebApi.Application.Models;
-using NoelleNet.AspNetCore.Queries;
+using NoelleNet.Application.Dtos;
+
 
 namespace Noelle.Todo.WebApi.Application.Queries;
 
@@ -13,7 +14,7 @@ public interface ITodoItemQueries
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    Task<NoellePaginationResultDto<TodoItemDto>> GetTodoItemsAsync(NoellePaginationAndSortDto dto);
+    Task<PaginationResultDto<TodoItemDto>> GetTodoItemsAsync(PaginationAndSortDto dto);
 
     /// <summary>
     /// 获取待办事项

@@ -14,11 +14,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="FluentValidation" Version="12.0.0" />
-	  <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+	  <PackageReference Include="FluentValidation" Version="12.1.1" />
+	  <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\NoelleNet.Application.Contracts\NoelleNet.Application.Contracts.csproj" />
 		<ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
 		<ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
 	</ItemGroup>

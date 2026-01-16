@@ -10,7 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="8.4.0" />
+	  <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="8.4.1" />
 	</ItemGroup>
 
 	<ItemGroup>
