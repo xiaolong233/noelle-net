@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/NoelleNet.Application.Contracts/NoelleNet.Application.Contracts.csproj" />
+    <Project Path="src/NoelleNet.AspNetCore/NoelleNet.AspNetCore.csproj" />
+    <Project Path="src/NoelleNet.Auditing/NoelleNet.Auditing.csproj" />
+    <Project Path="src/NoelleNet.Core/NoelleNet.Core.csproj" />
+    <Project Path="src/NoelleNet.Ddd.Domain/NoelleNet.Ddd.Domain.csproj" />
+    <Project Path="src/NoelleNet.EntityFrameworkCore/NoelleNet.EntityFrameworkCore.csproj" />
+    <Project Path="src/NoelleNet.EventBus.Distributed.CAP/NoelleNet.EventBus.Distributed.CAP.csproj" />
+    <Project Path="src/NoelleNet.EventBus.Local.MediatR/NoelleNet.EventBus.Local.MediatR.csproj" />
+    <Project Path="src/NoelleNet.EventBus/NoelleNet.EventBus.csproj" />
+    <Project Path="src/NoelleNet.Extensions.CAP.MySql/NoelleNet.Extensions.CAP.MySql.csproj" />
+    <Project Path="src/NoelleNet.Extensions.CAP.PostgreSql/NoelleNet.Extensions.CAP.PostgreSql.csproj" />
+    <Project Path="src/NoelleNet.Extensions.CAP.SqlServer/NoelleNet.Extensions.CAP.SqlServer.csproj" />
+    <Project Path="src/NoelleNet.Extensions.MediatR/NoelleNet.Extensions.MediatR.csproj" />
+    <Project Path="src/NoelleNet.Uow/NoelleNet.Uow.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/DddProjectDemo/">
+    <Project Path="test/DddProjectDemo/Noelle.Todo.DbMigratior/Noelle.Todo.DbMigratior.csproj" />
+    <Project Path="test/DddProjectDemo/Noelle.Todo.Domain/Noelle.Todo.Domain.csproj" />
+    <Project Path="test/DddProjectDemo/Noelle.Todo.Infrastructure/Noelle.Todo.Infrastructure.csproj" />
+    <Project Path="test/DddProjectDemo/Noelle.Todo.WebApi/Noelle.Todo.WebApi.csproj" />
+  </Folder>
+</Solution>
