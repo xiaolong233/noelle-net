@@ -6,6 +6,6 @@ namespace NoelleNet.Ddd.Domain.Repositories;
 /// 仓储基类
 /// </summary>
 /// <typeparam name="T">实体类型，必须实现 <see cref="IAggregateRoot"/> 接口</typeparam>
-public interface INoelleRepository<T> where T : IAggregateRoot
+public interface IRepository<T> where T : IAggregateRoot
 {
 }

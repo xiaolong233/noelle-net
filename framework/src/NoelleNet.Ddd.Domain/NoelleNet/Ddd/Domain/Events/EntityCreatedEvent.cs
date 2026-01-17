@@ -7,4 +7,4 @@ namespace NoelleNet.Ddd.Domain.Events;
 /// </summary>
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <param name="Entity">实体实例</param>
-public record NoelleEntityCreatedEvent<TEntity>(TEntity Entity) : IDomainEvent where TEntity : IEntity;
+public record EntityCreatedEvent<TEntity>(TEntity Entity) : IDomainEvent where TEntity : IEntity;

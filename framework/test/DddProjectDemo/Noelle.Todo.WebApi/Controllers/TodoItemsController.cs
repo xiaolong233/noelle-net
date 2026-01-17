@@ -39,12 +39,12 @@ namespace Noelle.Todo.WebApi.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        /// <exception cref="NoelleEntityNotFoundException"></exception>
+        /// <exception cref="EntityNotFoundException"></exception>
         [HttpGet]
         [Route("{id}")]
         public async Task<TodoItemDto> GetDetailAsync(Guid id)
         {
-            return (await _todoItemQueries.GetTodoItemAsync(id)) ?? throw new NoelleEntityNotFoundException(typeof(TodoItem), id);
+            return (await _todoItemQueries.GetTodoItemAsync(id)) ?? throw new EntityNotFoundException(typeof(TodoItem), id);
         }
 
         /// <summary>

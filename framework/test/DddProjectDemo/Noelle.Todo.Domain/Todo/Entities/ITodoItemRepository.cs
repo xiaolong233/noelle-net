@@ -5,7 +5,7 @@ namespace Noelle.Todo.Domain.Todo.Entities;
 /// <summary>
 /// 代办事项仓储接口
 /// </summary>
-public interface ITodoItemRepository : INoelleRepository<TodoItem>
+public interface ITodoItemRepository : IRepository<TodoItem>
 {
     /// <summary>
     /// 根据标识符查询待办事项

@@ -5,15 +5,23 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Noelle.Todo.WebApi.Application.HostedServices;
 
+/// <summary>
+/// 处理种子数据后台任务的托管服务
+/// </summary>
 public class SeedIdentityHostedService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
 
+    /// <summary>
+    /// 创建一个新的 <see cref="SeedIdentityHostedService"/> 实例
+    /// </summary>
+    /// <param name="serviceProvider"><see cref="IServiceProvider"/> 实例</param>
     public SeedIdentityHostedService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
+    /// <inheritdoc/>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -53,6 +61,7 @@ public class SeedIdentityHostedService : IHostedService
         }
     }
 
+    /// <inheritdoc/>
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;

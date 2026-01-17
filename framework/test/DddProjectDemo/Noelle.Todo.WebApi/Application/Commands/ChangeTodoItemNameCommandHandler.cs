@@ -21,7 +21,7 @@ public class ChangeTodoItemNameCommandHandler(ITodoItemRepository repository) : 
     /// <returns></returns>
     public async Task<TodoItemDto> Handle(ChangeTodoItemNameCommand request, CancellationToken cancellationToken)
     {
-        var item = await _repository.FindByIdAsync(request.Id, cancellationToken) ?? throw new NoelleEntityNotFoundException($"未找到id为[{request.Id}]的待办事项");
+        var item = await _repository.FindByIdAsync(request.Id, cancellationToken) ?? throw new EntityNotFoundException($"未找到id为[{request.Id}]的待办事项");
         item.ChangeName(request.NewName);
         _repository.UpdateTodoItem(item);
 

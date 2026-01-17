@@ -3,8 +3,8 @@
 namespace NoelleNet.Ddd.Domain.Events;
 
 /// <summary>
-/// 实体更新后触发的事件
+/// 实体删除后触发的事件
 /// </summary>
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <param name="Entity">实体实例</param>
-public record NoelleEntityUpdatedEvent<TEntity>(TEntity Entity) : IDomainEvent where TEntity : IEntity;
+public record EntityDeletedEvent<TEntity>(TEntity Entity) : IDomainEvent where TEntity : IEntity;

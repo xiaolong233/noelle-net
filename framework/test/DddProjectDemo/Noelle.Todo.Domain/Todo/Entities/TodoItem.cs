@@ -13,7 +13,7 @@ public class TodoItem : AuditedAggregateRoot<Guid>
         Id = Guid.NewGuid();
         Name = name;
 
-        AddDomainEvent(new NoelleEntityCreatedEvent<TodoItem>(this));
+        AddDomainEvent(new EntityCreatedEvent<TodoItem>(this));
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class TodoItem : AuditedAggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(newName))
             throw new ArgumentException("新的待办事项名称为空", nameof(newName));
         Name = newName;
-        AddDomainEvent(new NoelleEntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
+        AddDomainEvent(new EntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
 
         string? s = null;
         s.IsNullOrWhiteSpace();
@@ -48,7 +48,7 @@ public class TodoItem : AuditedAggregateRoot<Guid>
     public void Complete()
     {
         this.IsComplete = true;
-        AddDomainEvent(new NoelleEntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
+        AddDomainEvent(new EntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
     }
 
     /// <summary>
@@ -57,6 +57,6 @@ public class TodoItem : AuditedAggregateRoot<Guid>
     public void Restart()
     {
         this.IsComplete = false;
-        AddDomainEvent(new NoelleEntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
+        AddDomainEvent(new EntityChangedEvent<TodoItem>(this, EntityChangeType.Update));
     }
 }

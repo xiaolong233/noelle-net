@@ -137,7 +137,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
             return null;
 
         string message = e.Message;
-        if (e is NoelleEntityNotFoundException entityNotFoundException && entityNotFoundException.EntityType != null)
+        if (e is EntityNotFoundException entityNotFoundException && entityNotFoundException.EntityType != null)
             message = string.Format(_localizer["EntityNotFoundErrorMessage"], entityNotFoundException.Id, entityNotFoundException.EntityType.Name);
         else if (string.IsNullOrWhiteSpace(message))
             message = _localizer["NotFoundErrorMessage"];

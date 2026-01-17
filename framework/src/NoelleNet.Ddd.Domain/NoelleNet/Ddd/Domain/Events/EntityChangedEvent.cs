@@ -27,6 +27,6 @@ public enum EntityChangeType
 /// <typeparam name="TEntity">实体类型</typeparam>
 /// <param name="Entity">实体实例</param>
 /// <param name="ChangeType">修改类型</param>
-public record NoelleEntityChangedEvent<TEntity>(
+public record EntityChangedEvent<TEntity>(
     TEntity Entity,
     EntityChangeType ChangeType) : IDomainEvent where TEntity : IEntity;

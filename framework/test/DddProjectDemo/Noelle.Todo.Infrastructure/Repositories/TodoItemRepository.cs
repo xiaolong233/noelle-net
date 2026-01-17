@@ -4,7 +4,7 @@ using NoelleNet.Ddd.Domain.Repositories.EntityFrameworkCore;
 
 namespace Noelle.Todo.Infrastructure.Repositories;
 
-public class TodoItemRepository(TodoDbContext dbContext) : NoelleEfCoreRepository<TodoItem, TodoDbContext>(dbContext), ITodoItemRepository
+public class TodoItemRepository(TodoDbContext dbContext) : EfCoreRepository<TodoItem, TodoDbContext>(dbContext), ITodoItemRepository
 {
     public TodoItem AddTodoItem(TodoItem todoItem)
     {

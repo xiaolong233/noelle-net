@@ -36,7 +36,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<NoelleDomainEventInterceptor>();
 
         // 工作单元
-        services.AddScoped<IUnitOfWork, NoelleUnitOfWork>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITransactionManager, NoelleCapTransactionManager>();
 
         // 仓储配置

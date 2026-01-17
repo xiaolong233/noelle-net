@@ -14,7 +14,7 @@ public class NoelleHttpExceptionStatusCodeFinder : IHttpExceptionStatusCodeFinde
     {
         if (exception is IHasHttpStatusCode statusCodeException)
             return (HttpStatusCode)statusCodeException.StatusCode;
-        if (exception is NoelleBusinessException)
+        if (exception is BusinessException)
             return HttpStatusCode.Forbidden;
         if (exception is NoelleNotFoundException)
             return HttpStatusCode.NotFound;
