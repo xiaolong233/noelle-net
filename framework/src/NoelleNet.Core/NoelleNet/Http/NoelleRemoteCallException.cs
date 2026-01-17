@@ -3,40 +3,10 @@
 namespace NoelleNet.Http;
 
 /// <summary>
-/// 远程调用异常类，继承自 <see cref="Exception"/>，并实现 <see cref="IHasErrorCode"/> 和 <see cref="IHasHttpStatusCode"/> 接口
+/// 远程调用异常类
 /// </summary>
-public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatusCode
+public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatusCode, IHasErrorDetails
 {
-    /// <summary>
-    /// 错误代码
-    /// </summary>
-    public string? ErrorCode { get; set; }
-
-    /// <summary>
-    /// HTTP状态码
-    /// </summary>
-    public int StatusCode { get; set; }
-
-    /// <summary>
-    /// 发生远程调用的URL地址
-    /// </summary>
-    public string? Url { get; set; }
-
-    /// <summary>
-    /// 发生远程调用的HTTP方法
-    /// </summary>
-    public string? Method { get; set; }
-
-    /// <summary>
-    /// 发送的请求数据
-    /// </summary>
-    public object? Payload { get; set; }
-
-    /// <summary>
-    /// 错误详情 <see cref="NoelleErrorDto"/> 
-    /// </summary>
-    public NoelleErrorDto? ErrorDetail { get; set; }
-
     /// <summary>
     /// 创建一个新的 <see cref="NoelleRemoteCallException"/> 实例
     /// </summary>
@@ -52,4 +22,36 @@ public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatu
     public NoelleRemoteCallException(string message, Exception? innerException) : base(message, innerException)
     {
     }
+
+    /// <summary>
+    /// 创建一个新的 <see cref="NoelleRemoteCallException"/> 实例
+    /// </summary>
+    /// <param name="error">远程调用时的错误信息</param>
+    /// <param name="innerException">内部异常对象</param>
+    public NoelleRemoteCallException(RemoteCallErrorInfo error, Exception? innerException) : base(error.Message, innerException)
+    {
+        Error = error;
+
+        if (error != null && error.Data != null)
+        {
+            foreach (var key in error.Data.Keys)
+            {
+                this.Data[key] = error.Data[key];
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public string? ErrorCode { get; set; }
+
+    /// <inheritdoc/>
+    public int StatusCode { get; set; }
+
+    /// <inheritdoc/>
+    public string? Details { get; set; }
+
+    /// <summary>
+    /// 远程调用时的错误信息
+    /// </summary>
+    public RemoteCallErrorInfo? Error { get; set; }
 }

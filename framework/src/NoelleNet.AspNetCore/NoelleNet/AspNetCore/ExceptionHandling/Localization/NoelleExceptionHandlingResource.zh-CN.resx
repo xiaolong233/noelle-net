@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConflictErrorMessage" xml:space="preserve">
+  <data name="DBConcurrencyErrorMessage" xml:space="preserve">
     <value>请求与服务器的当前状态冲突，请放弃当前的更改并重新操作。</value>
   </data>
   <data name="EntityNotFoundErrorMessage" xml:space="preserve">
@@ -129,11 +129,11 @@
   <data name="InternalServerErrorMessage" xml:space="preserve">
     <value>在处理请求期间产生了一个服务器内部错误。</value>
   </data>
-  <data name="NotFoundErrorMessage" xml:space="preserve">
-    <value>未找到当前请求的资源。</value>
-  </data>
   <data name="RemoteCallErrorMessage" xml:space="preserve">
     <value>远程服务调用失败。</value>
+  </data>
+  <data name="ValidationErrorDetailsTitle" xml:space="preserve">
+    <value>发生一个或多个验证错误。</value>
   </data>
   <data name="UnauthorizedErrorMessage" xml:space="preserve">
     <value>身份认证失败。</value>

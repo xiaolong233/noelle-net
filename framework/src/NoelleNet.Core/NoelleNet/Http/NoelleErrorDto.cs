@@ -3,6 +3,7 @@
 /// <summary>
 /// 错误详细信息的数据传输对象
 /// </summary>
+[Obsolete("后续改用RemoteCallErrorInfo")]
 public class NoelleErrorDto
 {
     /// <summary>

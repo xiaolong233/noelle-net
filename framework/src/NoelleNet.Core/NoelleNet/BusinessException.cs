@@ -5,7 +5,7 @@ namespace NoelleNet;
 /// <summary>
 /// 业务异常类，继承自 <see cref="Exception"/>，并实现 <see cref="IHasErrorCode"/> 接口。
 /// </summary>
-public class BusinessException : Exception, IHasErrorCode
+public class BusinessException : Exception, IBusinessException, IHasErrorCode
 {
     /// <summary>
     /// 创建一个新的 <see cref="BusinessException"/> 实例

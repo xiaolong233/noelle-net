@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConflictErrorMessage" xml:space="preserve">
+  <data name="DBConcurrencyErrorMessage" xml:space="preserve">
     <value>The request conflicts with the current state of the server. Please discard the current changes and try again.</value>
   </data>
   <data name="EntityNotFoundErrorMessage" xml:space="preserve">
@@ -129,11 +129,11 @@
   <data name="InternalServerErrorMessage" xml:space="preserve">
     <value>An internal server error occurred during the processing of the request.</value>
   </data>
-  <data name="NotFoundErrorMessage" xml:space="preserve">
-    <value>The currently requested resource was not found.</value>
-  </data>
   <data name="RemoteCallErrorMessage" xml:space="preserve">
     <value>The remote service call failed.</value>
+  </data>
+  <data name="ValidationErrorDetailsTitle" xml:space="preserve">
+    <value>One or more validation errors occurred.</value>
   </data>
   <data name="UnauthorizedErrorMessage" xml:space="preserve">
     <value>Authentication failed.</value>

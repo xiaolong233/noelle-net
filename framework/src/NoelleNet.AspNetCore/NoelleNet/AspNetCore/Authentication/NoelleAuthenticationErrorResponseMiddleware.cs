@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Localization;
 using NoelleNet.AspNetCore.ExceptionHandling.Localization;
-using NoelleNet.ExceptionHandling;
 using NoelleNet.Http;
 using System.Net;
 
@@ -28,8 +27,8 @@ public class NoelleAuthenticationErrorResponseMiddleware(RequestDelegate next, I
         if (context.Response.HasStarted || context.Response.StatusCode != (int)HttpStatusCode.Unauthorized)
             return;
 
-        var error = new NoelleErrorDto(_localizer["UnauthorizedErrorMessage"]) { Code = NoelleErrorCodes.Unauthorized };
-        var response = new NoelleErrorResponseDto(error);
+        var error = new RemoteCallErrorInfo(_localizer["UnauthorizedErrorMessage"]);
+        var response = new ErrorResponseDto(error);
         await context.Response.WriteAsJsonAsync(response);
     }
 }

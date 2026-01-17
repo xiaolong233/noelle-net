@@ -3,7 +3,7 @@
 /// <summary>
 /// 实体未找到时引发的异常
 /// </summary>
-public class EntityNotFoundException : NoelleNotFoundException
+public class EntityNotFoundException : Exception
 {
     /// <summary>
     /// 创建一个新的 <see cref="EntityNotFoundException"/> 实例

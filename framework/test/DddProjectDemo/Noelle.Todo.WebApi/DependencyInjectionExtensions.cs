@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Noelle.Todo.Infrastructure;
 using Noelle.Todo.WebApi.Application.HostedServices;
 using Noelle.Todo.WebApi.Application.Queries;
+using Noelle.Todo.WebApi.Localization;
 using NoelleNet.AspNetCore.ExceptionHandling;
 using NoelleNet.AspNetCore.Mvc;
 using NoelleNet.AspNetCore.Routing;
@@ -33,14 +34,15 @@ public static class DependencyInjectionExtensions
     /// <summary>
     /// 添加应用服务
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
+    /// <param name="services"><see cref="IServiceCollection"/> 实例</param>
+    /// <param name="configuration"><see cref="IConfiguration"/> 实例</param>
+    /// <param name="env"><see cref="IWebHostEnvironment"/> 实例</param>
     /// <returns></returns>
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
-        AddMvc(services);
+        AddMvc(services, env);
 
-        AddAuthentication(services, configuration);
+        AddAuthentication(services);
 
         AddMediatR(services);
 
@@ -67,7 +69,8 @@ public static class DependencyInjectionExtensions
     /// 添加Mvc
     /// </summary>
     /// <param name="services"></param>
-    private static void AddMvc(IServiceCollection services)
+    /// <param name="env"></param>
+    private static void AddMvc(IServiceCollection services, IWebHostEnvironment env)
     {
         // 添加本地化
         services.AddLocalization();
@@ -101,14 +104,25 @@ public static class DependencyInjectionExtensions
         // 错误响应
         services.AddSingleton<IExceptionToErrorConverter, NoelleExceptionToErrorConverter>();
         services.AddSingleton<IHttpExceptionStatusCodeFinder, NoelleHttpExceptionStatusCodeFinder>();
+        services.Configure<NoelleExceptionHandlingOptions>(options =>
+        {
+            options.IncludeExceptionDetails = env.IsDevelopment();
+            options.IncludeExceptionData = env.IsDevelopment();
+        });
+        services.Configure<NoelleExceptionLocalizationOptions>(options =>
+        {
+            options.LocalizerProvider = (type, fc) =>
+            {
+                return fc.Create(typeof(TodoResource));
+            };
+        });
     }
 
     /// <summary>
     /// 添加身份认证和授权
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
+    private static void AddAuthentication(IServiceCollection services)
     {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();

@@ -23,12 +23,13 @@ public class NoelleValidationException : Exception, IHasValidationResults
     /// 创建一个新的 <see cref="NoelleValidationException"/> 实例
     /// </summary>
     /// <param name="validationResults">模型验证结果集</param>
-    public NoelleValidationException(IEnumerable<ValidationResult> validationResults) : this("发生一个或多个验证错误", validationResults)
+    public NoelleValidationException(IEnumerable<ValidationResult> validationResults)
     {
+        ArgumentNullException.ThrowIfNull(validationResults);
+
+        ValidationResults = validationResults;
     }
 
-    /// <summary>
-    /// 模型验证结果集
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<ValidationResult> ValidationResults { get; }
 }

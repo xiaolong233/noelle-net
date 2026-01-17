@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Localization;
 using NoelleNet.AspNetCore.ExceptionHandling.Localization;
-using NoelleNet.ExceptionHandling;
 using NoelleNet.Http;
 using System.Net;
 
@@ -28,8 +27,8 @@ public class NoelleAuthorizationErrorResponseMiddleware(RequestDelegate next, IS
         if (context.Response.HasStarted || context.Response.StatusCode != (int)HttpStatusCode.Forbidden)
             return;
 
-        var error = new NoelleErrorDto(NoelleErrorCodes.Forbidden, _localizer["ForbiddenErrorMessage"]);
-        var response = new NoelleErrorResponseDto(error);
+        var error = new RemoteCallErrorInfo(_localizer["ForbiddenErrorMessage"]);
+        var response = new ErrorResponseDto(error);
         await context.Response.WriteAsJsonAsync(response);
     }
 }
