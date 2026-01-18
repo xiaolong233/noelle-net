@@ -1,7 +1,7 @@
 <Project>
 
 	<PropertyGroup>
-		<Version>9.0.1</Version>
+		<Version>9.1.0</Version>
 		<Authors>xiaolong233</Authors>
 		<PackageReadmeFile>NuGet.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/xiaolong233/noelle-net</RepositoryUrl>
