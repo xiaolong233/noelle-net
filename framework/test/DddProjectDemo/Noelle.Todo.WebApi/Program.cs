@@ -14,7 +14,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
     .Enrich.FromLogContext()
     .WriteTo.Async(s => s.Console())
-    .WriteTo.Async(s => s.File(new CompactJsonFormatter(), "Logs/log-.txt", rollingInterval: RollingInterval.Day))
+    .WriteTo.Async(s => s.File(new CompactJsonFormatter(), "Logs/log-.txt", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error))
     .CreateLogger();
 
 try

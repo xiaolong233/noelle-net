@@ -1,11 +1,13 @@
-﻿using NoelleNet.ExceptionHandling;
+﻿using Microsoft.Extensions.Logging;
+using NoelleNet.ExceptionHandling;
+using NoelleNet.Logging;
 
 namespace NoelleNet;
 
 /// <summary>
 /// 业务异常类，继承自 <see cref="Exception"/>，并实现 <see cref="IHasErrorCode"/> 接口。
 /// </summary>
-public class BusinessException : Exception, IBusinessException, IHasErrorCode
+public class BusinessException : Exception, IBusinessException, IHasErrorCode, IHasLogLevel
 {
     /// <summary>
     /// 创建一个新的 <see cref="BusinessException"/> 实例
@@ -54,4 +56,7 @@ public class BusinessException : Exception, IBusinessException, IHasErrorCode
 
     /// <inheritdoc/>
     public string? ErrorCode { get; set; }
+
+    /// <inheritdoc/>
+    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
 }
