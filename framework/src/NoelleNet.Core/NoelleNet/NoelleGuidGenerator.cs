@@ -8,6 +8,6 @@ public class NoelleGuidGenerator : IGuidGenerator
     /// <inheritdoc/>
     public Guid Generate()
     {
-        return Guid.NewGuid();
+        return Guid.CreateVersion7();
     }
 }
