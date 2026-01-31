@@ -107,6 +107,7 @@ public static class DependencyInjectionExtensions
         services.Configure<NoelleExceptionHandlingOptions>(options =>
         {
             options.IncludeExceptionDetails = env.IsDevelopment();
+            options.IncludeStackTrace = env.IsDevelopment();
             options.IncludeExceptionData = env.IsDevelopment();
         });
         services.Configure<NoelleExceptionLocalizationOptions>(options =>

@@ -75,7 +75,13 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
         }
         else
         {
-            errorInfo = new RemoteCallErrorInfo(e.Message);
+            errorInfo = new RemoteCallErrorInfo();
+
+            if (e is NoelleRemoteCallException)
+            {
+                errorInfo.Message = e.Message;
+                errorInfo.Details = (e as IHasErrorDetails)?.Details;
+            }
 
             if (e is IHasValidationResults validationException)
             {
@@ -92,8 +98,9 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
                 errorInfo.ValidationErrors = validationException.ValidationResults.Select(CreateValidationError);
             }
 
-            if (string.IsNullOrWhiteSpace(errorInfo.Message))
-                errorInfo.Message = TryGetLocalizedMessage(e);
+            var localizedMessage = TryGetLocalizedMessage(e);
+            if (!string.IsNullOrWhiteSpace(localizedMessage))
+                errorInfo.Message = localizedMessage;
 
             if (string.IsNullOrWhiteSpace(errorInfo.Message))
                 errorInfo.Message = _localizer["InternalServerErrorMessage"];
@@ -101,7 +108,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
 
         if (options.IncludeExceptionDetails)
         {
-            StringBuilder detailsBuilder = new StringBuilder();
+            var detailsBuilder = new StringBuilder();
             AddExceptionToDetails(e, detailsBuilder, options.IncludeStackTrace);
             errorInfo.Details = detailsBuilder.ToString();
         }
