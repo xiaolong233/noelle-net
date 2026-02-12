@@ -19,7 +19,7 @@ public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatu
     /// </summary>
     /// <param name="message">错误信息</param>
     /// <param name="innerException">内部异常对象</param>
-    public NoelleRemoteCallException(string message, Exception? innerException) : base(message, innerException)
+    public NoelleRemoteCallException(string message, Exception? innerException = null) : base(message, innerException)
     {
     }
 
@@ -28,7 +28,7 @@ public class NoelleRemoteCallException : Exception, IHasErrorCode, IHasHttpStatu
     /// </summary>
     /// <param name="error">远程调用时的错误信息</param>
     /// <param name="innerException">内部异常对象</param>
-    public NoelleRemoteCallException(RemoteCallErrorInfo error, Exception? innerException) : base(error.Message, innerException)
+    public NoelleRemoteCallException(RemoteCallErrorInfo error, Exception? innerException = null) : base(error.Message, innerException)
     {
         Error = error;
 
