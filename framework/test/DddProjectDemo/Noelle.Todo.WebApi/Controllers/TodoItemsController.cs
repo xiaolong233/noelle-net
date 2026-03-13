@@ -1,102 +1,106 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Noelle.Todo.Domain.Todo.Entities;
-using Noelle.Todo.WebApi.Application.Commands;
-using Noelle.Todo.WebApi.Application.Models;
-using Noelle.Todo.WebApi.Application.Queries;
-using NoelleNet;
-using NoelleNet.Application.Dtos;
+﻿using Noelle.Todo.WebApi.Application.Commands;
+using Noelle.Todo.WebApi.Application.Models.TodoItems;
+using Noelle.Todo.WebApi.Application.Queries.TodoItems;
 
 namespace Noelle.Todo.WebApi.Controllers
 {
     /// <summary>
-    /// 待办事项控制器
+    /// 待办事项
     /// </summary>
-    /// <param name="todoItemQueries"></param>
-    /// <param name="mediator"></param>
     [Route("api/[controller]")]
     [ApiController]
-    public class TodoItemsController(ITodoItemQueries todoItemQueries, IMediator mediator) : ControllerBase
+    public class TodoItemsController : ControllerBase
     {
-        private readonly ITodoItemQueries _todoItemQueries = todoItemQueries;
-        private readonly IMediator _mediator = mediator;
+        private readonly ITodoItemQueries _queries;
+        private readonly IMediator _mediator;
 
         /// <summary>
-        /// 获取代办事项列表
+        /// 创建一个新的 <see cref="TodoItemsController"/> 实例
         /// </summary>
-        /// <param name="dto"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet]
-        public Task<PaginationResultDto<TodoItemDto>> GetListAsync([FromQuery] PaginationAndSortDto dto)
+        /// <param name="queries"><see cref="ITodoItemQueries"/> 实例</param>
+        /// <param name="mediator"><see cref="IMediator"/> 实例</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public TodoItemsController(ITodoItemQueries queries, IMediator mediator)
         {
-            return _todoItemQueries.GetTodoItemsAsync(dto);
+            _queries = queries ?? throw new ArgumentNullException(nameof(queries));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(queries));
         }
 
         /// <summary>
-        /// 获取指定标识符的待办事项的详情
+        /// 获取待办事项列表
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="dto">待办事项分页和排序的数据传输对象</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
         /// <returns></returns>
-        /// <exception cref="EntityNotFoundException"></exception>
+        [HttpGet]
+        public Task<PaginationResultDto<TodoItemDto>> GetListAsync([FromQuery] TodoItemPaginationAndSortDto dto, CancellationToken cancellationToken = default)
+        {
+            return _queries.GetListAsync(dto, cancellationToken);
+        }
+
+        /// <summary>
+        /// 获取指定标识符的待办事项
+        /// </summary>
+        /// <param name="id">待办事项的标识符</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
+        /// <returns></returns>
         [HttpGet]
         [Route("{id}")]
-        public async Task<TodoItemDto> GetDetailAsync(Guid id)
+        public Task<TodoItemDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return (await _todoItemQueries.GetTodoItemAsync(id)) ?? throw new EntityNotFoundException(typeof(TodoItem), id);
+            return _queries.GetByIdAsync(id, cancellationToken);
         }
 
         /// <summary>
         /// 创建一个新的待办事项
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="command">创建待办事项的命令</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
         /// <returns></returns>
         [HttpPost]
-        [AllowAnonymous]
-        public Task<TodoItemDto> CreateAsync(CreateTodoItemCommand command)
+        public Task<EntityDto<Guid>> CreateAsync(CreateTodoItemCommand command, CancellationToken cancellationToken = default)
         {
-            return _mediator.Send(command);
+            return _mediator.Send(command, cancellationToken);
         }
 
         /// <summary>
-        /// 修改待办事项的名称
-        /// </summary>
-        /// <param name="id">待办事项的主键</param>
-        /// <param name="dto">请求参数</param>
-        /// <returns></returns>
-        [HttpPatch]
-        [Route("{id}/name")]
-        public Task<TodoItemDto> ChangeNameAsync(Guid id, ChangeTodoItemNameRequestDto dto)
-        {
-            ChangeTodoItemNameCommand command = new(id, dto.NewName);
-            return _mediator.Send(command);
-        }
-
-        /// <summary>
-        /// 删除指定的待办事项
+        /// 更新待办事项
         /// </summary>
         /// <param name="id">待办事项的标识符</param>
+        /// <param name="dto">更新待办事项的数据传输对象</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
+        /// <returns></returns>
+        [HttpPatch]
+        [Route("{id}")]
+        public Task UpdateAsync([FromRoute] Guid id, [FromBody] UpdateTodoItemDto dto, CancellationToken cancellationToken = default)
+        {
+            return _mediator.Send(new UpdateTodoItemCommand(id, dto), cancellationToken);
+        }
+
+        /// <summary>
+        /// 删除指定标识符的待办事项
+        /// </summary>
+        /// <param name="id">待办事项的标识符</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
         /// <returns></returns>
         [HttpDelete]
         [Route("{id}")]
-        public Task DeleteAsync(Guid id)
+        public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            DeleteTodoItemCommand command = new(id);
-            return _mediator.Send(command);
+            return _mediator.Send(new DeleteTodoItemCommand(id), cancellationToken);
         }
 
         /// <summary>
         /// 完成指定待办事项
         /// </summary>
         /// <param name="id">待办事项的标识符</param>
+        /// <param name="cancellationToken">传播取消操作的通知</param>
         /// <returns></returns>
-        [HttpPatch]
+        [HttpPost]
         [Route("{id}/completion")]
-        public Task Completion(Guid id)
+        public Task CompleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            CompleteTodoItemCommand command = new(id);
-            return _mediator.Send(command);
+            return _mediator.Send(new CompleteTodoItemCommand(id), cancellationToken);
         }
     }
 }

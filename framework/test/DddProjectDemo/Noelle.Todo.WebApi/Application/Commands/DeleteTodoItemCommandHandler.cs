@@ -1,24 +1,27 @@
-﻿using MediatR;
-using Noelle.Todo.Domain.Todo.Entities;
+﻿using Noelle.Todo.Domain.Todo;
 
 namespace Noelle.Todo.WebApi.Application.Commands;
 
 /// <summary>
-/// 删除待办事项命令的处理器
+/// <see cref="DeleteTodoItemCommand"/> 的处理程序
 /// </summary>
-/// <param name="repository">待办事项仓储的实例</param>
-public class DeleteTodoItemCommandHandler(ITodoItemRepository repository) : IRequestHandler<DeleteTodoItemCommand>
+public class DeleteTodoItemCommandHandler : IRequestHandler<DeleteTodoItemCommand>
 {
-    private readonly ITodoItemRepository _repository = repository;
+    private readonly ITodoItemRepository _repository;
 
     /// <summary>
-    /// 命令处理
+    /// 创建一个新的 <see cref="DeleteTodoItemCommandHandler"/> 实例
     /// </summary>
-    /// <param name="request">删除待办事项命令的实例</param>
-    /// <param name="cancellationToken">传播取消操作的通知</param>
-    /// <returns></returns>
+    /// <param name="repository"><see cref="ITodoItemRepository"/> 实例</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public DeleteTodoItemCommandHandler(ITodoItemRepository repository)
+    {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    }
+
+    /// <inheritdoc/>
     public Task Handle(DeleteTodoItemCommand request, CancellationToken cancellationToken)
     {
-        return _repository.DeleteByIdAsync(request.Id, cancellationToken);
+        return _repository.RemoveByIdAsync(request.Id, cancellationToken);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Noelle.Todo.DbMigratior;
-using Noelle.Todo.Infrastructure;
+using Noelle.Todo.Infrastructure.Extensions;
 using NoelleNet.EventBus.Local;
 using NoelleNet.Security;
 using NoelleNet.Security.Claims;

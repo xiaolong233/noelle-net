@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Noelle.Todo.Domain.Todo.Entities;
+using Noelle.Todo.Domain.Todo;
 using NoelleNet.Ddd.Domain.Events;
 
 namespace Noelle.Todo.WebApi.Application.DomainEvents;

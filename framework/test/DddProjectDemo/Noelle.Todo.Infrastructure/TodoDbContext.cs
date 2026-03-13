@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Noelle.Todo.Domain.Todo.Entities;
+using Noelle.Todo.Domain.Todo;
 using System.Reflection;
 
 namespace Noelle.Todo.Infrastructure;

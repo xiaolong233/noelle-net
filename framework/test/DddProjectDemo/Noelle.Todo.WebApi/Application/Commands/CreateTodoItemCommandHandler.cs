@@ -1,15 +1,13 @@
-﻿using MediatR;
-using Noelle.Todo.Domain.Todo.Entities;
+﻿using Noelle.Todo.Domain.Todo;
 using Noelle.Todo.WebApi.Application.IntegrationEvents;
-using Noelle.Todo.WebApi.Application.Models;
 using NoelleNet.EventBus.Abstractions.Distributed;
 
 namespace Noelle.Todo.WebApi.Application.Commands;
 
 /// <summary>
-/// 创建待办事项命令的处理器
+/// <see cref="CreateTodoItemCommand"/> 的处理程序
 /// </summary>
-public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemCommand, TodoItemDto>
+public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemCommand, EntityDto<Guid>>
 {
     private readonly ITodoItemRepository _repository;
     private readonly IDistributedEventBus _distributedEventBus;
@@ -17,8 +15,8 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
     /// <summary>
     /// 创建一个新的 <see cref="CreateTodoItemCommandHandler"/> 实例
     /// </summary>
-    /// <param name="repository">待办事项仓储</param>
-    /// <param name="distributedEventBus">分布式事件总线</param>
+    /// <param name="repository"><see cref="ITodoItemRepository"/> 实例</param>
+    /// <param name="distributedEventBus"><see cref="IDistributedEventBus"/> 实例</param>
     /// <exception cref="ArgumentNullException"></exception>
     public CreateTodoItemCommandHandler(ITodoItemRepository repository, IDistributedEventBus distributedEventBus)
     {
@@ -32,16 +30,14 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
     /// <param name="request"></param>
     /// <param name="cancellationToken">传播取消操作的通知</param>
     /// <returns></returns>
-    public async Task<TodoItemDto> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken)
+    public async Task<EntityDto<Guid>> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken)
     {
         var item = new TodoItem(request.Name);
 
-        _repository.AddTodoItem(item);
+        await _repository.AddTodoItemAsync(item, cancellationToken);
 
         await _distributedEventBus.PublishAsync(new CreateTodoItemIntegrationEvent(item.Name), cancellationToken);
 
-        //throw new Exception("发生异常了喵！");
-
-        return new TodoItemDto(item.Id, item.Name, item.IsComplete);
+        return new EntityDto<Guid> { Id = item.Id };
     }
 }
