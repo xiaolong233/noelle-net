@@ -14,7 +14,7 @@ public class NoelleAuditInterceptor : SaveChangesInterceptor
     /// <summary>
     /// 创建一个新的 <see cref="NoelleAuditInterceptor"/> 实例
     /// </summary>
-    /// <param name="currentUser">当前用户信息</param>
+    /// <param name="currentUser"><see cref="ICurrentUser"/> 实例</param>
     /// <exception cref="ArgumentNullException"></exception>
     public NoelleAuditInterceptor(ICurrentUser currentUser)
     {
@@ -48,22 +48,32 @@ public class NoelleAuditInterceptor : SaveChangesInterceptor
         if (entries == null || !entries.Any())
             return;
 
-        DateTime currentTime = DateTime.Now;
+        DateTime now = GetNow();
         string? userId = _currentUser.Id;
+
         foreach (var entry in entries)
         {
             if (entry.State == EntityState.Added)
             {
                 if (entry.Entity is IHasCreatedAt hasCreatedAt)
-                    NoelleObjectHelper.TrySetProperty(hasCreatedAt, s => s.CreatedAt, _ => currentTime);
+                    NoelleObjectHelper.TrySetProperty(hasCreatedAt, s => s.CreatedAt, _ => now);
                 if (entry.Entity is IMayHaveCreator mayHaveCreator)
                     NoelleObjectHelper.TrySetProperty(mayHaveCreator, s => s.CreatedBy, _ => userId);
             }
             else if (entry.State == EntityState.Modified && entry.Entity is IModificationAudited modificationAuditable)
             {
-                NoelleObjectHelper.TrySetProperty(modificationAuditable, s => s.LastModifiedAt, _ => currentTime);
+                NoelleObjectHelper.TrySetProperty(modificationAuditable, s => s.LastModifiedAt, _ => now);
                 NoelleObjectHelper.TrySetProperty(modificationAuditable, s => s.LastModifiedBy, _ => userId);
             }
         }
+    }
+
+    /// <summary>
+    /// 获取当前时间，默认为 UTC 时间
+    /// </summary>
+    /// <returns></returns>
+    protected virtual DateTime GetNow()
+    {
+        return DateTime.UtcNow;
     }
 }
