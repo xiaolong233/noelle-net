@@ -95,7 +95,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
                     errorInfo.Details = GetValidationErrorDetails(validationException);
                 }
 
-                errorInfo.ValidationErrors = validationException.ValidationResults.Select(CreateValidationError);
+                errorInfo.ValidationErrors = validationException.ValidationResults?.Select(CreateValidationError);
             }
 
             var localizedMessage = TryGetLocalizedMessage(e);
@@ -152,7 +152,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
     /// <returns></returns>
     protected virtual RemoteCallValidationErrorInfo CreateValidationError(ValidationResult validationResult)
     {
-        return new RemoteCallValidationErrorInfo(validationResult.ErrorMessage!, validationResult.MemberNames);
+        return new RemoteCallValidationErrorInfo(validationResult.ErrorMessage ?? string.Empty, validationResult.MemberNames);
     }
 
     /// <summary>
@@ -225,7 +225,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
             detailsBuilder.AppendLine(hasErrorDetails.Details);
         }
 
-        if (e is IHasValidationResults validationException && validationException.ValidationResults.Any())
+        if (e is IHasValidationResults validationException && validationException.ValidationResults?.Any() == true)
         {
             detailsBuilder.AppendLine(GetValidationErrorDetails(validationException));
         }
@@ -235,17 +235,16 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
             detailsBuilder.AppendLine($"Stack Trace: {e.StackTrace}");
         }
 
-        if (e.InnerException != null)
+        if (e is AggregateException aggregateException)
+        {
+            foreach (var innerException in aggregateException.InnerExceptions)
+            {
+                AddExceptionToDetails(innerException, detailsBuilder, includeStackTrace);
+            }
+        }
+        else if (e.InnerException != null)
         {
             AddExceptionToDetails(e.InnerException, detailsBuilder, includeStackTrace);
-        }
-
-        if (e is AggregateException aggregateException && aggregateException.InnerExceptions.Any())
-        {
-            foreach (var InnerException in aggregateException.InnerExceptions)
-            {
-                AddExceptionToDetails(InnerException, detailsBuilder, includeStackTrace);
-            }
         }
     }
 
