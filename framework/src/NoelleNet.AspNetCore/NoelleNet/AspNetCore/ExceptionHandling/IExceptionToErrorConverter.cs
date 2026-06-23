@@ -13,5 +13,5 @@ public interface IExceptionToErrorConverter
     /// <param name="exception">需要进行转换处理的 <see cref="Exception"/> 实例</param>
     /// <param name="optionsBuilder">转换选项构建器</param>
     /// <returns></returns>
-    RemoteCallErrorInfo Covert(Exception exception, Action<NoelleExceptionHandlingOptions>? optionsBuilder = null);
+    RemoteCallErrorInfo Convert(Exception exception, Action<NoelleExceptionHandlingOptions>? optionsBuilder = null);
 }

@@ -37,7 +37,7 @@ public class NoelleExceptionToErrorConverter : IExceptionToErrorConverter
     }
 
     /// <inheritdoc />
-    public RemoteCallErrorInfo Covert(Exception exception, Action<NoelleExceptionHandlingOptions>? optionsBuilder = null)
+    public RemoteCallErrorInfo Convert(Exception exception, Action<NoelleExceptionHandlingOptions>? optionsBuilder = null)
     {
         var options = CreateDefaultOptions();
         optionsBuilder?.Invoke(options);

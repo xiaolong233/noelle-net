@@ -39,7 +39,7 @@ public class NoelleExceptionHandlingFilter : IAsyncExceptionFilter
         if (context.ExceptionHandled)
             return Task.CompletedTask;
 
-        var error = _converter.Covert(context.Exception, options =>
+        var error = _converter.Convert(context.Exception, options =>
         {
             options.TraceIdProvider = _exceptionHandlingOptions.Value.TraceIdProvider ?? (() => context.HttpContext.TraceIdentifier);
             options.IncludeExceptionDetails = _exceptionHandlingOptions.Value.IncludeExceptionDetails;
