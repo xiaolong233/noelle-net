@@ -14,6 +14,7 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
 {
     private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger;
     private readonly DbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ITransactionManager _transactionManager;
 
     /// <summary>
@@ -21,25 +22,20 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
     /// </summary>
     /// <param name="logger">日志记录器</param>
     /// <param name="dbContext">数据库上下文</param>
+    /// <param name="unitOfWork">工作单元</param>
     /// <param name="transactionManager">事务管理器</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public NoelleTransactionBehavior(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, ITransactionManager transactionManager)
+    public NoelleTransactionBehavior(ILogger<NoelleTransactionBehavior<TRequest, TResponse>> logger, DbContext dbContext, IUnitOfWork unitOfWork, ITransactionManager transactionManager)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _transactionManager = transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
     }
 
-    /// <summary>
-    /// 管道行为处理
-    /// </summary>
-    /// <param name="request">请求对象</param>
-    /// <param name="next">请求处理委托</param>
-    /// <param name="cancellationToken">传播取消操作的通知</param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<TResponse?> Handle(TRequest request, RequestHandlerDelegate<TResponse?> next, CancellationToken cancellationToken)
     {
-        TResponse? response = default;
         string cmdName = request.GetGenericTypeName();
 
         if (_transactionManager.HasActiveTransaction)
@@ -47,33 +43,33 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
             return await next(cancellationToken);
         }
 
-        // 开启一个新的事务
+        TResponse? response = default;
         var strategy = _dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
-            await _transactionManager.BeginAsync(cancellationToken);
-            var transactionId = _transactionManager.TransactionId;
-            _logger.LogInformation("开始事务 {TransactionId} - 命令: {CommandName} ({@Command})", transactionId, cmdName, request);
-
             try
             {
+                await _transactionManager.BeginAsync(cancellationToken);
+                var transactionId = _transactionManager.TransactionId;
+                _logger.LogInformation("开始事务 {TransactionId} - 命令: {CommandName} ({@Command})", transactionId, cmdName, request);
+
                 response = await next(cancellationToken);
 
-                _logger.LogInformation("提交事务 {TransactionId} - 命令: {CommandName} ({@Response})", transactionId, cmdName, response);
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _transactionManager.CommitAsync(cancellationToken);
 
                 _logger.LogInformation("事务完成 {TransactionId} - 命令: {CommandName} ({@Response})", transactionId, cmdName, response);
             }
             catch (Exception e)
             {
-                await _transactionManager.RollbackAsync(cancellationToken);
+                if (_transactionManager.HasActiveTransaction)
+                {
+                    await _transactionManager.RollbackAsync(cancellationToken);
+                }
 
                 _logger.LogError(e, "事务处理错误 - 命令: {CommandName} ({@Command})", cmdName, request);
                 throw;
             }
-
         });
 
         return response;
