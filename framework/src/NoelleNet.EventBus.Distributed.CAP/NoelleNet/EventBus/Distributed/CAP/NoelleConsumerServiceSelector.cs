@@ -1,8 +1,9 @@
 ﻿using DotNetCore.CAP;
 using DotNetCore.CAP.Internal;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using NoelleNet.EventBus.Abstractions;
 using NoelleNet.EventBus.Abstractions.Distributed;
+using NoelleNet.EventBus.Distributed;
 using System.Reflection;
 
 namespace NoelleNet.EventBus.Distributed.CAP;
@@ -12,43 +13,27 @@ namespace NoelleNet.EventBus.Distributed.CAP;
 /// </summary>
 public class NoelleConsumerServiceSelector : ConsumerServiceSelector
 {
+    private readonly IEnumerable<(Type HandlerType, Type EventType)> _handlerEventTypePairs;
+
     /// <summary>
     /// 创建一个新的 <see cref="NoelleConsumerServiceSelector"/> 实例
     /// </summary>
     /// <param name="serviceProvider"><see cref="IServiceProvider"/> 实例</param>
-    public NoelleConsumerServiceSelector(IServiceProvider serviceProvider) : base(serviceProvider)
+    /// <param name="options">分布式事件总线 Options</param>
+    public NoelleConsumerServiceSelector(IServiceProvider serviceProvider, IOptions<NoelleDistributedEventBusOptions> options) : base(serviceProvider)
     {
+        _handlerEventTypePairs = options.Value.HandlerEventTypePairs ?? [];
     }
 
     /// <inheritdoc/>
     protected override IEnumerable<ConsumerExecutorDescriptor> FindConsumersFromInterfaceTypes(IServiceProvider provider)
     {
-        var descriptors = base.FindConsumersFromInterfaceTypes(provider).ToList();
+        var descriptors = base.FindConsumersFromInterfaceTypes(provider)?.ToList() ?? [];
 
-        using var scope = provider.CreateScope();
-        var scopeProvider = scope.ServiceProvider;
-        var serviceCollection = scopeProvider.GetRequiredService<IServiceCollection>();
-
-        // 获取所有EventHandler
-        var handleInterfaceType = typeof(IEventHandler).GetTypeInfo();
-        var handlerTypes = serviceCollection
-            .Where(x => x.ImplementationType != null && handleInterfaceType.IsAssignableFrom(x.ImplementationType))
-            .Select(x => x.ImplementationType!) ?? [];
-
-        foreach (var handlerType in handlerTypes)
+        foreach (var (handlerType, eventType) in _handlerEventTypePairs)
         {
-            var interfaceTypes = handlerType.GetInterfaces().Where(x => x.IsGenericType) ?? [];
-            foreach (var interfaceType in interfaceTypes)
-            {
-                if (!(interfaceType.GetGenericTypeDefinition() == typeof(IDistributedEventHandler<>)))
-                {
-                    continue;
-                }
-
-                var genericArgs = interfaceType.GetGenericArguments();
-                var innerDescriptors = GetHandlerDescription(genericArgs[0], handlerType);
-                descriptors.AddRange(innerDescriptors);
-            }
+            var innerDescriptors = GetHandlerDescription(eventType, handlerType);
+            descriptors.AddRange(innerDescriptors);
         }
 
         return descriptors;
@@ -64,7 +49,9 @@ public class NoelleConsumerServiceSelector : ConsumerServiceSelector
     protected virtual IEnumerable<ConsumerExecutorDescriptor> GetHandlerDescription(Type eventType, Type handlerType)
     {
         var serviceTypeInfo = typeof(IDistributedEventHandler<>).MakeGenericType(eventType);
-        var method = handlerType.GetMethod(nameof(IDistributedEventHandler<object>.HandleAsync)) ?? throw new InvalidOperationException($"Could not get handle method for {handlerType}");
+        var method = handlerType.GetMethod(nameof(IDistributedEventHandler<object>.HandleAsync))
+            ?? serviceTypeInfo.GetMethod(nameof(IDistributedEventHandler<object>.HandleAsync))
+            ?? throw new InvalidOperationException($"Could not get handle method for {handlerType}");
         var eventNameAttribute = eventType.GetCustomAttribute<EventNameAttribute>(true);
         if (string.IsNullOrWhiteSpace(eventNameAttribute?.Name))
             throw new InvalidOperationException("Event name cannot be empty");

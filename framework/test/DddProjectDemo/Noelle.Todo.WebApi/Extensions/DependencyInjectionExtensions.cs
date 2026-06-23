@@ -42,7 +42,7 @@ public static class DependencyInjectionExtensions
         services.AddHostedServices();
         services.AddApplicationServices();
         services.AddApplicationLocalization();
-
+        
         return services;
     }
 

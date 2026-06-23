@@ -23,7 +23,7 @@ try
 
     // ∆Ù”√Serilog»’÷æ
     builder.Host.UseSerilog();
-
+    
     // Add services to the container.
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication(builder.Configuration, builder.Environment);

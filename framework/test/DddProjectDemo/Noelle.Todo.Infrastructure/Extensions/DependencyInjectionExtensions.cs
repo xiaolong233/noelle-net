@@ -88,7 +88,7 @@ public static class DependencyInjectionExtensions
 
         // 领域服务
         // services.AddScoped<XxxService>();
-
+        
         return services;
     }
 }

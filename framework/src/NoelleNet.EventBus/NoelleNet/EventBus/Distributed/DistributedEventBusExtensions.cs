@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoelleNet.EventBus.Abstractions.Distributed;
 
@@ -20,22 +20,25 @@ public static class DistributedEventBusExtensions
         var configuration = new DistributedEventBusConfiguration(services);
         configure?.Invoke(configuration);
 
-        // 注册所有分布式事件处理器
+        // 扫描所有 IDistributedEventHandler<> 实现
         var handlerInterfaceType = typeof(IDistributedEventHandler<>);
-
-        var handlerMateInfos = configuration.AssembliesToRegister
+        var handlerEventTypePairs = configuration.AssembliesToRegister
             .SelectMany(x => x.GetTypes())
             .Where(x => !x.IsAbstract && !x.IsInterface)
             .SelectMany(x => x.GetInterfaces()
-                .Where(s => s.IsGenericType && s.GetGenericTypeDefinition() == handlerInterfaceType)
-                .Select(s => new { HandlerType = x, EventType = s.GetGenericArguments()[0] })
-             );
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterfaceType)
+                .Select(i => (x, i.GetGenericArguments()[0]))
+            )
+            .ToList();
 
-        foreach (var handlerMateInfo in handlerMateInfos)
+        // 将扫描结果写入 Options（供 NoelleConsumerServiceSelector 通过 IOptions<T> 注入使用）
+        services.AddOptions<NoelleDistributedEventBusOptions>()
+            .Configure(options => options.HandlerEventTypePairs = handlerEventTypePairs);
+
+        foreach (var (handlerType, eventType) in handlerEventTypePairs)
         {
-            var interfaceType = handlerInterfaceType.MakeGenericType(handlerMateInfo.EventType);
-
-            services.TryAddTransient(interfaceType, handlerMateInfo.HandlerType);
+            var interfaceType = handlerInterfaceType.MakeGenericType(eventType);
+            services.TryAddTransient(interfaceType, handlerType);
         }
 
         return services;
