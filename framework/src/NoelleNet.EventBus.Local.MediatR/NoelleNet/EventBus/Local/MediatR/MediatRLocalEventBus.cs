@@ -17,14 +17,14 @@ public class MediatRLocalEventBus : ILocalEventBus
     /// <exception cref="ArgumentNullException"></exception>
     public MediatRLocalEventBus(IMediator mediator)
     {
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        ArgumentNullException.ThrowIfNull(mediator);
+        _mediator = mediator;
     }
 
     /// <inheritdoc/>
     public Task PublishAsync<TEvent>(TEvent eventData, CancellationToken cancellationToken = default)
     {
-        if (eventData == null)
-            throw new ArgumentNullException(nameof(eventData));
+        ArgumentNullException.ThrowIfNull(eventData);
 
         var wrapper = new LocalEventAdapter(eventData);
         return _mediator.Publish(wrapper, cancellationToken);

@@ -19,6 +19,9 @@ public static class MediatRLocalEventBusExtensions
     /// <returns></returns>
     public static LocalEventBusConfiguration UseMediatR(this LocalEventBusConfiguration configuration, Action<MediatRServiceConfiguration> configure)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(configure);
+
         // 注册事件总线
         configuration.Services.AddScoped<ILocalEventBus, MediatRLocalEventBus>();
 

@@ -13,9 +13,9 @@ public class CreateTodoItemDomainEventHandler(ILogger<CreateTodoItemDomainEventH
     private readonly ILogger<CreateTodoItemDomainEventHandler> _logger = logger;
 
     /// <inheritdoc/>
-    public Task HandleAsync(EntityCreatedEvent<TodoItem> eventData, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(EntityCreatedEvent<TodoItem> eventData, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("创建了新的代办事项：[{Name}]", eventData.Entity.Name);
-        return Task.FromResult(0);
+        _logger.LogInformation("创建了新的代办事项：[{Name}] {Handler} {Time}", eventData.Entity.Name, this.GetType().Name, DateTimeOffset.Now);
+        await Task.Delay(3000, cancellationToken);
     }
 }

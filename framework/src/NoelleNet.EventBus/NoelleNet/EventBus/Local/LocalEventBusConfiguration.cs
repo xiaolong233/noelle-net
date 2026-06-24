@@ -22,11 +22,11 @@ public class LocalEventBusConfiguration
     /// </summary>
     public IServiceCollection Services { get; }
 
-    private List<Assembly> _assembliesToRegister = [];
+    private HashSet<Assembly> _assembliesToRegister = [];
     /// <summary>
     /// 待注册的程序集
     /// </summary>
-    public IReadOnlyCollection<Assembly> AssembliesToRegister => _assembliesToRegister.AsReadOnly();
+    public IReadOnlyCollection<Assembly> AssembliesToRegister => _assembliesToRegister;
 
     /// <summary>
     /// 从程序集注册服务
@@ -36,7 +36,6 @@ public class LocalEventBusConfiguration
     public LocalEventBusConfiguration RegisterServicesFromAssembly(Assembly assembly)
     {
         _assembliesToRegister.Add(assembly);
-        _assembliesToRegister = [.. _assembliesToRegister.Distinct()];
         return this;
     }
 
@@ -47,8 +46,8 @@ public class LocalEventBusConfiguration
     /// <returns></returns>
     public LocalEventBusConfiguration RegisterServicesFromAssemblies(params Assembly[] assemblies)
     {
-        _assembliesToRegister.AddRange(assemblies);
-        _assembliesToRegister = [.. _assembliesToRegister.Distinct()];
+        foreach (var assembly in assemblies)
+            _assembliesToRegister.Add(assembly);
         return this;
     }
 }

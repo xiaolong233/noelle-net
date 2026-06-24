@@ -14,7 +14,8 @@ public class LocalEventAdapter : INotification
     /// <exception cref="ArgumentNullException"></exception>
     public LocalEventAdapter(object sourceEvent)
     {
-        SourceEvent = sourceEvent ?? throw new ArgumentNullException(nameof(sourceEvent));
+        ArgumentNullException.ThrowIfNull(sourceEvent);
+        SourceEvent = sourceEvent;
         EventType = sourceEvent.GetType();
     }
 
