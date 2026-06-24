@@ -18,7 +18,15 @@
     <Project Path="src/NoelleNet.Extensions.MediatR/NoelleNet.Extensions.MediatR.csproj" />
     <Project Path="src/NoelleNet.Uow/NoelleNet.Uow.csproj" />
   </Folder>
-  <Folder Name="/test/" />
+  <Folder Name="/test/">
+    <Project Path="test/NoelleNet.AspNetCore.Tests/NoelleNet.AspNetCore.Tests.csproj" Id="c420dd32-0d4f-4eb8-8b87-4216a938ba2b" />
+    <Project Path="test/NoelleNet.Core.Tests/NoelleNet.Core.Tests.csproj" Id="84a79efb-4adc-4967-b545-9287bc0dd6c9" />
+    <Project Path="test/NoelleNet.Ddd.Domain.Tests/NoelleNet.Ddd.Domain.Tests.csproj" Id="95641674-c83f-411c-81bd-c75c0f9538da" />
+    <Project Path="test/NoelleNet.EntityFrameworkCore.Tests/NoelleNet.EntityFrameworkCore.Tests.csproj" Id="b848541f-008c-44dc-ad47-934640d910c3" />
+    <Project Path="test/NoelleNet.EventBus.Distributed.CAP.Tests/NoelleNet.EventBus.Distributed.CAP.Tests.csproj" Id="91c19d35-fb27-4ab3-9c9e-768d863f32a5" />
+    <Project Path="test/NoelleNet.EventBus.Local.MediatR.Tests/NoelleNet.EventBus.Local.MediatR.Tests.csproj" Id="620fa4c2-e285-4752-a1e6-149f08eca2d8" />
+    <Project Path="test/NoelleNet.Extensions.MediatR.Tests/NoelleNet.Extensions.MediatR.Tests.csproj" Id="c70cca94-e319-46fb-be9e-1a49004ef17b" />
+  </Folder>
   <Folder Name="/test/DddProjectDemo/">
     <Project Path="test/DddProjectDemo/Noelle.Todo.DbMigratior/Noelle.Todo.DbMigratior.csproj" />
     <Project Path="test/DddProjectDemo/Noelle.Todo.Domain/Noelle.Todo.Domain.csproj" />
