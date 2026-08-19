@@ -27,10 +27,4 @@
     <Project Path="test/NoelleNet.EventBus.Local.MediatR.Tests/NoelleNet.EventBus.Local.MediatR.Tests.csproj" Id="620fa4c2-e285-4752-a1e6-149f08eca2d8" />
     <Project Path="test/NoelleNet.Extensions.MediatR.Tests/NoelleNet.Extensions.MediatR.Tests.csproj" Id="c70cca94-e319-46fb-be9e-1a49004ef17b" />
   </Folder>
-  <Folder Name="/test/DddProjectDemo/">
-    <Project Path="test/DddProjectDemo/Noelle.Todo.DbMigratior/Noelle.Todo.DbMigratior.csproj" />
-    <Project Path="test/DddProjectDemo/Noelle.Todo.Domain/Noelle.Todo.Domain.csproj" />
-    <Project Path="test/DddProjectDemo/Noelle.Todo.Infrastructure/Noelle.Todo.Infrastructure.csproj" />
-    <Project Path="test/DddProjectDemo/Noelle.Todo.WebApi/Noelle.Todo.WebApi.csproj" />
-  </Folder>
 </Solution>
