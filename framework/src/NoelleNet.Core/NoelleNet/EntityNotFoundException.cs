@@ -1,4 +1,6 @@
-﻿namespace NoelleNet;
+﻿using NoelleNet.ExceptionHandling;
+
+namespace NoelleNet;
 
 /// <summary>
 /// 实体未找到时引发的异常
@@ -34,7 +36,7 @@ public class EntityNotFoundException<TEntityType> : EntityNotFoundException
 /// <summary>
 /// 实体未找到时引发的异常
 /// </summary>
-public class EntityNotFoundException : Exception
+public class EntityNotFoundException : Exception, IHasHttpStatusCode
 {
     /// <summary>
     /// 创建一个新的 <see cref="EntityNotFoundException"/> 实例
@@ -102,4 +104,7 @@ public class EntityNotFoundException : Exception
     /// 实体标识符
     /// </summary>
     public object? Id { get; set; }
+
+    /// <inheritdoc/>
+    public virtual int StatusCode => 404;
 }

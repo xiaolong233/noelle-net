@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Options;
-using NoelleNet.Http;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using NoelleNet.Logging;
+using System.Diagnostics;
 using System.Net;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
@@ -13,58 +11,57 @@ namespace NoelleNet.AspNetCore.ExceptionHandling;
 public class NoelleExceptionHandlingFilter : IAsyncExceptionFilter
 {
     private readonly ILogger<NoelleExceptionHandlingFilter> _logger;
-    private readonly IExceptionToErrorConverter _converter;
-    private readonly IHttpExceptionStatusCodeFinder _finder;
-    private readonly IOptions<NoelleExceptionHandlingOptions> _exceptionHandlingOptions;
+    private readonly IErrorResponseWriter _errorResponseWriter;
 
     /// <summary>
     /// 创建一个新的 <see cref="NoelleExceptionHandlingFilter"/> 实例
     /// </summary>
-    /// <param name="logger">日志记录器</param>
-    /// <param name="converter">异常信息转换器</param>
-    /// <param name="finder">HTTP错误状态码查找器</param>
-    /// <param name="exceptionHandlingOptions">异常处理选项</param>
+    /// <param name="logger"></param>
+    /// <param name="errorResponseWriter"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public NoelleExceptionHandlingFilter(ILogger<NoelleExceptionHandlingFilter> logger, IExceptionToErrorConverter converter, IHttpExceptionStatusCodeFinder finder, IOptions<NoelleExceptionHandlingOptions> exceptionHandlingOptions)
+    public NoelleExceptionHandlingFilter(
+        ILogger<NoelleExceptionHandlingFilter> logger,
+        IErrorResponseWriter errorResponseWriter)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-        _finder = finder ?? throw new ArgumentNullException(nameof(finder));
-        _exceptionHandlingOptions = exceptionHandlingOptions ?? throw new ArgumentNullException(nameof(exceptionHandlingOptions));
+        _errorResponseWriter = errorResponseWriter ?? throw new ArgumentNullException(nameof(errorResponseWriter));
     }
 
     /// <inheritdoc/>
-    public Task OnExceptionAsync(ExceptionContext context)
+    public async Task OnExceptionAsync(ExceptionContext context)
     {
         if (context.ExceptionHandled)
-            return Task.CompletedTask;
+            return;
 
-        var error = _converter.Convert(context.Exception, options =>
+        try
         {
-            options.TraceIdProvider = _exceptionHandlingOptions.Value.TraceIdProvider ?? (() => context.HttpContext.TraceIdentifier);
-            options.IncludeExceptionDetails = _exceptionHandlingOptions.Value.IncludeExceptionDetails;
-            options.IncludeStackTrace = _exceptionHandlingOptions.Value.IncludeStackTrace;
-            options.IncludeExceptionData = _exceptionHandlingOptions.Value.IncludeExceptionData;
-        });
-
-        HttpStatusCode statusCode = _finder.GetStatusCode(context.HttpContext, context.Exception);
-
-        LogLevel logLevel = context.Exception switch
+            // 尝试将错误信息写入 HTTP 响应，写入失败时交由 MVC 默认处理
+            context.ExceptionHandled = await _errorResponseWriter.TryWriteAsync(context.HttpContext, context.Exception);
+        }
+        finally
         {
-            IHasLogLevel hasLogLevel => hasLogLevel.LogLevel,
-            IBusinessException => LogLevel.Information,
-            _ => LogLevel.Error
-        };
+            // 记录日志，优先记录实际响应的状态码，若状态码未被设置（仍为默认值且响应未开始）则按服务器内部错误记录
+            LogLevel logLevel = context.Exception switch
+            {
+                IHasLogLevel hasLogLevel => hasLogLevel.LogLevel,
+                IBusinessException => LogLevel.Information,
+                TaskCanceledException => LogLevel.Debug,
+                OperationCanceledException => LogLevel.Warning,
+                _ => LogLevel.Error
+            };
+            int statusCode = context.HttpContext.Response.StatusCode;
+            if (statusCode == (int)HttpStatusCode.OK && !context.HttpContext.Response.HasStarted)
+                statusCode = (int)HttpStatusCode.InternalServerError;
 
-        _logger.Log(logLevel, context.Exception, "{@ErrorInfo}", error);
-
-        context.Result = new JsonResult(new ErrorResponseDto(error))
-        {
-            StatusCode = (int)statusCode
-        };
-
-        context.ExceptionHandled = true;
-
-        return Task.CompletedTask;
+            _logger.Log(
+                logLevel,
+                context.Exception,
+                "处理请求时发生异常。TraceId：{TraceId}，请求方法：{RequestMethod}，请求路径：{RequestPath}，响应状态码：{StatusCode}，异常类型：{ExceptionType}",
+                Activity.Current?.TraceId.ToString() ?? context.HttpContext.TraceIdentifier,
+                context.HttpContext.Request.Method,
+                context.HttpContext.Request.Path,
+                statusCode,
+                context.Exception.GetType().FullName);
+        }
     }
 }

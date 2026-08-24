@@ -52,7 +52,7 @@ dotnet add package NoelleNet.Application.Contracts
 | **NoelleNet.EventBus.Local.MediatR** | 基于 [MediatR](https://github.com/jbogard/MediatR) 的本地事件总线实现 |
 | **NoelleNet.EventBus.Distributed.CAP** | 基于 [DotNetCore.CAP](https://cap.dotnetcore.xyz/) 的分布式事件总线实现 |
 | **NoelleNet.EntityFrameworkCore** | EF Core 集成：`EfCoreRepository`、`UnitOfWork`、审计拦截器、领域事件拦截器、自动 GUID 键拦截器 |
-| **NoelleNet.AspNetCore** | ASP.NET Core 增强：全局异常处理、FluentValidation 模型验证、路由 snake_case 转换、认证授权错误响应 |
+| **NoelleNet.AspNetCore** | ASP.NET Core 增强：全局异常处理、FluentValidation 模型验证、路由 kebab-case 转换、认证授权错误响应 |
 | **NoelleNet.Application.Contracts** | 应用层 DTO：分页/排序/列表结果、审计 DTO 基类 |
 | **NoelleNet.Extensions.MediatR** | MediatR 管道行为：日志记录、事务自动管理、空中介者占位 |
 | **NoelleNet.Extensions.CAP.SqlServer** | CAP + SQL Server 事务管理器 |
@@ -84,7 +84,7 @@ NoelleNet.Core                        基础库
  ├─ NoelleNet.AspNetCore              ASP.NET Core 增强
  │   ├─ 全局异常处理
  │   ├─ FluentValidation 验证
- │   ├─ SnakeCase 路由
+ │   ├─ KebabCase 路由
  │   └─ 认证/授权错误响应
  ├─ NoelleNet.Application.Contracts   应用 DTO
  ├─ NoelleNet.Extensions.MediatR      MediatR 扩展

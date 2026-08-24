@@ -237,7 +237,7 @@ public class TodoService
 | `NoelleNet.EventBus` | 事件总线抽象：本地 + 分布式 |
 | `NoelleNet.EventBus.Local.MediatR` | 基于 MediatR 的本地事件总线实现 |
 | `NoelleNet.EventBus.Distributed.CAP` | 基于 CAP 的分布式事件总线实现 |
-| `NoelleNet.AspNetCore` | 全局异常、验证、SnakeCase 路由、认证错误响应 |
+| `NoelleNet.AspNetCore` | 全局异常、验证、KebabCase 路由、认证错误响应 |
 | `NoelleNet.Application.Contracts` | 应用层 DTO：分页、排序、列表结果 |
 | `NoelleNet.Extensions.MediatR` | MediatR 管道行为：日志、事务管理 |
 | `NoelleNet.Auditing` | 审计接口定义 |

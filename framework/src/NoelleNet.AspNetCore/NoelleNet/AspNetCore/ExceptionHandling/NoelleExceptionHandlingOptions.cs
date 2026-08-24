@@ -6,11 +6,6 @@
 public class NoelleExceptionHandlingOptions
 {
     /// <summary>
-    /// 跟踪标识提供者
-    /// </summary>
-    public Func<string>? TraceIdProvider { get; set; }
-
-    /// <summary>
     /// 包含异常详情信息
     /// </summary>
     public bool IncludeExceptionDetails { get; set; }
