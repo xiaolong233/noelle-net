@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 namespace NoelleNet.Security.Claims;
 
 public class NoelleClaimTypesTests
@@ -11,27 +9,45 @@ public class NoelleClaimTypesTests
     }
 
     [Fact]
-    public void UserId_Default_ShouldBeNameIdentifier()
+    public void Subject_Default_ShouldBeSub()
     {
-        Assert.Equal(ClaimTypes.NameIdentifier, NoelleClaimTypes.UserId);
+        Assert.Equal("sub", NoelleClaimTypes.Subject);
     }
 
     [Fact]
-    public void UserName_Default_ShouldBeName()
+    public void UserId_Default_ShouldBeUserId()
     {
-        Assert.Equal(ClaimTypes.Name, NoelleClaimTypes.UserName);
+        Assert.Equal("user_id", NoelleClaimTypes.UserId);
+    }
+
+    [Fact]
+    public void UserName_Default_ShouldBePreferredUsername()
+    {
+        Assert.Equal("preferred_username", NoelleClaimTypes.UserName);
+    }
+
+    [Fact]
+    public void Name_Default_ShouldBeName()
+    {
+        Assert.Equal("name", NoelleClaimTypes.Name);
     }
 
     [Fact]
     public void GivenName_Default_ShouldBeGivenName()
     {
-        Assert.Equal(ClaimTypes.GivenName, NoelleClaimTypes.GivenName);
+        Assert.Equal("given_name", NoelleClaimTypes.GivenName);
     }
 
     [Fact]
-    public void Surname_Default_ShouldBeSurname()
+    public void Surname_Default_ShouldBeFamilyName()
     {
-        Assert.Equal(ClaimTypes.Surname, NoelleClaimTypes.Surname);
+        Assert.Equal("family_name", NoelleClaimTypes.Surname);
+    }
+
+    [Fact]
+    public void MiddleName_Default_ShouldBeMiddleName()
+    {
+        Assert.Equal("middle_name", NoelleClaimTypes.MiddleName);
     }
 
     [Fact]
@@ -43,7 +59,7 @@ public class NoelleClaimTypesTests
     [Fact]
     public void Email_Default_ShouldBeEmail()
     {
-        Assert.Equal(ClaimTypes.Email, NoelleClaimTypes.Email);
+        Assert.Equal("email", NoelleClaimTypes.Email);
     }
 
     [Fact]
@@ -67,19 +83,19 @@ public class NoelleClaimTypesTests
     [Fact]
     public void Gender_Default_ShouldBeGender()
     {
-        Assert.Equal(ClaimTypes.Gender, NoelleClaimTypes.Gender);
+        Assert.Equal("gender", NoelleClaimTypes.Gender);
     }
 
     [Fact]
-    public void DateOfBirth_Default_ShouldBeDateOfBirth()
+    public void DateOfBirth_Default_ShouldBeBirthdate()
     {
-        Assert.Equal(ClaimTypes.DateOfBirth, NoelleClaimTypes.DateOfBirth);
+        Assert.Equal("birthdate", NoelleClaimTypes.DateOfBirth);
     }
 
     [Fact]
     public void Role_Default_ShouldBeRole()
     {
-        Assert.Equal(ClaimTypes.Role, NoelleClaimTypes.Role);
+        Assert.Equal("role", NoelleClaimTypes.Role);
     }
 
     [Fact]
@@ -89,9 +105,9 @@ public class NoelleClaimTypesTests
     }
 
     [Fact]
-    public void DeptId_Default_ShouldBeDeptId()
+    public void OrganizationUnitId_Default_ShouldBeOrganizationUnitId()
     {
-        Assert.Equal("dept_id", NoelleClaimTypes.DeptId);
+        Assert.Equal("organization_unit_id", NoelleClaimTypes.OrganizationUnitId);
     }
 
     [Fact]

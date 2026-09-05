@@ -123,7 +123,7 @@ public class NoelleAuditInterceptorTests
     public void SavingChanges_AddedEntity_ShouldSetCreatedAtAndCreatedBy()
     {
         var userId = "user-001";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -142,7 +142,7 @@ public class NoelleAuditInterceptorTests
     public void SavingChanges_AddedAuditedEntity_ShouldSetAllCreationAuditFields()
     {
         var userId = "user-002";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -163,7 +163,7 @@ public class NoelleAuditInterceptorTests
     public void SavingChanges_ModifiedEntity_ShouldSetModificationAuditFields()
     {
         var userId = "user-003";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -185,7 +185,7 @@ public class NoelleAuditInterceptorTests
     public void SavingChanges_ModifiedAuditedEntity_ShouldSetModificationFields()
     {
         var userId = "user-004";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -205,7 +205,7 @@ public class NoelleAuditInterceptorTests
     [Fact]
     public void SavingChanges_CurrentUserHasNoId_ShouldSetCreatedByAsNull()
     {
-        _currentUserMock.Setup(u => u.Id).Returns((string?)null);
+        _currentUserMock.Setup(u => u.UserId).Returns((string?)null);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -242,7 +242,7 @@ public class NoelleAuditInterceptorTests
     public async Task SavingChangesAsync_AddedEntity_ShouldSetCreatedAtAndCreatedBy()
     {
         var userId = "async-user-001";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -261,7 +261,7 @@ public class NoelleAuditInterceptorTests
     public async Task SavingChangesAsync_ModifiedEntity_ShouldSetModificationFields()
     {
         var userId = "async-user-002";
-        _currentUserMock.Setup(u => u.Id).Returns(userId);
+        _currentUserMock.Setup(u => u.UserId).Returns(userId);
 
         var options = new DbContextOptionsBuilder<AuditTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())

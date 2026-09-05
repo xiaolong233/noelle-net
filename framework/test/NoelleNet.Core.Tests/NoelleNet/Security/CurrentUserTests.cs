@@ -30,7 +30,38 @@ public class CurrentUserTests
     }
 
     [Fact]
-    public void Id_WithClaim_ShouldReturnValue()
+    public void Subject_WithClaim_ShouldReturnValue()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(NoelleClaimTypes.Subject, "subject123")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("subject123", user.Subject);
+    }
+
+    [Fact]
+    public void Subject_WithoutClaim_ShouldReturnNull()
+    {
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Null(user.Subject);
+    }
+
+    [Fact]
+    public void Subject_WithFallbackClaim_ShouldReturnValue()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "subject456")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("subject456", user.Subject);
+    }
+
+    [Fact]
+    public void UserId_WithClaim_ShouldReturnValue()
     {
         _principal.AddIdentity(new ClaimsIdentity(new[]
         {
@@ -38,14 +69,26 @@ public class CurrentUserTests
         }));
 
         var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("user123", user.Id);
+        Assert.Equal("user123", user.UserId);
     }
 
     [Fact]
-    public void Id_WithoutClaim_ShouldReturnNull()
+    public void UserId_WithoutClaim_ShouldReturnNull()
     {
         var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.Id);
+        Assert.Null(user.UserId);
+    }
+
+    [Fact]
+    public void UserId_WithFallbackClaim_ShouldReturnValue()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "user456")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("user456", user.UserId);
     }
 
     [Fact]
@@ -61,11 +104,48 @@ public class CurrentUserTests
     }
 
     [Fact]
+    public void UserName_WithFallbackClaim_ShouldReturnValue()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, "zhangsan")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("zhangsan", user.UserName);
+    }
+
+    [Fact]
+    public void UserName_WithBothClaimTypes_ShouldPreferOidc()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(NoelleClaimTypes.UserName, "preferred"),
+            new Claim(ClaimTypes.Name, "uri-name")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("preferred", user.UserName);
+    }
+
+    [Fact]
     public void Email_WithClaim_ShouldReturnValue()
     {
         _principal.AddIdentity(new ClaimsIdentity(new[]
         {
             new Claim(NoelleClaimTypes.Email, "test@example.com")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("test@example.com", user.Email);
+    }
+
+    [Fact]
+    public void Email_WithFallbackClaim_ShouldReturnValue()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Email, "test@example.com")
         }));
 
         var user = new CurrentUser(_providerMock.Object);
@@ -146,6 +226,20 @@ public class CurrentUserTests
         {
             new Claim(NoelleClaimTypes.Role, "admin"),
             new Claim(NoelleClaimTypes.Role, "user")
+        }));
+
+        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal(new[] { "admin", "user" }, user.Roles);
+    }
+
+    [Fact]
+    public void Roles_WithBothClaimTypes_ShouldReturnDistinctUnion()
+    {
+        _principal.AddIdentity(new ClaimsIdentity(new[]
+        {
+            new Claim(NoelleClaimTypes.Role, "admin"),
+            new Claim(ClaimTypes.Role, "admin"),
+            new Claim(ClaimTypes.Role, "user")
         }));
 
         var user = new CurrentUser(_providerMock.Object);
@@ -314,9 +408,10 @@ public class CurrentUserTests
         _principal.AddIdentity(new ClaimsIdentity(new[]
         {
             new Claim(NoelleClaimTypes.ClientId, "client1"),
-            new Claim(NoelleClaimTypes.DeptId, "dept1"),
+            new Claim(NoelleClaimTypes.OrganizationUnitId, "dept1"),
             new Claim(NoelleClaimTypes.GivenName, "San"),
             new Claim(NoelleClaimTypes.Surname, "Zhang"),
+            new Claim(NoelleClaimTypes.MiddleName, "M"),
             new Claim(NoelleClaimTypes.NickName, "xiaozhang"),
             new Claim(NoelleClaimTypes.PhoneNumber, "13800138000"),
             new Claim(NoelleClaimTypes.Gender, "male")
@@ -324,9 +419,10 @@ public class CurrentUserTests
 
         var user = new CurrentUser(_providerMock.Object);
         Assert.Equal("client1", user.ClientId);
-        Assert.Equal("dept1", user.DeptId);
+        Assert.Equal("dept1", user.OrganizationUnitId);
         Assert.Equal("San", user.GivenName);
         Assert.Equal("Zhang", user.Surname);
+        Assert.Equal("M", user.MiddleName);
         Assert.Equal("xiaozhang", user.NickName);
         Assert.Equal("13800138000", user.PhoneNumber);
         Assert.Equal("male", user.Gender);

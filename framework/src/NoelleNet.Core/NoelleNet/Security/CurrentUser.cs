@@ -5,6 +5,8 @@ namespace NoelleNet.Security;
 
 /// <summary>
 /// <see cref="ICurrentUser"/> 的默认实现
+/// 声明解析遵循"OpenID Connect 短名优先、<see cref="ClaimTypes"/> URI 类型回退"的策略，
+/// 以兼容 Cookie 认证、JWT 承载认证及 OpenIddict 等不同认证方案产生的声明主体
 /// </summary>
 /// <param name="principalProvider"></param>
 public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrentUser
@@ -15,25 +17,31 @@ public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrent
     public string? ClientId => FindClaimValue(NoelleClaimTypes.ClientId);
 
     /// <inheritdoc/>
-    public string? Id => FindClaimValue(NoelleClaimTypes.UserId);
+    public string? Subject => FindClaimValue(NoelleClaimTypes.Subject) ?? FindClaimValue(ClaimTypes.NameIdentifier);
 
     /// <inheritdoc/>
-    public string? DeptId => FindClaimValue(NoelleClaimTypes.DeptId);
+    public string? UserId => FindClaimValue(NoelleClaimTypes.UserId) ?? FindClaimValue(ClaimTypes.NameIdentifier);
 
     /// <inheritdoc/>
-    public string? UserName => FindClaimValue(NoelleClaimTypes.UserName);
+    public string? OrganizationUnitId => FindClaimValue(NoelleClaimTypes.OrganizationUnitId);
 
     /// <inheritdoc/>
-    public string? GivenName => FindClaimValue(NoelleClaimTypes.GivenName);
+    public string? UserName => FindClaimValue(NoelleClaimTypes.UserName) ?? FindClaimValue(ClaimTypes.Name);
 
     /// <inheritdoc/>
-    public string? Surname => FindClaimValue(NoelleClaimTypes.Surname);
+    public string? GivenName => FindClaimValue(NoelleClaimTypes.GivenName) ?? FindClaimValue(ClaimTypes.GivenName);
+
+    /// <inheritdoc/>
+    public string? Surname => FindClaimValue(NoelleClaimTypes.Surname) ?? FindClaimValue(ClaimTypes.Surname);
+
+    /// <inheritdoc/>
+    public string? MiddleName => FindClaimValue(NoelleClaimTypes.MiddleName);
 
     /// <inheritdoc/>
     public string? NickName => FindClaimValue(NoelleClaimTypes.NickName);
 
     /// <inheritdoc/>
-    public string? Email => FindClaimValue(NoelleClaimTypes.Email);
+    public string? Email => FindClaimValue(NoelleClaimTypes.Email) ?? FindClaimValue(ClaimTypes.Email);
 
     /// <inheritdoc/>
     public bool EmailConfirmed => FindClaimBooleanValue(NoelleClaimTypes.EmailVerified);
@@ -45,13 +53,16 @@ public class CurrentUser(ICurrentPrincipalProvider principalProvider) : ICurrent
     public bool PhoneNumberConfirmed => FindClaimBooleanValue(NoelleClaimTypes.PhoneNumberVerified);
 
     /// <inheritdoc/>
-    public string? Gender => FindClaimValue(NoelleClaimTypes.Gender);
+    public string? Gender => FindClaimValue(NoelleClaimTypes.Gender) ?? FindClaimValue(ClaimTypes.Gender);
 
     /// <inheritdoc/>
-    public DateTime? DateOfBirth => FindClaimDateTimeValue(NoelleClaimTypes.DateOfBirth);
+    public DateTime? DateOfBirth => FindClaimDateTimeValue(NoelleClaimTypes.DateOfBirth) ?? FindClaimDateTimeValue(ClaimTypes.DateOfBirth);
 
     /// <inheritdoc/>
-    public string[] Roles => FindClaimValues(NoelleClaimTypes.Role);
+    public string[] Roles => FindClaimValues(NoelleClaimTypes.Role)
+        .Concat(FindClaimValues(ClaimTypes.Role))
+        .Distinct()
+        .ToArray();
 
     /// <inheritdoc/>
     public string[] Permissions => FindClaimValues(NoelleClaimTypes.Permission);

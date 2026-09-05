@@ -13,14 +13,19 @@ public interface ICurrentUser
     string? ClientId { get; }
 
     /// <summary>
-    /// 用户的唯一标识
+    /// 令牌主体的唯一标识，用户认证时为用户的唯一标识，客户端认证时为客户端标识符
     /// </summary>
-    string? Id { get; }
+    string? Subject { get; }
 
     /// <summary>
-    /// 所属部门的唯一标识
+    /// 用户的唯一标识，仅用户认证时有值
     /// </summary>
-    string? DeptId { get; }
+    string? UserId { get; }
+
+    /// <summary>
+    /// 所属组织单元的唯一标识
+    /// </summary>
+    string? OrganizationUnitId { get; }
 
     /// <summary>
     /// 用户的用户名
@@ -36,6 +41,11 @@ public interface ICurrentUser
     /// 用户姓名的姓氏部分
     /// </summary>
     string? Surname { get; }
+
+    /// <summary>
+    /// 用户姓名的中间名部分
+    /// </summary>
+    string? MiddleName { get; }
 
     /// <summary>
     /// 用户的昵称

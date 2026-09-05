@@ -49,7 +49,7 @@ public class NoelleAuditInterceptor : SaveChangesInterceptor
             return;
 
         DateTime now = GetNow();
-        string? userId = _currentUser.Id;
+        string? userId = _currentUser.UserId;
 
         foreach (var entry in entries)
         {
