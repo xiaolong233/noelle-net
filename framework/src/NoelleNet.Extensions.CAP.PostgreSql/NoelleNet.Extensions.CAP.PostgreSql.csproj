@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="..\..\CommonProps.props" />
 
@@ -11,7 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="8.4.1" />
+	  <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="[8.4.1, 9.0)" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<Import Project="..\..\CommonProps.props" />
 
@@ -8,7 +8,6 @@
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
 		<IsPackable>true</IsPackable>
-		<Description>暂无</Description>
 		<RootNamespace />
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
@@ -19,9 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\NoelleNet.Application.Contracts\NoelleNet.Application.Contracts.csproj" />
 		<ProjectReference Include="..\NoelleNet.Core\NoelleNet.Core.csproj" />
-		<ProjectReference Include="..\NoelleNet.Extensions.MediatR\NoelleNet.Extensions.MediatR.csproj" />
 	</ItemGroup>
 
 </Project>

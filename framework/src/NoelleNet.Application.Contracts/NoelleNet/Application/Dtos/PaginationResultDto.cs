@@ -1,9 +1,10 @@
-﻿namespace NoelleNet.Application.Dtos;
+namespace NoelleNet.Application.Dtos;
 
 /// <summary>
 /// 实现了 <see cref="IPaginationResult{T}"/> 的数据传输对象。
 /// </summary>
 /// <typeparam name="T"></typeparam>
+[Obsolete("请使用 PagedResultDto<T>")]
 public class PaginationResultDto<T> : ListResultDto<T>, IPaginationResult<T>
 {
     /// <summary>

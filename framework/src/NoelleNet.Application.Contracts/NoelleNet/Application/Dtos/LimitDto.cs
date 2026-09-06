@@ -1,4 +1,4 @@
-﻿namespace NoelleNet.Application.Dtos;
+namespace NoelleNet.Application.Dtos;
 
 /// <summary>
 /// 实现了 <see cref="IHasLimit"/> 的数据传输对象。
@@ -43,10 +43,13 @@ public class LimitDto : IHasLimit
     }
 
     private int _limit = DefaultLimit;
+
     /// <summary>
     /// 返回的记录数
+    /// 默认钳制到 [DefaultLimit, MaxLimit] 区间（小于等于 0 时使用 DefaultLimit，大于 MaxLimit 时使用 MaxLimit）；
+    /// 派生类可重写，实现按端点的自定义上限或严格校验（如抛出异常）
     /// </summary>
-    public int Limit
+    public virtual int Limit
     {
         get { return _limit; }
         set { _limit = value <= 0 ? DefaultLimit : (value > MaxLimit ? MaxLimit : value); }

@@ -123,7 +123,60 @@ public class NoelleTransactionBehaviorTests
             mockLogger.Object, dbContext, mockUow.Object, mockTm.Object);
 
         // Assert
-        Assert.IsAssignableFrom<IPipelineBehavior<TestTransactionRequest, TestTransactionResponse?>>(behavior);
+        Assert.IsAssignableFrom<IPipelineBehavior<TestTransactionRequest, TestTransactionResponse>>(behavior);
+    }
+
+    /// <summary>
+    /// NoelleTransactionBehavior 在值类型响应下应实现非可空 IPipelineBehavior&lt;,&gt; 接口，
+    /// 保证 MediatR 按精确闭合泛型解析时行为不会被静默跳过
+    /// </summary>
+    [Fact]
+    public void ShouldImplementIPipelineBehaviorForValueTypeResponse()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger<NoelleTransactionBehavior<TestTransactionRequest, int>>>();
+        using var dbContext = CreateDbContext();
+        var mockUow = new Mock<IUnitOfWork>();
+        var mockTm = new Mock<ITransactionManager>();
+
+        // Act
+        var behavior = new NoelleTransactionBehavior<TestTransactionRequest, int>(
+            mockLogger.Object, dbContext, mockUow.Object, mockTm.Object);
+
+        // Assert：若行为实现的是 IPipelineBehavior<TRequest, int?>，此断言将失败
+        Assert.IsAssignableFrom<IPipelineBehavior<TestTransactionRequest, int>>(behavior);
+    }
+
+    /// <summary>
+    /// 值类型响应（如 int）时应正常执行事务流程并返回响应值
+    /// </summary>
+    [Fact]
+    public async Task Handle_WithValueTypeResponse_ShouldExecuteTransactionAndReturnValue()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger<NoelleTransactionBehavior<TestTransactionRequest, int>>>();
+        using var dbContext = CreateDbContext();
+        var mockUow = new Mock<IUnitOfWork>();
+        var mockTm = new Mock<ITransactionManager>();
+
+        mockTm.Setup(tm => tm.HasActiveTransaction).Returns(false);
+        mockTm.Setup(tm => tm.BeginAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        mockTm.Setup(tm => tm.CommitAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        mockUow.Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var behavior = new NoelleTransactionBehavior<TestTransactionRequest, int>(
+            mockLogger.Object, dbContext, mockUow.Object, mockTm.Object);
+
+        // Act
+        var response = await behavior.Handle(
+            new TestTransactionRequest { Id = 1 },
+            _ => Task.FromResult(42),
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(42, response);
+        mockTm.Verify(tm => tm.BeginAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockTm.Verify(tm => tm.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion
@@ -154,7 +207,7 @@ public class NoelleTransactionBehaviorTests
         var response = await behavior.Handle(request, _ =>
         {
             nextCalled = true;
-            return Task.FromResult<TestTransactionResponse?>(expectedResponse);
+            return Task.FromResult(expectedResponse);
         }, CancellationToken.None);
 
         // Assert
@@ -202,7 +255,7 @@ public class NoelleTransactionBehaviorTests
         var response = await behavior.Handle(request, _ =>
         {
             nextCalled = true;
-            return Task.FromResult<TestTransactionResponse?>(expectedResponse);
+            return Task.FromResult(expectedResponse);
         }, CancellationToken.None);
 
         // Assert
@@ -241,7 +294,7 @@ public class NoelleTransactionBehaviorTests
         var request = new TestTransactionRequest { Id = 100 };
 
         // Act
-        await behavior.Handle(request, _ => Task.FromResult<TestTransactionResponse?>(new TestTransactionResponse { Success = true }), CancellationToken.None);
+        await behavior.Handle(request, _ => Task.FromResult(new TestTransactionResponse { Success = true }), CancellationToken.None);
 
         // Assert
         mockLogger.Verify(
@@ -367,7 +420,7 @@ public class NoelleTransactionBehaviorTests
         var request = new TestTransactionRequest { Id = 7 };
 
         // Act
-        var response = await behavior.Handle(request, _ => Task.FromResult<TestTransactionResponse?>(null), CancellationToken.None);
+        var response = await behavior.Handle(request, _ => Task.FromResult<TestTransactionResponse>(null!), CancellationToken.None);
 
         // Assert
         Assert.Null(response);

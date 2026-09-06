@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="..\..\CommonProps.props" />
 
@@ -6,13 +6,12 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Description>暂无</Description>
 		<RootNamespace />
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DotNetCore.CAP.MySql" Version="8.4.1" />
+		<PackageReference Include="DotNetCore.CAP.MySql" Version="[8.4.1, 9.0)" />
 	</ItemGroup>
 
 	<ItemGroup>

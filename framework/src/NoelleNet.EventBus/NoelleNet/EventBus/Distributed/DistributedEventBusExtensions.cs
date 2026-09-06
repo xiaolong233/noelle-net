@@ -23,7 +23,7 @@ public static class DistributedEventBusExtensions
         // 扫描所有 IDistributedEventHandler<> 实现
         var handlerInterfaceType = typeof(IDistributedEventHandler<>);
         var handlerEventTypePairs = configuration.AssembliesToRegister
-            .SelectMany(x => x.GetTypes())
+            .SelectMany(AssemblyTypeLoader.GetLoadableTypes)
             .Where(x => !x.IsAbstract && !x.IsInterface)
             .SelectMany(x => x.GetInterfaces()
                 .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterfaceType)

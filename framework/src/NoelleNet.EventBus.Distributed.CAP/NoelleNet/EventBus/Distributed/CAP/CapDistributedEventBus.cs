@@ -1,4 +1,4 @@
-﻿using DotNetCore.CAP;
+using DotNetCore.CAP;
 using NoelleNet.EventBus.Abstractions;
 using NoelleNet.EventBus.Abstractions.Distributed;
 using System.Reflection;
@@ -32,7 +32,10 @@ public class CapDistributedEventBus : IDistributedEventBus
     public Task PublishDelayAsync<TEvent>(TimeSpan delayTime, TEvent eventData, CancellationToken cancellationToken = default)
     {
         string eventName = GetEventName(eventData);
-        return _publisher.PublishAsync(eventName, eventData, cancellationToken: cancellationToken);
+
+        // 使用 CAP 原生的延迟发布能力：消息会写入存储并携带到期时间，由 CAP 的调度器到期后派发。
+        // 注意：延迟发布依赖持久化存储（如 SQL Server/MySQL/PostgreSQL），InMemory 存储下无法保证延迟生效。
+        return _publisher.PublishDelayAsync(delayTime, eventName, eventData, cancellationToken: cancellationToken);
     }
 
     /// <summary>

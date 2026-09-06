@@ -1,7 +1,6 @@
-﻿﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NoelleNet.EventBus.Abstractions.Local;
-using System.Reflection;
 
 namespace NoelleNet.EventBus.Local;
 
@@ -28,7 +27,7 @@ public static class LocalEventBusExtensions
         var handlerInterfaceType = typeof(ILocalEventHandler<>);
 
         var handlerMetaInfos = options.AssembliesToRegister
-            .SelectMany(GetLoadableTypes)
+            .SelectMany(AssemblyTypeLoader.GetLoadableTypes)
             .Where(x => !x.IsAbstract && !x.IsInterface)
             .SelectMany(x => x.GetInterfaces()
                 .Where(s => s.IsGenericType && s.GetGenericTypeDefinition() == handlerInterfaceType)
@@ -43,20 +42,5 @@ public static class LocalEventBusExtensions
         }
 
         return services;
-    }
-
-    /// <summary>
-    /// 安全地获取程序集中可加载的类型，跳过无法加载的类型
-    /// </summary>
-    private static Type[] GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            return ex.Types.Where(t => t != null).ToArray()!;
-        }
     }
 }

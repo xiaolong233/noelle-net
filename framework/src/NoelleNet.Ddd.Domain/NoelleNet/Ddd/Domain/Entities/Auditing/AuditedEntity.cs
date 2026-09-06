@@ -1,4 +1,4 @@
-﻿using NoelleNet.Auditing;
+using NoelleNet.Auditing;
 using System.ComponentModel.DataAnnotations;
 
 namespace NoelleNet.Ddd.Domain.Entities.Auditing;
@@ -9,11 +9,11 @@ namespace NoelleNet.Ddd.Domain.Entities.Auditing;
 public abstract class AuditedEntity : CreationAuditedEntity, IAudited
 {
     /// <inheritdoc/>
-    public DateTime? LastModifiedAt { get; protected set; }
+    public virtual DateTime? LastModifiedAt { get; protected set; }
 
     /// <inheritdoc/>
     [MaxLength(64)]
-    public string? LastModifiedBy { get; protected set; }
+    public virtual string? LastModifiedBy { get; protected set; }
 }
 
 /// <summary>

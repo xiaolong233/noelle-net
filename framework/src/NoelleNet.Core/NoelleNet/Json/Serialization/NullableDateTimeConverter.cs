@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace NoelleNet.Json.Serialization;
 
 /// <summary>
 /// 自定义的 <see cref="DateTime"/>? 类型转换器，用于在序列化和反序列化过程中处理特定格式的日期字符串
+/// 序列化与反序列化均使用固定文化（<see cref="CultureInfo.InvariantCulture"/>），
+/// 保证输出不随宿主操作系统的区域设置而变化
 /// </summary>
 public class NullableDateTimeConverter : JsonConverter<DateTime?>
 {
@@ -34,7 +37,7 @@ public class NullableDateTimeConverter : JsonConverter<DateTime?>
         if (string.IsNullOrWhiteSpace(dateString))
             return null;
 
-        if (DateTime.TryParse(dateString, out DateTime result))
+        if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
             return result;
 
         return null;
@@ -48,6 +51,6 @@ public class NullableDateTimeConverter : JsonConverter<DateTime?>
     /// <param name="options">序列化选项</param>
     public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.HasValue ? value.Value.ToString(_serializationFormat) : null);
+        writer.WriteStringValue(value.HasValue ? value.Value.ToString(_serializationFormat, CultureInfo.InvariantCulture) : null);
     }
 }

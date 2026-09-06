@@ -107,10 +107,10 @@ public class CapDistributedEventBusTests
     #region PublishDelayAsync
 
     /// <summary>
-    /// 延迟发布带有有效 EventNameAttribute 的事件时，应使用正确的事件名称调用 ICapPublisher.PublishAsync
+    /// 延迟发布带有有效 EventNameAttribute 的事件时，应使用正确的事件名称和延迟时间调用 ICapPublisher.PublishDelayAsync
     /// </summary>
     [Fact]
-    public async Task PublishDelayAsync_WithValidEvent_ShouldCallPublisherWithCorrectEventName()
+    public async Task PublishDelayAsync_WithValidEvent_ShouldCallPublisherWithCorrectEventNameAndDelay()
     {
         // Arrange
         var mockPublisher = new Mock<ICapPublisher>();
@@ -123,16 +123,22 @@ public class CapDistributedEventBusTests
 
         // Assert
         mockPublisher.Verify(
-            p => p.PublishAsync(
+            p => p.PublishDelayAsync(
+                delayTime,
                 TestEvent.EventName,
                 eventData,
                 (string?)null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
+
+        // 不应调用立即发布
+        mockPublisher.Verify(
+            p => p.PublishAsync(It.IsAny<string>(), It.IsAny<TestEvent>(), (string?)null, It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
-    /// 延迟发布事件时应将 CancellationToken 传递给 ICapPublisher
+    /// 延迟发布事件时应将 CancellationToken 传递给 ICapPublisher.PublishDelayAsync
     /// </summary>
     [Fact]
     public async Task PublishDelayAsync_ShouldPassCancellationToken()
@@ -149,7 +155,8 @@ public class CapDistributedEventBusTests
 
         // Assert
         mockPublisher.Verify(
-            p => p.PublishAsync(
+            p => p.PublishDelayAsync(
+                delayTime,
                 TestEvent.EventName,
                 eventData,
                 (string?)null,
@@ -172,10 +179,14 @@ public class CapDistributedEventBusTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => eventBus.PublishDelayAsync(TimeSpan.FromSeconds(1), eventData));
         Assert.Contains("Event name cannot be empty", exception.Message);
+
+        mockPublisher.Verify(
+            p => p.PublishDelayAsync(It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<EventWithoutAttribute>(), (string?)null, It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
-    /// PublishDelayAsync 在事件名有效时应调用 ICapPublisher
+    /// PublishDelayAsync 在事件名有效时应调用 ICapPublisher.PublishDelayAsync
     /// </summary>
     [Fact]
     public async Task PublishDelayAsync_ShouldInvokePublisher()
@@ -190,7 +201,8 @@ public class CapDistributedEventBusTests
 
         // Assert
         mockPublisher.Verify(
-            p => p.PublishAsync(
+            p => p.PublishDelayAsync(
+                TimeSpan.Zero,
                 It.IsAny<string>(),
                 It.IsAny<TestEvent>(),
                 (string?)null,

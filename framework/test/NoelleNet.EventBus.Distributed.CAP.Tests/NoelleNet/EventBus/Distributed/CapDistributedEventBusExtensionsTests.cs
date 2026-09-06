@@ -143,5 +143,29 @@ public class CapDistributedEventBusExtensionsTests
         Assert.NotNull(receivedOptions);
     }
 
+    /// <summary>
+    /// 集成契约：UseCap 先注册自定义选择器、随后 AddCap 以 TryAddSingleton 语义注册默认选择器，
+    /// 最终生效的必须是 NoelleConsumerServiceSelector。
+    /// 该测试用于锁定对 CAP 内部注册语义的依赖——若 CAP 升级后改变注册方式，此测试会失败报警。
+    /// </summary>
+    [Fact]
+    public void UseCap_WithStorageConfigured_CustomSelectorShouldWinOverCapDefaultSelector()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new DistributedEventBusConfiguration(services);
+
+        // Act：完整模拟真实应用（UseCap + 存储配置，顺序与框架文档一致）
+        configuration.UseCap(x => x.UseInMemoryStorage());
+
+        // Assert：IConsumerServiceSelector 仅有一条注册，且为自定义选择器
+        var registrations = services
+            .Where(s => s.ServiceType == typeof(IConsumerServiceSelector))
+            .ToList();
+
+        Assert.Single(registrations);
+        Assert.Equal(typeof(CAP.NoelleConsumerServiceSelector), registrations[0].ImplementationType);
+    }
+
     #endregion
 }

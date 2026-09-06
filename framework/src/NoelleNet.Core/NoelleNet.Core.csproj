@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="..\..\CommonProps.props" />
 
@@ -6,7 +6,6 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Description>Noelle.Net的基础库</Description>
 		<RootNamespace />
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>

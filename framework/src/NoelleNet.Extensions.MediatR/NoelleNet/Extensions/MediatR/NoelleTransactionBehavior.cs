@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NoelleNet.Uow;
@@ -8,9 +8,14 @@ namespace NoelleNet.Extensions.MediatR;
 /// <summary>
 /// 事务处理管道
 /// </summary>
+/// <remarks>
+/// 实现非可空的 <see cref="IPipelineBehavior{TRequest, TResponse}"/>，与 MediatR 官方约定保持一致：
+/// MediatR 按请求的实际响应类型精确闭合泛型，若此处声明为 <c>TResponse?</c>，
+/// 值类型响应（如 <c>int</c>）将解析不到本行为，导致事务被静默跳过。
+/// </remarks>
 /// <typeparam name="TRequest">请求类型</typeparam>
 /// <typeparam name="TResponse">响应类型</typeparam>
-public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse?> where TRequest : notnull
+public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
     private readonly ILogger<NoelleTransactionBehavior<TRequest, TResponse>> _logger;
     private readonly DbContext _dbContext;
@@ -34,7 +39,7 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
     }
 
     /// <inheritdoc />
-    public async Task<TResponse?> Handle(TRequest request, RequestHandlerDelegate<TResponse?> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         string cmdName = request.GetGenericTypeName();
 
@@ -43,7 +48,7 @@ public class NoelleTransactionBehavior<TRequest, TResponse> : IPipelineBehavior<
             return await next(cancellationToken);
         }
 
-        TResponse? response = default;
+        TResponse response = default!;
         var strategy = _dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {

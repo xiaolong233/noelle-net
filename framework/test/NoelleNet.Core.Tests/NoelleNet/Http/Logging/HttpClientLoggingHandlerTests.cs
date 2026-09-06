@@ -81,12 +81,53 @@ public class HttpClientLoggingHandlerTests
         Assert.Equal(404, (int)result.StatusCode);
     }
 
+    /// <summary>
+    /// 使用流式内容（StreamContent）的请求，日志读取后真正发送的请求体仍应完整
+    /// （回归测试：SendAsync 前 LoadIntoBufferAsync，防止流被日志读取消费）
+    /// </summary>
+    [Fact]
+    public async Task SendAsync_WithStreamContent_ShouldSendCompleteBody()
+    {
+        // Arrange
+        const string payload = "{\"stream\":\"payload-body\"}";
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var innerHandler = new CapturingMessageHandler(response);
+        var handler = CreateHandler(innerHandler);
+
+        var invoker = new HttpMessageInvoker(handler);
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.example.com/upload")
+        {
+            Content = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(payload)))
+        };
+        request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+        // Act
+        await invoker.SendAsync(request, CancellationToken.None);
+
+        // Assert：内层处理器收到的请求体完整（未被日志读取消费）
+        Assert.Equal(payload, innerHandler.ReceivedBody);
+    }
+
     private class TestMessageHandler : HttpMessageHandler
     {
         private readonly HttpResponseMessage _response;
         public TestMessageHandler(HttpResponseMessage response) => _response = response;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(_response);
+    }
+
+    private class CapturingMessageHandler : HttpMessageHandler
+    {
+        private readonly HttpResponseMessage _response;
+        public CapturingMessageHandler(HttpResponseMessage response) => _response = response;
+        public string? ReceivedBody { get; private set; }
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Content != null)
+                ReceivedBody = await request.Content.ReadAsStringAsync(cancellationToken);
+
+            return _response;
+        }
     }
 
     private class ExceptionThrowingHandler : HttpMessageHandler

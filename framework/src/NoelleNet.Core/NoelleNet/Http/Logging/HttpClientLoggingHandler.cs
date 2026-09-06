@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net.Http.Headers;
@@ -48,6 +48,10 @@ public class HttpClientLoggingHandler : DelegatingHandler
             // 处理请求体
             if (request.Content != null)
             {
+                // 先把内容全部缓冲到内存：流式内容（如 StreamContent）若直接读取会被消费，
+                // 导致后续真正发送请求时变成空 body
+                await request.Content.LoadIntoBufferAsync(cancellationToken);
+
                 var mediaType = request.Content.Headers.ContentType?.MediaType ?? string.Empty;
                 var body = await request.Content.ReadAsStringAsync(cancellationToken) ?? string.Empty;
                 logEntry.RequestBody = ProcessContent(body, mediaType, true);

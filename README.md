@@ -1,228 +1,306 @@
 # Noelle.Net
 
-面向 **.NET 9** 的应用基础类库，提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元、ASP.NET Core 增强等开箱即用的组件。
+面向 **.NET 9** WebApi 开发的应用基础类库。它提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用的组件，帮助快速搭建风格统一的 WebApi 项目。
 
-[![NuGet](https://img.shields.io/badge/nuget-v9.1.4-blue)](https://www.nuget.org/)
+[![NuGet](https://img.shields.io/badge/nuget-v9.1.5-blue)](https://www.nuget.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-9.0-purple)](https://dotnet.microsoft.com/)
 
 ---
 
-## 特性
+## 设计原则
 
-- **DDD 领域模型** — `Entity`、`AggregateRoot`、`ValueObject` 基类，内置领域事件
-- **事件总线** — 本地事件（MediatR）+ 分布式事件（CAP），统一抽象接口
-- **审计追踪** — 自动填充创建者/创建时间/修改者/修改时间
-- **EF Core 仓储** — 通用 `EfCoreRepository<T>` 实现，内置审计/领域事件/GUID 拦截器
-- **工作单元** — `IUnitOfWork` + `ITransactionManager`，统一事务管理
-- **全局异常处理** — 自动转换为结构化 JSON 错误响应
-- **FluentValidation** — 模型验证失败返回统一错误格式
-- **安全主体** — `ICurrentUser` 统一访问当前用户信息
-- **应用 DTO** — 内置分页、排序、列表结果等通用对象
+- **不深度封装 ASP.NET Core** — 框架只做增强（异常处理、模型验证、路由等），不替代原生能力，也不会把你关进黑箱
+- **依赖注入显式配置** — 不提供模块化自动装配；注册了什么、怎么注册，代码里一目了然
+- **社区成熟组件优先** — 事件总线基于 MediatR / CAP，验证基于 FluentValidation，数据访问基于 EF Core
+- **暂不支持多租户**
 
 ---
 
-## 安装
+## 功能一览
 
-```bash
-# 核心
-dotnet add package NoelleNet.Core
-dotnet add package NoelleNet.Ddd.Domain
-dotnet add package NoelleNet.EntityFrameworkCore
-
-# 事件总线
-dotnet add package NoelleNet.EventBus
-dotnet add package NoelleNet.EventBus.Local.MediatR
-dotnet add package NoelleNet.EventBus.Distributed.CAP
-
-# ASP.NET Core
-dotnet add package NoelleNet.AspNetCore
-
-# 其他
-dotnet add package NoelleNet.Application.Contracts
-dotnet add package NoelleNet.Extensions.MediatR
-```
+| 能力 | 说明 | 所在包 |
+|------|------|--------|
+| DDD 领域模型 | `Entity` / `AggregateRoot` / `ValueObject` 基类、领域事件 | `NoelleNet.Ddd.Domain` |
+| 审计追踪 | 创建时间/创建人/修改时间/修改人自动填充 | `NoelleNet.Auditing` + `NoelleNet.EntityFrameworkCore` |
+| EF Core 仓储 | `EfCoreRepository<T>` 薄封装，内置审计/领域事件/GUID 拦截器 | `NoelleNet.EntityFrameworkCore` |
+| 工作单元与事务 | `IUnitOfWork` / `ITransactionManager`，支持 CAP 事务发件箱 | `NoelleNet.Uow` + `NoelleNet.Extensions.CAP.*` |
+| 事件总线 | 本地（MediatR）+ 分布式（CAP），统一抽象、按接口自动发现处理器 | `NoelleNet.EventBus.*` |
+| 全局异常处理 | 异常自动转为 RFC 9457 ProblemDetails，支持错误码本地化 | `NoelleNet.AspNetCore` |
+| 模型验证 | DataAnnotations 绑定验证 + FluentValidation 业务验证，统一错误格式 | `NoelleNet.AspNetCore` |
+| 安全主体 | `ICurrentUser` 统一访问当前用户（OIDC 短名声明） | `NoelleNet.Core` |
+| 应用 DTO | 分页 / 排序 / 列表结果等通用对象 | `NoelleNet.Application.Contracts` |
+| MediatR 行为管道 | 命令日志、事务自动管理 | `NoelleNet.Extensions.MediatR` |
 
 ---
 
 ## 快速开始
 
-### 1. 定义领域模型
+```bash
+dotnet add package NoelleNet.Ddd.Domain
+dotnet add package NoelleNet.EntityFrameworkCore
+dotnet add package NoelleNet.AspNetCore
+dotnet add package NoelleNet.EventBus.Local.MediatR
+```
+
+领域实体（继承审计聚合根，自带 `Id` 与审计字段）：
 
 ```csharp
 public class TodoItem : AuditedAggregateRoot<Guid>
 {
+    protected TodoItem() { }   // EF Core 专用
+
     public TodoItem(string title)
     {
-        Id = Guid.NewGuid();
+        if (string.IsNullOrWhiteSpace(title))
+            throw new BusinessException("A01108", "待办事项标题不能为空");
+
+        Id = Guid.CreateVersion7();
         Title = title;
-        AddDomainEvent(new EntityCreatedEvent<TodoItem>(this));
     }
 
-    public string Title { get; private set; }
-    public bool IsCompleted { get; private set; }
+    public string Title { get; set; } = null!;
+    public bool IsCompleted { get; set; }
 
-    public void Complete()
-    {
-        IsCompleted = true;
-        AddDomainEvent(new EntityUpdatedEvent<TodoItem>(this));
-    }
+    public void Complete() => IsCompleted = true;
 }
 ```
 
-### 2. 定义仓储
+服务注册骨架（各功能模块的注册入口，详见下文逐项说明）：
 
 ```csharp
-// 接口
-public interface ITodoItemRepository : IRepository<TodoItem>
+// 安全主体
+services.AddHttpContextAccessor();
+services.AddScoped<ICurrentUser, CurrentUser>();
+services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+
+// 全局异常处理
+services.AddLocalization();
+services.AddProblemDetails();
+services.AddExceptionHandler<NoelleExceptionHandler>();
+services.AddSingleton<IErrorResponseWriter, ProblemDetailsErrorResponseWriter>();
+
+// 控制器：模型验证过滤器 + kebab-case 路由
+services.AddControllers(options =>
 {
-    Task<TodoItem> Addsync(TodoItem item, CancellationToken cancellationToken = default);
-    Task<TodoItem?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    void Remove(TodoItem item);
-    Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);
-}
+    options.Filters.Add<NoelleFluentValidationFilter>();
+    options.Conventions.Add(new RouteTokenTransformerConvention(new NoelleRouteKebabCaseTransformer()));
+}).ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInputValidator>();
 
-// 实现
-public class TodoItemRepository : EfCoreRepository<TodoItem, AppDbContext>, ITodoItemRepository
-{
-    public TodoItemRepository(TodoDbContext dbContext) : base(dbContext)
-    {
-    }
-
-    /// <inheritdoc/>
-    public async Task<TodoItem> AddAsync(TodoItem item, CancellationToken cancellationToken = default)
-    {
-        var entry = await DbContext.TodoItems.AddAsync(item, cancellationToken);
-        return entry.Entity;
-    }
-
-    /// <inheritdoc/>
-    public Task<TodoItem?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return DbContext.TodoItems.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public void Remove(TodoItem item)
-    {
-        DbContext.TodoItems.Remove(item);
-    }
-
-    /// <inheritdoc/>
-    public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var item = await FindByIdAsync(id, cancellationToken);
-        if(item == null)
-            return;
-        Remove(item);
-    }
-}
-```
-
-### 3. 配置 DbContext
-
-```csharp
-public class AppDbContext : DbContext
-{
-    public DbSet<TodoItem> TodoItems { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-    }
-}
-```
-
-### 4. 注册服务
-
-```csharp
-// 通用服务配置
-services.AddSingleton<IGuidGenerator, NoelleGuidGenerator>();
-
-// 工作单元
-services.AddScoped<IUnitOfWork, UnitOfWork>();
-services.AddScoped<ITransactionManager, NoelleCapTransactionManager>();
-
-// EF Core拦截器
+// 数据库 + 拦截器（AddDbContext<DbContext, AppDbContext> 会同时注册抽象与具体两个服务类型）
 services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
 services.AddScoped<NoelleAuditInterceptor>();
 services.AddScoped<NoelleDomainEventInterceptor>();
-
-// 数据库配置
-string connectionString = configuration.GetRequiredConnectionString("Default");
 services.AddDbContext<DbContext, AppDbContext>((sp, options) =>
 {
-    options.UseSqlServer(connectionString, options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
-           .LogTo(Console.WriteLine, LogLevel.Information)
-           .EnableDetailedErrors();
+    options.UseNpgsql(configuration.GetRequiredConnectionString("Default"));
+    options.AddInterceptors(
+        sp.GetRequiredService<NoelleAutoSetGuidKeyInterceptor>(),
+        sp.GetRequiredService<NoelleAuditInterceptor>(),
+        sp.GetRequiredService<NoelleDomainEventInterceptor>());
+});
 
-    // 添加拦截器
-    options.AddInterceptors(sp.GetRequiredService<NoelleAutoSetGuidKeyInterceptor>());
-    options.AddInterceptors(sp.GetRequiredService<NoelleAuditInterceptor>());
-    options.AddInterceptors(sp.GetRequiredService<NoelleDomainEventInterceptor>());
-}, ServiceLifetime.Scoped);
+// 工作单元与事务
+services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddScoped<ITransactionManager, NoelleTransactionManager>();
 
-// 事件总线
-var assemblies = new[] { typeof(Program).Assembly };
+// 本地事件总线
+var assembly = typeof(Program).Assembly;
 services.AddLocalEventBus(cfg =>
 {
-    cfg.RegisterServicesFromAssemblies(assemblies);
+    cfg.RegisterServicesFromAssemblies(assembly);
+    cfg.UseMediatR(x => x.RegisterServicesFromAssemblies(assembly));
+});
+```
+
+完整可运行的最小示例见 [`example/Noelle.Todo`](example/Noelle.Todo)（SQLite 免配置）。
+
+---
+
+## 全局异常处理
+
+启用后，异常自动转为符合 RFC 9457 的 ProblemDetails 响应：
+
+```csharp
+// 业务异常 → HTTP 400
+throw new BusinessException("A01108", "待办事项标题不能为空");
+
+// 实体未找到 → HTTP 404
+throw new EntityNotFoundException(typeof(TodoItem), id);
+```
+
+| 异常 | HTTP 状态码 |
+|------|-------------|
+| `BusinessException` | 400 |
+| `EntityNotFoundException` | 404 |
+| `NoelleValidationException` | 400 |
+| 数据库并发冲突 | 409 |
+| 其他未处理异常 | 500 |
+
+支持错误码本地化：通过 `NoelleExceptionLocalizationOptions.LocalizerProvider` 指定资源类型，`ErrorCode` 映射 resx 文本，`WithData` 传占位参数。详细说明见 [docs/usage-guide.md](docs/usage-guide.md#全局异常处理)。
+
+---
+
+## 模型验证
+
+框架提供两个验证过滤器，**底层验证机制不同，按项目实际情况选用其一即可**：
+
+| 过滤器 | 底层机制 | 适用场景 |
+|--------|----------|----------|
+| `NoelleModelValidationFilter` | ASP.NET Core 内置的 `ModelState`（DataAnnotations 绑定期验证） | 使用 DataAnnotations 特性验证 |
+| `NoelleFluentValidationFilter` | FluentValidation（按参数类型解析 `IValidator<T>`） | 使用 FluentValidation 编写验证规则 |
+
+两者都抛出 `NoelleValidationException`，输出统一错误格式：
+
+```csharp
+builder.Services.AddControllers(options =>
+{
+    // 二选一
+    options.Filters.Add<NoelleFluentValidationFilter>();
+    // options.Filters.Add<NoelleModelValidationFilter>();
+})
+.ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+```
+
+> ⚠️ `SuppressModelStateInvalidFilter = true` 用于关闭 `[ApiController]` 内置验证短路，让验证错误统一走框架异常处理。使用 `NoelleModelValidationFilter` 时**必须**设置（否则过滤器永远不会执行）；仅使用 `NoelleFluentValidationFilter` 时也建议设置（否则绑定期错误仍会输出内置格式）。
+
+验证器注册后自动生效，支持注入本地化器：
+
+```csharp
+builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInputValidator>();
+```
+
+---
+
+## 领域事件
+
+聚合根内挂载领域事件，由 `NoelleDomainEventInterceptor` 在 **`SaveChanges` 提交前**派发，处理器在数据库事务内执行：
+
+```csharp
+unit.AddDomainEvent(new EntityChangedEvent<OrganizationUnit>(unit, EntityChangeType.Create));
+```
+
+```csharp
+public class OrganizationUnitCacheInvalidationHandler : ILocalEventHandler<EntityChangedEvent<OrganizationUnit>>
+{
+    public Task HandleAsync(EntityChangedEvent<OrganizationUnit> eventData, CancellationToken cancellationToken = default)
+        => _cache.InvalidateAsync(cancellationToken);
+}
+```
+
+契约：
+
+1. ✅ 处理器可以增删改实体，改动会被本次 `SaveChanges` 捕获并随事务一起提交；
+2. ❌ 处理器内禁止再次调用 `SaveChanges`（嵌套保存会导致重复提交与状态不一致）；
+3. 📤 短信、HTTP 调用等外部副作用请通过分布式事件发布（配合 CAP 事务发件箱），不要在处理器内直接执行。
+
+---
+
+## 审计
+
+实体继承 `AuditedAggregateRoot<TIdentifier>`（或 `AuditedEntity<TIdentifier>`），注册 `NoelleAuditInterceptor` 后自动填充：
+
+- 新增时：`CreatedAt`、`CreatedBy`（来自 `ICurrentUser.UserId`）
+- 修改时：`LastModifiedAt`、`LastModifiedBy`
+
+---
+
+## 工作单元与事务
+
+```csharp
+services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddScoped<ITransactionManager, NoelleTransactionManager>();
+```
+
+- `IUnitOfWork.SaveChangesAsync` 统一保存变更；
+- 配合 MediatR 的 `NoelleTransactionBehavior`（`NoelleNet.Extensions.MediatR`），每个命令自动完成"开启事务 → 处理 → 保存 → 提交/回滚"，处理器内无需调用 `SaveChanges`；
+- 需要消息与数据库操作原子提交时，把事务管理器替换为 CAP 事务发件箱实现：
+
+```csharp
+services.Replace(ServiceDescriptor.Scoped<ITransactionManager, NoelleCapTransactionManager>());
+```
+
+---
+
+## 事件总线
+
+### 本地事件（进程内，MediatR）
+
+```csharp
+services.AddLocalEventBus(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(assembly);
     cfg.UseMediatR(x =>
     {
-        x.RegisterServicesFromAssemblies(assemblies);
-
-        // 添加行为管道
+        x.RegisterServicesFromAssemblies(assembly);
+        // 可选：为 MediatR 命令添加行为管道
         x.AddOpenBehavior(typeof(NoelleLoggingBehavior<,>));
         x.AddOpenBehavior(typeof(NoelleTransactionBehavior<,>));
     });
 });
+```
+
+实现 `ILocalEventHandler<TEvent>` 即被自动发现，通过 `ILocalEventBus.PublishAsync` 派发。
+
+### 分布式事件（跨进程，CAP）
+
+```csharp
+[EventName("todo.created", Group = "todo-service")]
+public record TodoCreatedEvent(Guid TodoId, string Title);
+
+// 发布
+await _distributedEventBus.PublishAsync(new TodoCreatedEvent(id, title));
+await _distributedEventBus.PublishDelayAsync(TimeSpan.FromMinutes(30), orderClosed);   // 延迟发布
+```
+
+```csharp
 services.AddDistributedEventBus(cfg =>
 {
-    cfg.RegisterServicesFromAssemblies(assemblies);
+    cfg.RegisterServicesFromAssemblies(assembly);
     cfg.UseCap(options =>
     {
-        options.UseEntityFramework<TodoDbContext>();
-        options.UseRabbitMQ(rb =>
-        {
-            rb.HostName = configuration.GetRequiredValue("RabbitMQ:Host");
-            rb.Port = Convert.ToInt32(configuration.GetRequiredValue("RabbitMQ:Port"));
-            rb.UserName = configuration.GetRequiredValue("RabbitMQ:UserName");
-            rb.Password = configuration.GetRequiredValue("RabbitMQ:Password");
-        });
+        options.UseEntityFramework<AppDbContext>();
+        options.UseRabbitMQ(rb => { /* 主机、端口、账号等 */ });
         options.DefaultGroupName = configuration.GetRequiredValue("RabbitMQ:GroupName");
     });
 });
-
-// 仓储配置
-services.AddScoped<ITodoItemRepository, TodoItemRepository>();
-
-return services;
 ```
 
-### 5. 使用
+实现 `IDistributedEventHandler<TEvent>` 即被自动发现。
+
+> 注意：`PublishDelayAsync` 依赖 CAP 的持久化存储与调度器，InMemory 存储下无法保证延迟生效。
+
+---
+
+## 安全主体
+
+`ICurrentUser` 统一访问当前用户，声明解析遵循"OpenID Connect 短名优先、`ClaimTypes` URI 回退"策略，兼容 Cookie、JWT Bearer、OpenIddict 等认证方案：
 
 ```csharp
-public class TodoService
+services.AddHttpContextAccessor();
+services.AddScoped<ICurrentUser, CurrentUser>();
+services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+```
+
+```csharp
+public class TodoAppService(ICurrentUser currentUser)
 {
-    private readonly IRepository<TodoItem> _repository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public TodoService(IRepository<TodoItem> repository, IUnitOfWork unitOfWork)
-    {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-    }
-
-    public async Task<TodoItem> CreateAsync(string title)
-    {
-        var item = new TodoItem(title);
-        await _repository.AddAsync(item);
-        await _unitOfWork.SaveChangesAsync();
-        return item;
-    }
+    public bool CanManage(TodoItem item) =>
+        currentUser.IsInRole("admin") || item.CreatedBy == currentUser.UserId;
 }
+```
+
+---
+
+## 应用 DTO
+
+`NoelleNet.Application.Contracts` 提供分页、排序、列表结果等通用对象：
+
+```csharp
+// 请求：PagingDto（Offset / Limit / Sort，offset-based 分页模型）
+// 结果：ListResultDto<T> / PagedResultDto<T>
+return new PagedResultDto<TodoItemDto>(totalCount, items);
 ```
 
 ---
@@ -237,7 +315,7 @@ public class TodoService
 | `NoelleNet.EventBus` | 事件总线抽象：本地 + 分布式 |
 | `NoelleNet.EventBus.Local.MediatR` | 基于 MediatR 的本地事件总线实现 |
 | `NoelleNet.EventBus.Distributed.CAP` | 基于 CAP 的分布式事件总线实现 |
-| `NoelleNet.AspNetCore` | 全局异常、验证、KebabCase 路由、认证错误响应 |
+| `NoelleNet.AspNetCore` | 全局异常、验证、KebabCase 路由 |
 | `NoelleNet.Application.Contracts` | 应用层 DTO：分页、排序、列表结果 |
 | `NoelleNet.Extensions.MediatR` | MediatR 管道行为：日志、事务管理 |
 | `NoelleNet.Auditing` | 审计接口定义 |
@@ -248,93 +326,16 @@ public class TodoService
 
 ---
 
-## 架构总览
-
-```
-NoelleNet.Core                   基础库
- ├─ NoelleNet.Auditing           审计接口
- ├─ NoelleNet.Uow                工作单元接口
- ├─ NoelleNet.Ddd.Domain         DDD 领域模型
- ├─ NoelleNet.EventBus           事件总线抽象
- │   ├─ Local.MediatR            MediatR 实现
- │   └─ Distributed.CAP          CAP 实现
- ├─ NoelleNet.EntityFrameworkCore EF Core 集成
- ├─ NoelleNet.AspNetCore         ASP.NET Core 增强
- ├─ NoelleNet.Application.Contracts  应用 DTO
- └─ NoelleNet.Extensions.*       扩展包
-```
-
----
-
-## 异常处理
-
-```csharp
-// 业务异常
-throw new BusinessException(
-    errorCode: "TODO:DUPLICATE_NAME",
-    message: "已存在同名的待办事项",
-    details: "请更换待办事项名称后重试");
-
-// 实体未找到
-throw new EntityNotFoundException(typeof(TodoItem), itemId);
-```
-
-启用 `NoelleExceptionHandlingFilter` 后，异常自动转为结构化 JSON：
-
-```json
-{
-  "error": {
-    "code": "TODO:DUPLICATE_NAME",
-    "message": "已存在同名的待办事项",
-    "details": "请更换待办事项名称后重试",
-    "traceId": "0HNA00ARMESN6"
-  }
-}
-```
-
-**全局异常处理与本地化**
-
-在 `Program.cs` 中注册筛选器和本地化服务：
-
-```csharp
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<NoelleExceptionHandlingFilter>();
-});
-
-// 启用错误代码本地化
-builder.Services.Configure<NoelleExceptionLocalizationOptions>(options =>
-{
-    options.LocalizerProvider = (exception, factory) =>
-        factory.Create(typeof(NoelleExceptionHandlingResource));
-});
-```
-
-定义错误码对应的国际化资源文件（如 `NoelleExceptionHandlingResource.zh-CN.resx`）：
-
-| Key | Value |
-|-----|-------|
-| `TODO:DUPLICATE_NAME` | 已存在同名的待办事项 "{title}" |
-
-抛异常时通过 `Data` 传递占位参数：
-
-```csharp
-var ex = new BusinessException(errorCode: "TODO:DUPLICATE_NAME");
-ex.Data["title"] = "买菜";
-throw ex;
-```
-
-框架会自动根据 `ErrorCode` 查找本地化文本并替换 `{key}` 占位符。
-
----
-
 ## 贡献
 
 欢迎通过 [GitHub Issues](https://github.com/xiaolong233/noelle-net/issues) 提交 Bug 或功能建议，也欢迎 Pull Request。
 
 ```powershell
 # 构建
-dotnet build
+dotnet build framework/Noelle.Net.slnx
+
+# 测试
+dotnet test framework/Noelle.Net.slnx
 
 # 打包
 cd nupkg && ./pack.ps1
