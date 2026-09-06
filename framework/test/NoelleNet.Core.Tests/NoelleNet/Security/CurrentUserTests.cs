@@ -4,409 +4,191 @@ using NoelleNet.Security.Claims;
 
 namespace NoelleNet.Security;
 
+/// <summary>
+/// <see cref="CurrentUser"/> 的单元测试：核心契约是"OpenID Connect 短名优先、ClaimTypes URI 回退"的声明解析策略
+/// </summary>
 public class CurrentUserTests
 {
     private readonly Mock<ICurrentPrincipalProvider> _providerMock;
-    private readonly ClaimsPrincipal _principal;
 
     public CurrentUserTests()
     {
         _providerMock = new Mock<ICurrentPrincipalProvider>();
-        _principal = new ClaimsPrincipal();
-        _providerMock.Setup(p => p.Principal).Returns(_principal);
     }
 
+    private CurrentUser CreateUser(params Claim[] claims)
+    {
+        var principal = new ClaimsPrincipal();
+        principal.AddIdentity(new ClaimsIdentity(claims));
+        _providerMock.Setup(p => p.Principal).Returns(principal);
+        return new CurrentUser(_providerMock.Object);
+    }
+
+    private CurrentUser CreateUserWithoutPrincipal()
+    {
+        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
+        return new CurrentUser(_providerMock.Object);
+    }
+
+    /// <summary>
+    /// provider 为 null 时应抛出 ArgumentNullException
+    /// </summary>
     [Fact]
     public void Constructor_NullProvider_ShouldThrow()
     {
         Assert.Throws<ArgumentNullException>(() => new CurrentUser(null!));
     }
 
+    /// <summary>
+    /// 同时存在短名与 URI 类型声明时，应优先返回短名值
+    /// </summary>
     [Fact]
-    public void ShouldImplementICurrentUser()
+    public void UserName_WithBothClaimTypes_ShouldPreferOidcShortName()
     {
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.IsAssignableFrom<ICurrentUser>(user);
-    }
-
-    [Fact]
-    public void Subject_WithClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Subject, "subject123")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("subject123", user.Subject);
-    }
-
-    [Fact]
-    public void Subject_WithoutClaim_ShouldReturnNull()
-    {
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.Subject);
-    }
-
-    [Fact]
-    public void Subject_WithFallbackClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, "subject456")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("subject456", user.Subject);
-    }
-
-    [Fact]
-    public void UserId_WithClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.UserId, "user123")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("user123", user.UserId);
-    }
-
-    [Fact]
-    public void UserId_WithoutClaim_ShouldReturnNull()
-    {
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.UserId);
-    }
-
-    [Fact]
-    public void UserId_WithFallbackClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, "user456")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("user456", user.UserId);
-    }
-
-    [Fact]
-    public void UserName_WithClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.UserName, "zhangsan")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("zhangsan", user.UserName);
-    }
-
-    [Fact]
-    public void UserName_WithFallbackClaim_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Name, "zhangsan")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("zhangsan", user.UserName);
-    }
-
-    [Fact]
-    public void UserName_WithBothClaimTypes_ShouldPreferOidc()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
+        var user = CreateUser(
             new Claim(NoelleClaimTypes.UserName, "preferred"),
-            new Claim(ClaimTypes.Name, "uri-name")
-        }));
+            new Claim(ClaimTypes.Name, "uri-name"));
 
-        var user = new CurrentUser(_providerMock.Object);
         Assert.Equal("preferred", user.UserName);
     }
 
+    /// <summary>
+    /// 仅有 URI 类型声明时（Cookie 认证场景），应回退到 ClaimTypes 值
+    /// </summary>
     [Fact]
-    public void Email_WithClaim_ShouldReturnValue()
+    public void Fallback_WithOnlyUriClaimTypes_ShouldReturnValues()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Email, "test@example.com")
-        }));
+        var user = CreateUser(
+            new Claim(ClaimTypes.NameIdentifier, "id-1"),
+            new Claim(ClaimTypes.Name, "zhangsan"),
+            new Claim(ClaimTypes.Email, "test@example.com"));
 
-        var user = new CurrentUser(_providerMock.Object);
+        Assert.Equal("id-1", user.Subject);
+        Assert.Equal("id-1", user.UserId);
+        Assert.Equal("zhangsan", user.UserName);
         Assert.Equal("test@example.com", user.Email);
     }
 
+    /// <summary>
+    /// 无任何声明时，各属性应返回 null
+    /// </summary>
     [Fact]
-    public void Email_WithFallbackClaim_ShouldReturnValue()
+    public void Properties_WithoutClaims_ShouldReturnNull()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, "test@example.com")
-        }));
+        var user = CreateUser();
 
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("test@example.com", user.Email);
+        Assert.Null(user.Subject);
+        Assert.Null(user.UserId);
+        Assert.Null(user.UserName);
+        Assert.Null(user.Email);
+        Assert.Null(user.PhoneNumber);
     }
 
+    /// <summary>
+    /// 布尔声明解析："true"（忽略大小写）为真，其余为假，无声明为假
+    /// </summary>
     [Fact]
-    public void EmailConfirmed_TrueClaim_ShouldReturnTrue()
+    public void ConfirmedProperties_ShouldParseBooleanClaims()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.EmailVerified, "true")
-        }));
+        var user = CreateUser(
+            new Claim(NoelleClaimTypes.EmailVerified, "true"),
+            new Claim(NoelleClaimTypes.PhoneNumberVerified, "TRUE"));
 
-        var user = new CurrentUser(_providerMock.Object);
         Assert.True(user.EmailConfirmed);
-    }
-
-    [Fact]
-    public void EmailConfirmed_FalseClaim_ShouldReturnFalse()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.EmailVerified, "false")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.False(user.EmailConfirmed);
-    }
-
-    [Fact]
-    public void EmailConfirmed_NoClaim_ShouldReturnFalse()
-    {
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.False(user.EmailConfirmed);
-    }
-
-    [Fact]
-    public void PhoneNumberConfirmed_TrueClaim_ShouldReturnTrue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.PhoneNumberVerified, "TRUE")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
         Assert.True(user.PhoneNumberConfirmed);
+
+        var user2 = CreateUser(new Claim(NoelleClaimTypes.EmailVerified, "false"));
+        Assert.False(user2.EmailConfirmed);
+        Assert.False(user2.PhoneNumberConfirmed);
     }
 
+    /// <summary>
+    /// 日期声明解析：合法日期返回 DateTime，非法或无声明返回 null
+    /// </summary>
     [Fact]
-    public void DateOfBirth_WithValidDate_ShouldReturnDate()
+    public void DateOfBirth_ShouldParseOrReturnNull()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.DateOfBirth, "1990-01-01")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
+        var user = CreateUser(new Claim(NoelleClaimTypes.DateOfBirth, "1990-01-01"));
         Assert.Equal(new DateTime(1990, 1, 1), user.DateOfBirth);
+
+        var user2 = CreateUser(new Claim(NoelleClaimTypes.DateOfBirth, "not-a-date"));
+        Assert.Null(user2.DateOfBirth);
     }
 
+    /// <summary>
+    /// 角色：短名与 URI 类型取并集去重
+    /// </summary>
     [Fact]
-    public void DateOfBirth_WithInvalidDate_ShouldReturnNull()
+    public void Roles_ShouldReturnDistinctUnion()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.DateOfBirth, "not-a-date")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.DateOfBirth);
-    }
-
-    [Fact]
-    public void Roles_WithRoles_ShouldReturnAll()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Role, "admin"),
-            new Claim(NoelleClaimTypes.Role, "user")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(new[] { "admin", "user" }, user.Roles);
-    }
-
-    [Fact]
-    public void Roles_WithBothClaimTypes_ShouldReturnDistinctUnion()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
+        var user = CreateUser(
             new Claim(NoelleClaimTypes.Role, "admin"),
             new Claim(ClaimTypes.Role, "admin"),
-            new Claim(ClaimTypes.Role, "user")
-        }));
+            new Claim(ClaimTypes.Role, "user"));
 
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(new[] { "admin", "user" }, user.Roles);
+        Assert.Equal(["admin", "user"], user.Roles);
     }
 
+    /// <summary>
+    /// IsInRole 与 HasPermission 的判定
+    /// </summary>
     [Fact]
-    public void IsInRole_ExistingRole_ShouldReturnTrue()
+    public void IsInRoleAndHasPermission_ShouldJudge()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Role, "admin")
-        }));
+        var user = CreateUser(
+            new Claim(NoelleClaimTypes.Role, "admin"),
+            new Claim(NoelleClaimTypes.Permission, "read"));
 
-        var user = new CurrentUser(_providerMock.Object);
         Assert.True(user.IsInRole("admin"));
-    }
-
-    [Fact]
-    public void IsInRole_NonExistingRole_ShouldReturnFalse()
-    {
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.False(user.IsInRole("admin"));
-    }
-
-    [Fact]
-    public void Permissions_WithPermissions_ShouldReturnAll()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Permission, "read"),
-            new Claim(NoelleClaimTypes.Permission, "write")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(new[] { "read", "write" }, user.Permissions);
-    }
-
-    [Fact]
-    public void HasPermission_ExistingPermission_ShouldReturnTrue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim(NoelleClaimTypes.Permission, "read")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
+        Assert.False(user.IsInRole("user"));
         Assert.True(user.HasPermission("read"));
+        Assert.False(user.HasPermission("write"));
     }
 
+    /// <summary>
+    /// 声明查询 API：Claims/FindClaim/FindClaims/FindClaimValues
+    /// </summary>
     [Fact]
-    public void HasPermission_NonExistingPermission_ShouldReturnFalse()
+    public void ClaimQueryApis_ShouldReturnClaims()
     {
-        var user = new CurrentUser(_providerMock.Object);
+        var user = CreateUser(
+            new Claim("role", "admin"),
+            new Claim("role", "user"),
+            new Claim("custom", "value"));
+
+        Assert.Equal(3, user.Claims.Length);
+        Assert.Equal("value", user.FindClaim("custom")?.Value);
+        Assert.Equal("value", user.FindClaimValue("custom"));
+        Assert.Equal(2, user.FindClaims("role").Length);
+        Assert.Equal(["admin", "user"], user.FindClaimValues("role"));
+    }
+
+    /// <summary>
+    /// 无 Principal 时（未认证），所有查询 API 应返回空/默认值而不抛异常
+    /// </summary>
+    [Fact]
+    public void ClaimQueryApis_WithoutPrincipal_ShouldReturnEmpty()
+    {
+        var user = CreateUserWithoutPrincipal();
+
+        Assert.Empty(user.Claims);
+        Assert.Empty(user.Roles);
+        Assert.Empty(user.Permissions);
+        Assert.Null(user.FindClaim("any"));
+        Assert.Null(user.FindClaimValue("any"));
+        Assert.Empty(user.FindClaims("any"));
+        Assert.Empty(user.FindClaimValues("any"));
+        Assert.False(user.IsInRole("admin"));
         Assert.False(user.HasPermission("read"));
     }
 
+    /// <summary>
+    /// 其余短名声明（ClientId/OrganizationUnitId/GivenName/Surname/MiddleName/NickName/PhoneNumber/Gender）应直接返回
+    /// </summary>
     [Fact]
-    public void Claims_ShouldReturnAllClaims()
+    public void OtherShortNameProperties_ShouldReturnValues()
     {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim("type1", "value1"),
-            new Claim("type2", "value2")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(2, user.Claims.Length);
-    }
-
-    [Fact]
-    public void Claims_NoPrincipal_ShouldReturnEmpty()
-    {
-        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Empty(user.Claims);
-    }
-
-    [Fact]
-    public void FindClaim_ExistingType_ShouldReturnClaim()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim("custom", "value")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        var claim = user.FindClaim("custom");
-        Assert.NotNull(claim);
-        Assert.Equal("value", claim!.Value);
-    }
-
-    [Fact]
-    public void FindClaim_NoPrincipal_ShouldReturnNull()
-    {
-        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.FindClaim("any"));
-    }
-
-    [Fact]
-    public void FindClaimValue_ExistingType_ShouldReturnValue()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim("custom", "myvalue")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal("myvalue", user.FindClaimValue("custom"));
-    }
-
-    [Fact]
-    public void FindClaimValue_NoPrincipal_ShouldReturnNull()
-    {
-        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Null(user.FindClaimValue("any"));
-    }
-
-    [Fact]
-    public void FindClaims_MultipleMatches_ShouldReturnAll()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim("role", "admin"),
-            new Claim("role", "user")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(2, user.FindClaims("role").Length);
-    }
-
-    [Fact]
-    public void FindClaims_NoPrincipal_ShouldReturnEmpty()
-    {
-        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Empty(user.FindClaims("any"));
-    }
-
-    [Fact]
-    public void FindClaimValues_ShouldReturnAllValues()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
-            new Claim("role", "admin"),
-            new Claim("role", "user")
-        }));
-
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Equal(new[] { "admin", "user" }, user.FindClaimValues("role"));
-    }
-
-    [Fact]
-    public void FindClaimValues_NoPrincipal_ShouldReturnEmpty()
-    {
-        _providerMock.Setup(p => p.Principal).Returns((ClaimsPrincipal?)null);
-        var user = new CurrentUser(_providerMock.Object);
-        Assert.Empty(user.FindClaimValues("any"));
-    }
-
-    [Fact]
-    public void AllProperties_WithClaims_ShouldReturnValues()
-    {
-        _principal.AddIdentity(new ClaimsIdentity(new[]
-        {
+        var user = CreateUser(
             new Claim(NoelleClaimTypes.ClientId, "client1"),
             new Claim(NoelleClaimTypes.OrganizationUnitId, "dept1"),
             new Claim(NoelleClaimTypes.GivenName, "San"),
@@ -414,10 +196,8 @@ public class CurrentUserTests
             new Claim(NoelleClaimTypes.MiddleName, "M"),
             new Claim(NoelleClaimTypes.NickName, "xiaozhang"),
             new Claim(NoelleClaimTypes.PhoneNumber, "13800138000"),
-            new Claim(NoelleClaimTypes.Gender, "male")
-        }));
+            new Claim(NoelleClaimTypes.Gender, "male"));
 
-        var user = new CurrentUser(_providerMock.Object);
         Assert.Equal("client1", user.ClientId);
         Assert.Equal("dept1", user.OrganizationUnitId);
         Assert.Equal("San", user.GivenName);

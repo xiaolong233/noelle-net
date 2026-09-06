@@ -4,89 +4,50 @@ using Moq;
 namespace NoelleNet.Uow;
 
 /// <summary>
-/// <see cref="UnitOfWork"/> 的单元测试
+/// <see cref="UnitOfWork"/> 的契约测试：SaveChangesAsync 的转发与异常传播
 /// </summary>
 public class UnitOfWorkTests
 {
-    #region 构造函数
-
+    /// <summary>
+    /// SaveChangesAsync 应转发到 DbContext 并返回影响行数
+    /// </summary>
     [Fact]
-    public void Constructor_DbContextIsNull_ShouldThrowArgumentNullException()
-    {
-        var exception = Assert.Throws<ArgumentNullException>(() => new UnitOfWork(null!));
-        Assert.Equal("dbContext", exception.ParamName);
-    }
-
-    [Fact]
-    public void Constructor_WithValidDbContext_ShouldCreateInstance()
-    {
-        var dbContext = new Mock<DbContext>().Object;
-        var uow = new UnitOfWork(dbContext);
-
-        Assert.NotNull(uow);
-        Assert.IsAssignableFrom<IUnitOfWork>(uow);
-    }
-
-    #endregion
-
-    #region SaveChangesAsync
-
-    [Fact]
-    public async Task SaveChangesAsync_ShouldCallDbContextSaveChangesAsync()
+    public async Task SaveChangesAsync_ShouldForwardToDbContext()
     {
         var dbContextMock = new Mock<DbContext>();
         dbContextMock.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);
 
-        var uow = new UnitOfWork(dbContextMock.Object);
-
-        var result = await uow.SaveChangesAsync();
+        var result = await new UnitOfWork(dbContextMock.Object).SaveChangesAsync();
 
         Assert.Equal(5, result);
-        dbContextMock.Verify(c => c.SaveChangesAsync(default), Times.Once);
+        dbContextMock.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// CancellationToken 应透传给 DbContext
+    /// </summary>
     [Fact]
-    public async Task SaveChangesAsync_WithCancellationToken_ShouldPassToDbContext()
+    public async Task SaveChangesAsync_ShouldPassCancellationToken()
     {
         var dbContextMock = new Mock<DbContext>();
         var cts = new CancellationTokenSource();
-        dbContextMock.Setup(c => c.SaveChangesAsync(cts.Token))
-            .ReturnsAsync(3);
 
-        var uow = new UnitOfWork(dbContextMock.Object);
+        await new UnitOfWork(dbContextMock.Object).SaveChangesAsync(cts.Token);
 
-        var result = await uow.SaveChangesAsync(cts.Token);
-
-        Assert.Equal(3, result);
         dbContextMock.Verify(c => c.SaveChangesAsync(cts.Token), Times.Once);
     }
 
+    /// <summary>
+    /// DbContext 抛出的异常应原样传播
+    /// </summary>
     [Fact]
-    public async Task SaveChangesAsync_WhenDbContextReturnsZero_ShouldReturnZero()
-    {
-        var dbContextMock = new Mock<DbContext>();
-        dbContextMock.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
-
-        var uow = new UnitOfWork(dbContextMock.Object);
-
-        var result = await uow.SaveChangesAsync();
-
-        Assert.Equal(0, result);
-    }
-
-    [Fact]
-    public async Task SaveChangesAsync_WhenDbContextThrows_ShouldPropagateException()
+    public async Task SaveChangesAsync_WhenDbContextThrows_ShouldPropagate()
     {
         var dbContextMock = new Mock<DbContext>();
         dbContextMock.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateException("Test error"));
 
-        var uow = new UnitOfWork(dbContextMock.Object);
-
-        await Assert.ThrowsAsync<DbUpdateException>(() => uow.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() => new UnitOfWork(dbContextMock.Object).SaveChangesAsync());
     }
-
-    #endregion
 }

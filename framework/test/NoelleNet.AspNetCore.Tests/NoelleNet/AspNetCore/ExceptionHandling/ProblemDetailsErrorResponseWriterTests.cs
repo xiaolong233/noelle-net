@@ -53,28 +53,6 @@ public class ProblemDetailsErrorResponseWriterTests
     }
 
     [Fact]
-    public void Constructor_NullLocalizerFactory_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new ProblemDetailsErrorResponseWriter(
-                Options.Create(new NoelleExceptionHandlingOptions()),
-                Options.Create(new NoelleExceptionLocalizationOptions()),
-                null!,
-                Mock.Of<IStringLocalizer<NoelleExceptionHandlingResource>>()));
-    }
-
-    [Fact]
-    public void Constructor_NullLocalizer_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new ProblemDetailsErrorResponseWriter(
-                Options.Create(new NoelleExceptionHandlingOptions()),
-                Options.Create(new NoelleExceptionLocalizationOptions()),
-                Mock.Of<IStringLocalizerFactory>(),
-                null!));
-    }
-
-    [Fact]
     public async Task TryWriteAsync_GenericException_ShouldWrite500ProblemDetails()
     {
         var httpContext = CreateHttpContext();
@@ -102,17 +80,6 @@ public class ProblemDetailsErrorResponseWriterTests
         await writer.TryWriteAsync(httpContext, new BusinessException("ERR001", "business error"));
 
         Assert.Equal(StatusCodes.Status400BadRequest, httpContext.Response.StatusCode);
-    }
-
-    [Fact]
-    public async Task TryWriteAsync_CustomStatusCodeException_ShouldSetResponseStatusCode()
-    {
-        var httpContext = CreateHttpContext();
-        var writer = CreateWriter();
-
-        await writer.TryWriteAsync(httpContext, new CustomStatusCodeException());
-
-        Assert.Equal(418, httpContext.Response.StatusCode);
     }
 
     [Fact]

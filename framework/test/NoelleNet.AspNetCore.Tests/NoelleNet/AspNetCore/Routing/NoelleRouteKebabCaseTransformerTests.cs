@@ -1,119 +1,57 @@
 namespace NoelleNet.AspNetCore.Routing;
 
+/// <summary>
+/// <see cref="NoelleRouteKebabCaseTransformer"/> 的契约测试：kebab-case 路由转换的正则边界
+/// </summary>
 public class NoelleRouteKebabCaseTransformerTests
 {
     private readonly NoelleRouteKebabCaseTransformer _transformer = new();
 
+    /// <summary>
+    /// null 与空串的边界行为
+    /// </summary>
     [Fact]
-    public void TransformOutbound_NullValue_ShouldReturnNull()
+    public void TransformOutbound_NullOrEmpty_ShouldReturnSame()
     {
-        var result = _transformer.TransformOutbound(null);
-
-        Assert.Null(result);
+        Assert.Null(_transformer.TransformOutbound(null));
+        Assert.Equal("", _transformer.TransformOutbound(""));
     }
 
-    [Fact]
-    public void TransformOutbound_PascalCase_ShouldConvertToKebabCase()
+    /// <summary>
+    /// 常规命名转换：PascalCase、camelCase、单词、全小写、多词、连续大写
+    /// </summary>
+    [Theory]
+    [InlineData("TodoItems", "todo-items")]
+    [InlineData("todoItems", "todo-items")]
+    [InlineData("Items", "items")]
+    [InlineData("items", "items")]
+    [InlineData("TodoItemDetails", "todo-item-details")]
+    [InlineData("HelloWorldTest", "hello-world-test")]
+    [InlineData("ABC", "abc")]
+    [InlineData("Todo2Item", "todo2-item")]
+    public void TransformOutbound_RegularNames_ShouldConvert(string input, string expected)
     {
-        var result = _transformer.TransformOutbound("TodoItems");
-
-        Assert.Equal("todo-items", result);
+        Assert.Equal(expected, _transformer.TransformOutbound(input));
     }
 
-    [Fact]
-    public void TransformOutbound_CamelCase_ShouldConvertToKebabCase()
+    /// <summary>
+    /// 缩写词边界：UserID → user-id、URLValue → url-value、UserIDCard → user-id-card
+    /// </summary>
+    [Theory]
+    [InlineData("UserID", "user-id")]
+    [InlineData("URLValue", "url-value")]
+    [InlineData("UserIDCard", "user-id-card")]
+    public void TransformOutbound_Acronyms_ShouldSplit(string input, string expected)
     {
-        var result = _transformer.TransformOutbound("todoItems");
-
-        Assert.Equal("todo-items", result);
+        Assert.Equal(expected, _transformer.TransformOutbound(input));
     }
 
+    /// <summary>
+    /// 已含下划线等非字母边界的内容不做二次转换（正则仅匹配大小写边界）
+    /// </summary>
     [Fact]
-    public void TransformOutbound_SingleWord_ShouldReturnLowercase()
+    public void TransformOutbound_NonCamelBoundaries_ShouldRemain()
     {
-        var result = _transformer.TransformOutbound("Items");
-
-        Assert.Equal("items", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_AllLowercase_ShouldReturnSame()
-    {
-        var result = _transformer.TransformOutbound("items");
-
-        Assert.Equal("items", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_MultipleWords_ShouldConvertAll()
-    {
-        var result = _transformer.TransformOutbound("TodoItemDetails");
-
-        Assert.Equal("todo-item-details", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_AlreadyKebabCase_ShouldRemainLowercase()
-    {
-        var result = _transformer.TransformOutbound("todo_items");
-
-        // Regex only matches lowercase followed by uppercase, so this won't change
-        Assert.Equal("todo_items", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_Acronym_ShouldHandleCorrectly()
-    {
-        var result = _transformer.TransformOutbound("UserID");
-
-        Assert.Equal("user-id", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_LeadingAcronym_ShouldHandleCorrectly()
-    {
-        var result = _transformer.TransformOutbound("URLValue");
-
-        Assert.Equal("url-value", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_MiddleAcronym_ShouldHandleCorrectly()
-    {
-        var result = _transformer.TransformOutbound("UserIDCard");
-
-        Assert.Equal("user-id-card", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_DigitWordBoundary_ShouldHandleCorrectly()
-    {
-        var result = _transformer.TransformOutbound("Todo2Item");
-
-        Assert.Equal("todo2-item", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_AllCaps_ShouldConvertToLowercase()
-    {
-        var result = _transformer.TransformOutbound("ABC");
-
-        Assert.Equal("abc", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_EmptyString_ShouldReturnEmpty()
-    {
-        var result = _transformer.TransformOutbound("");
-
-        Assert.Equal("", result);
-    }
-
-    [Fact]
-    public void TransformOutbound_ConsecutiveUppercase_ShouldHandle()
-    {
-        var result = _transformer.TransformOutbound("HelloWorldTest");
-
-        Assert.Equal("hello-world-test", result);
+        Assert.Equal("todo_items", _transformer.TransformOutbound("todo_items"));
     }
 }

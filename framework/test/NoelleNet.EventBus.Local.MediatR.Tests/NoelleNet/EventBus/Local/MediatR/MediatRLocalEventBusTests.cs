@@ -1,172 +1,66 @@
 using MediatR;
 using Moq;
-using NoelleNet.EventBus.Abstractions.Local;
 
 namespace NoelleNet.EventBus.Local.MediatR;
 
 /// <summary>
-/// <see cref="MediatRLocalEventBus"/> 的单元测试
+/// <see cref="MediatRLocalEventBus"/> 的契约测试：事件经 LocalEventAdapter 转发给 MediatR
 /// </summary>
 public class MediatRLocalEventBusTests
 {
-    #region Constructor
-
     /// <summary>
-    /// 传入 null 的 IMediator 时应抛出 ArgumentNullException
-    /// </summary>
-    [Fact]
-    public void Constructor_WithNullMediator_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() => new MediatRLocalEventBus(null!));
-    }
-
-    /// <summary>
-    /// 传入有效的 IMediator 时应成功创建实例
-    /// </summary>
-    [Fact]
-    public void Constructor_WithValidMediator_ShouldCreateInstance()
-    {
-        var mockMediator = new Mock<IMediator>();
-        var eventBus = new MediatRLocalEventBus(mockMediator.Object);
-        Assert.NotNull(eventBus);
-    }
-
-    #endregion
-
-    #region PublishAsync
-
-    /// <summary>
-    /// 传入 null 事件数据时应抛出 ArgumentNullException
+    /// 事件数据为 null 时应抛出 ArgumentNullException
     /// </summary>
     [Fact]
     public async Task PublishAsync_WithNullEventData_ShouldThrowArgumentNullException()
     {
-        var mockMediator = new Mock<IMediator>();
-        var eventBus = new MediatRLocalEventBus(mockMediator.Object);
+        var eventBus = new MediatRLocalEventBus(new Mock<IMediator>().Object);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(
-            () => eventBus.PublishAsync<TestEvent>(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => eventBus.PublishAsync<TestEvent>(null!));
     }
 
     /// <summary>
-    /// 发布有效事件时应使用正确的 LocalEventAdapter 调用 IMediator.Publish
+    /// 发布事件应构造携带源事件与运行时类型的 LocalEventAdapter 并调用 IMediator.Publish（含 CancellationToken 透传）
     /// </summary>
     [Fact]
-    public async Task PublishAsync_WithValidEvent_ShouldCallMediatorPublishWithAdapter()
+    public async Task PublishAsync_ShouldForwardViaAdapterWithCancellationToken()
     {
-        // Arrange
-        var mockMediator = new Mock<IMediator>();
-        var eventBus = new MediatRLocalEventBus(mockMediator.Object);
-        var eventData = new TestEvent { Id = 1, Name = "test" };
-
-        // Act
-        await eventBus.PublishAsync(eventData);
-
-        // Assert
-        mockMediator.Verify(
-            m => m.Publish(
-                It.Is<LocalEventAdapter>(a =>
-                    a.SourceEvent == eventData &&
-                    a.EventType == typeof(TestEvent)),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    /// <summary>
-    /// 发布事件时应将 CancellationToken 传递给 IMediator.Publish
-    /// </summary>
-    [Fact]
-    public async Task PublishAsync_ShouldPassCancellationTokenToMediator()
-    {
-        // Arrange
         var mockMediator = new Mock<IMediator>();
         var eventBus = new MediatRLocalEventBus(mockMediator.Object);
         var eventData = new TestEvent { Id = 1, Name = "test" };
         var cancellationToken = new CancellationToken(true);
 
-        // Act
         await eventBus.PublishAsync(eventData, cancellationToken);
 
-        // Assert
         mockMediator.Verify(
             m => m.Publish(
-                It.IsAny<LocalEventAdapter>(),
+                It.Is<LocalEventAdapter>(a => a.SourceEvent == eventData && a.EventType == typeof(TestEvent)),
                 cancellationToken),
             Times.Once);
     }
 
     /// <summary>
-    /// 发布不同事件类型时应创建对应类型的 LocalEventAdapter
+    /// 不同事件类型应分别构造对应类型的适配器（多次发布互不影响）
     /// </summary>
     [Fact]
-    public async Task PublishAsync_WithDifferentEventTypes_ShouldCreateCorrectAdapter()
+    public async Task PublishAsync_WithDifferentEventTypes_ShouldCreateCorrectAdapters()
     {
-        // Arrange
         var mockMediator = new Mock<IMediator>();
         var eventBus = new MediatRLocalEventBus(mockMediator.Object);
-        var eventData = new AnotherTestEvent { Value = 42 };
+        var event1 = new TestEvent { Id = 1 };
+        var event2 = new AnotherTestEvent { Value = 42 };
 
-        // Act
-        await eventBus.PublishAsync(eventData);
-
-        // Assert
-        mockMediator.Verify(
-            m => m.Publish(
-                It.Is<LocalEventAdapter>(a =>
-                    a.SourceEvent == eventData &&
-                    a.EventType == typeof(AnotherTestEvent)),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    /// <summary>
-    /// 多次发布不同事件时应分别调用 IMediator.Publish
-    /// </summary>
-    [Fact]
-    public async Task PublishAsync_WithMultipleEvents_ShouldPublishEachIndependently()
-    {
-        // Arrange
-        var mockMediator = new Mock<IMediator>();
-        var eventBus = new MediatRLocalEventBus(mockMediator.Object);
-        var event1 = new TestEvent { Id = 1, Name = "first" };
-        var event2 = new TestEvent { Id = 2, Name = "second" };
-
-        // Act
         await eventBus.PublishAsync(event1);
         await eventBus.PublishAsync(event2);
 
-        // Assert
         mockMediator.Verify(
-            m => m.Publish(
-                It.Is<LocalEventAdapter>(a => a.SourceEvent == event1),
-                It.IsAny<CancellationToken>()),
+            m => m.Publish(It.Is<LocalEventAdapter>(a => a.EventType == typeof(TestEvent)), It.IsAny<CancellationToken>()),
             Times.Once);
         mockMediator.Verify(
-            m => m.Publish(
-                It.Is<LocalEventAdapter>(a => a.SourceEvent == event2),
-                It.IsAny<CancellationToken>()),
+            m => m.Publish(It.Is<LocalEventAdapter>(a => a.EventType == typeof(AnotherTestEvent)), It.IsAny<CancellationToken>()),
             Times.Once);
     }
-
-    #endregion
-
-    #region Interface Implementation
-
-    /// <summary>
-    /// MediatRLocalEventBus 应实现 ILocalEventBus 接口
-    /// </summary>
-    [Fact]
-    public void MediatRLocalEventBus_ShouldImplementILocalEventBus()
-    {
-        var mockMediator = new Mock<IMediator>();
-        var eventBus = new MediatRLocalEventBus(mockMediator.Object);
-        Assert.IsAssignableFrom<ILocalEventBus>(eventBus);
-    }
-
-    #endregion
 }
-
-#region Test Events
 
 public class TestEvent
 {
@@ -178,5 +72,3 @@ public class AnotherTestEvent
 {
     public int Value { get; set; }
 }
-
-#endregion

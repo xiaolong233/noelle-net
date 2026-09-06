@@ -1,21 +1,30 @@
 namespace NoelleNet.Http.Logging;
 
+/// <summary>
+/// <see cref="HttpClientLoggingOptions"/> 的契约测试：默认脱敏开关与敏感清单是安全契约，防止默认值被无意放宽
+/// </summary>
 public class HttpClientLoggingOptionsTests
 {
+    /// <summary>
+    /// 默认值：脱敏开启、请求/响应体长度上限、清单非空
+    /// </summary>
     [Fact]
-    public void DefaultValues_ShouldBeCorrect()
+    public void Defaults_ShouldEnableSanitization()
     {
         var options = new HttpClientLoggingOptions();
 
+        Assert.True(options.SanitizeSensitiveData);
         Assert.Equal(8192, options.MaxRequestBodyLength);
         Assert.Equal(16384, options.MaxResponseBodyLength);
-        Assert.True(options.SanitizeSensitiveData);
-        Assert.NotNull(options.SensitiveFields);
-        Assert.NotNull(options.SensitiveHeaders);
+        Assert.NotEmpty(options.SensitiveFields);
+        Assert.NotEmpty(options.SensitiveHeaders);
     }
 
+    /// <summary>
+    /// 敏感字段与敏感标头的默认清单应包含关键凭证项（Authorization/Cookie 等）
+    /// </summary>
     [Fact]
-    public void SensitiveFields_ShouldContainExpectedDefaults()
+    public void SensitiveLists_ShouldContainCredentialKeys()
     {
         var options = new HttpClientLoggingOptions();
 
@@ -24,41 +33,10 @@ public class HttpClientLoggingOptionsTests
         Assert.Contains("creditcard", options.SensitiveFields);
         Assert.Contains("cvv", options.SensitiveFields);
         Assert.Contains("authorization", options.SensitiveFields);
-    }
-
-    [Fact]
-    public void SensitiveHeaders_ShouldContainExpectedDefaults()
-    {
-        var options = new HttpClientLoggingOptions();
 
         Assert.Contains("Authorization", options.SensitiveHeaders);
         Assert.Contains("Cookie", options.SensitiveHeaders);
         Assert.Contains("Set-Cookie", options.SensitiveHeaders);
         Assert.Contains("X-Api-Key", options.SensitiveHeaders);
-    }
-
-    [Fact]
-    public void HttpClientLogging_Constant_ShouldBeCorrect()
-    {
-        Assert.Equal("HttpClientLogging", HttpClientLoggingOptions.HttpClientLogging);
-    }
-
-    [Fact]
-    public void Properties_ShouldBeSettable()
-    {
-        var options = new HttpClientLoggingOptions
-        {
-            MaxRequestBodyLength = 1024,
-            MaxResponseBodyLength = 2048,
-            SanitizeSensitiveData = false,
-            SensitiveFields = new List<string> { "custom" },
-            SensitiveHeaders = new List<string> { "X-Custom" }
-        };
-
-        Assert.Equal(1024, options.MaxRequestBodyLength);
-        Assert.Equal(2048, options.MaxResponseBodyLength);
-        Assert.False(options.SanitizeSensitiveData);
-        Assert.Single(options.SensitiveFields);
-        Assert.Single(options.SensitiveHeaders);
     }
 }

@@ -1,101 +1,55 @@
 namespace System;
 
+/// <summary>
+/// <see cref="NoelleObjectExtensions"/> 的单元测试：覆盖普通类型转换与 Guid 特殊处理两个分支
+/// </summary>
 public class NoelleObjectExtensionsTests
 {
+    /// <summary>
+    /// 基础类型转换（string ↔ int、string → double/decimal/bool）应成功
+    /// </summary>
     [Fact]
-    public void To_ConvertStringToInt_ShouldSucceed()
+    public void To_BasicTypes_ShouldConvert()
     {
-        object source = "123";
-        var result = source.To<int>();
-        Assert.Equal(123, result);
+        Assert.Equal(123, ((object)"123").To<int>());
+        Assert.Equal("123", ((object)123).To<string>());
+        Assert.Equal(3.14, ((object)"3.14").To<double>());
+        Assert.Equal(99.99m, ((object)"99.99").To<decimal>());
+        Assert.True(((object)"true").To<bool>());
     }
 
+    /// <summary>
+    /// 源为 null 时：目标为非可空类型抛 ArgumentNullException，可空类型返回 null
+    /// </summary>
     [Fact]
-    public void To_ConvertIntToString_ShouldSucceed()
-    {
-        object source = 123;
-        var result = source.To<string>();
-        Assert.Equal("123", result);
-    }
-
-    [Fact]
-    public void To_ConvertStringToDouble_ShouldSucceed()
-    {
-        object source = "3.14";
-        var result = source.To<double>();
-        Assert.Equal(3.14, result);
-    }
-
-    [Fact]
-    public void To_ConvertStringToDecimal_ShouldSucceed()
-    {
-        object source = "99.99";
-        var result = source.To<decimal>();
-        Assert.Equal(99.99m, result);
-    }
-
-    [Fact]
-    public void To_ConvertStringToBool_ShouldSucceed()
-    {
-        object source = "true";
-        var result = source.To<bool>();
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void To_NullSource_NonNullableType_ShouldThrow()
+    public void To_NullSource_ShouldThrowForNonNullableAndReturnNullForNullable()
     {
         object? source = null;
+
         Assert.Throws<ArgumentNullException>(() => source!.To<int>());
+        Assert.Null(source!.To<int?>());
     }
 
+    /// <summary>
+    /// Guid 分支：有效字符串应转换，空/空白字符串对可空 Guid 返回 null
+    /// </summary>
     [Fact]
-    public void To_NullSource_NullableType_ShouldReturnDefault()
-    {
-        object? source = null;
-        var result = source.To<int?>();
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void To_ConvertStringToGuid_ShouldSucceed()
+    public void To_Guid_ShouldConvertOrReturnNull()
     {
         var guid = Guid.NewGuid();
-        object source = guid.ToString();
-        var result = source.To<Guid>();
-        Assert.Equal(guid, result);
+
+        Assert.Equal(guid, ((object)guid.ToString()).To<Guid>());
+        Assert.Equal(guid, ((object)guid.ToString()).To<Guid?>());
+        Assert.Null(((object)"").To<Guid?>());
+        Assert.Null(((object)"   ").To<Guid?>());
     }
 
+    /// <summary>
+    /// DateTime 转换应成功
+    /// </summary>
     [Fact]
-    public void To_ConvertEmptyStringToNullableGuid_ShouldReturnNull()
+    public void To_DateTime_ShouldConvert()
     {
-        object source = "";
-        var result = source.To<Guid?>();
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void To_ConvertWhitespaceStringToNullableGuid_ShouldReturnNull()
-    {
-        object source = "   ";
-        var result = source.To<Guid?>();
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void To_ConvertValidStringToNullableGuid_ShouldSucceed()
-    {
-        var guid = Guid.NewGuid();
-        object source = guid.ToString();
-        var result = source.To<Guid?>();
-        Assert.Equal(guid, result);
-    }
-
-    [Fact]
-    public void To_ConvertStringToDateTime_ShouldSucceed()
-    {
-        object source = "2024-01-15";
-        var result = source.To<DateTime>();
-        Assert.Equal(new DateTime(2024, 1, 15), result);
+        Assert.Equal(new DateTime(2024, 1, 15), ((object)"2024-01-15").To<DateTime>());
     }
 }

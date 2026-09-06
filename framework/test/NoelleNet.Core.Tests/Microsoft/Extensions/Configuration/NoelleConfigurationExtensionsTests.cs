@@ -1,93 +1,81 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Extensions.Configuration;
 
+/// <summary>
+/// <see cref="NoelleConfigurationExtensions"/> 的单元测试：强校验取值的行为契约
+/// </summary>
 public class NoelleConfigurationExtensionsTests
 {
-    [Fact]
-    public void GetRequiredValue_NullConfiguration_ShouldThrow()
-    {
-        IConfiguration? config = null;
-        Assert.Throws<ArgumentNullException>(() => config!.GetRequiredValue("key"));
-    }
-
-    [Fact]
-    public void GetRequiredValue_NullKey_ShouldThrow()
-    {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        // ArgumentException.ThrowIfNullOrWhiteSpace throws ArgumentNullException for null
-        Assert.Throws<ArgumentNullException>(() => config.GetRequiredValue(null!));
-    }
-
-    [Fact]
-    public void GetRequiredValue_EmptyKey_ShouldThrow()
-    {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        Assert.Throws<ArgumentException>(() => config.GetRequiredValue(""));
-    }
-
+    /// <summary>
+    /// 键存在时返回配置值
+    /// </summary>
     [Fact]
     public void GetRequiredValue_KeyExists_ShouldReturnValue()
     {
-        var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { { "MyKey", "MyValue" } })
-            .Build();
+        var config = Build(new Dictionary<string, string?> { { "MyKey", "MyValue" } });
 
-        var result = config.GetRequiredValue("MyKey");
-        Assert.Equal("MyValue", result);
+        Assert.Equal("MyValue", config.GetRequiredValue("MyKey"));
     }
 
+    /// <summary>
+    /// 键缺失时抛出 InvalidOperationException，消息应包含配置键
+    /// </summary>
     [Fact]
-    public void GetRequiredValue_KeyMissing_ShouldThrowInvalidOperationException()
+    public void GetRequiredValue_KeyMissing_ShouldThrowWithKeyInMessage()
     {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        var config = Build();
 
         var ex = Assert.Throws<InvalidOperationException>(() => config.GetRequiredValue("MissingKey"));
+
         Assert.Contains("MissingKey", ex.Message);
     }
 
+    /// <summary>
+    /// 连接字符串存在时返回其值
+    /// </summary>
     [Fact]
-    public void GetRequiredConnectionString_NullConfiguration_ShouldThrow()
+    public void GetRequiredConnectionString_Exists_ShouldReturnValue()
     {
-        IConfiguration? config = null;
-        Assert.Throws<ArgumentNullException>(() => config!.GetRequiredConnectionString("name"));
+        var config = Build(new Dictionary<string, string?> { { "ConnectionStrings:Default", "Server=localhost" } });
+
+        Assert.Equal("Server=localhost", config.GetRequiredConnectionString("Default"));
     }
 
+    /// <summary>
+    /// 连接字符串缺失时抛出 InvalidOperationException，消息应包含名称
+    /// </summary>
     [Fact]
-    public void GetRequiredConnectionString_NullName_ShouldThrow()
+    public void GetRequiredConnectionString_Missing_ShouldThrowWithNameInMessage()
     {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        var config = Build();
+
+        var ex = Assert.Throws<InvalidOperationException>(() => config.GetRequiredConnectionString("Missing"));
+
+        Assert.Contains("Missing", ex.Message);
+    }
+
+    /// <summary>
+    /// 参数为 null/空白时应抛出异常
+    /// </summary>
+    [Fact]
+    public void InvalidArguments_ShouldThrow()
+    {
+        IConfiguration? nullConfig = null;
+        var config = Build();
+
+        Assert.Throws<ArgumentNullException>(() => nullConfig!.GetRequiredValue("key"));
+        Assert.Throws<ArgumentNullException>(() => config.GetRequiredValue(null!));
+        Assert.Throws<ArgumentException>(() => config.GetRequiredValue(""));
         Assert.Throws<ArgumentNullException>(() => config.GetRequiredConnectionString(null!));
-    }
-
-    [Fact]
-    public void GetRequiredConnectionString_EmptyName_ShouldThrow()
-    {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
         Assert.Throws<ArgumentException>(() => config.GetRequiredConnectionString(""));
     }
 
-    [Fact]
-    public void GetRequiredConnectionString_ConnectionExists_ShouldReturnValue()
+    private static IConfiguration Build(Dictionary<string, string?>? values = null)
     {
-        var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                { "ConnectionStrings:Default", "Server=localhost" }
-            })
-            .Build();
-
-        var result = config.GetRequiredConnectionString("Default");
-        Assert.Equal("Server=localhost", result);
-    }
-
-    [Fact]
-    public void GetRequiredConnectionString_ConnectionMissing_ShouldThrowInvalidOperationException()
-    {
-        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-
-        var ex = Assert.Throws<InvalidOperationException>(() => config.GetRequiredConnectionString("Missing"));
-        Assert.Contains("Missing", ex.Message);
+        var builder = new ConfigurationBuilder();
+        if (values != null)
+            builder.AddInMemoryCollection(values);
+        return builder.Build();
     }
 }

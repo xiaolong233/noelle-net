@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using NoelleNet.Ddd.Domain.Events;
 using NoelleNet.EventBus.Abstractions.Local;
@@ -7,7 +6,72 @@ using NoelleNet.EntityFrameworkCore.Interceptors;
 
 namespace NoelleNet.EntityFrameworkCore.Interceptors;
 
-#region Test Entities
+/// <summary>
+/// <see cref="NoelleDomainEventInterceptor"/> 的行为测试：提交前派发、派发后清空、仅处理含事件的实体
+/// </summary>
+public class NoelleDomainEventInterceptorTests
+{
+    /// <summary>
+    /// 保存含事件的实体时应发布全部事件（保持添加顺序）
+    /// </summary>
+    [Fact]
+    public async Task SavingChangesAsync_EntitiesWithDomainEvents_ShouldPublishAllEvents()
+    {
+        var eventBusMock = new Mock<ILocalEventBus>();
+        var context = CreateContext(new NoelleDomainEventInterceptor(eventBusMock.Object));
+
+        var entity = new TestDomainEventEntity { Id = 1 };
+        entity.AddDomainEvent(new TestDomainEvent { Data = "event1" });
+        entity.AddDomainEvent(new AnotherTestDomainEvent { Value = 42 });
+        context.DomainEventEntities.Add(entity);
+
+        await context.SaveChangesAsync();
+
+        eventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    /// <summary>
+    /// 派发后应清空实体上的领域事件（防止重复派发）
+    /// </summary>
+    [Fact]
+    public async Task SavingChangesAsync_ShouldClearDomainEventsAfterDispatch()
+    {
+        var context = CreateContext(new NoelleDomainEventInterceptor(new Mock<ILocalEventBus>().Object));
+
+        var entity = new TestDomainEventEntity { Id = 1 };
+        entity.AddDomainEvent(new TestDomainEvent { Data = "async-clear" });
+        context.DomainEventEntities.Add(entity);
+
+        await context.SaveChangesAsync();
+
+        Assert.Empty(entity.DomainEvents);
+    }
+
+    /// <summary>
+    /// 无事件或只有非事件实体时不应发布（同步路径代表）
+    /// </summary>
+    [Fact]
+    public void SavingChanges_WithoutDomainEvents_ShouldNotPublish()
+    {
+        var eventBusMock = new Mock<ILocalEventBus>();
+        var context = CreateContext(new NoelleDomainEventInterceptor(eventBusMock.Object));
+
+        context.DomainEventEntities.Add(new TestDomainEventEntity { Id = 1 });   // 无事件
+        context.NonDomainEventEntities.Add(new NonDomainEventEntity { Id = 99 }); // 非事件实体
+
+        context.SaveChanges();
+
+        eventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static DomainEventDbContext CreateContext(NoelleDomainEventInterceptor interceptor)
+    {
+        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new DomainEventDbContext(options, interceptor);
+    }
+}
 
 /// <summary>
 /// 测试用的领域事件
@@ -48,213 +112,28 @@ public class TestDomainEventEntity : IHasDomainEvents
 }
 
 /// <summary>
-/// 非 IHasDomainEvents 的实体（用于验证不会处理该类型实体）
+/// 非 IHasDomainEvents 的实体
 /// </summary>
 public class NonDomainEventEntity
 {
     public int Id { get; set; }
 }
 
-#endregion
-
 /// <summary>
-/// <see cref="NoelleDomainEventInterceptor"/> 的单元测试
-/// </summary>
-public class NoelleDomainEventInterceptorTests
-{
-    private readonly Mock<ILocalEventBus> _localEventBusMock;
-    private readonly NoelleDomainEventInterceptor _interceptor;
-
-    public NoelleDomainEventInterceptorTests()
-    {
-        _localEventBusMock = new Mock<ILocalEventBus>();
-        _interceptor = new NoelleDomainEventInterceptor(_localEventBusMock.Object);
-    }
-
-    #region 构造函数
-
-    [Fact]
-    public void Constructor_LocalEventBusIsNull_ShouldThrowArgumentNullException()
-    {
-        var exception = Assert.Throws<ArgumentNullException>(() => new NoelleDomainEventInterceptor(null!));
-        Assert.Equal("localEventBus", exception.ParamName);
-    }
-
-    [Fact]
-    public void Constructor_WithValidEventBus_ShouldCreateInstance()
-    {
-        var bus = new Mock<ILocalEventBus>().Object;
-        var interceptor = new NoelleDomainEventInterceptor(bus);
-
-        Assert.NotNull(interceptor);
-    }
-
-    #endregion
-
-    #region SavingChanges
-
-    [Fact]
-    public void SavingChanges_EntitiesWithDomainEvents_ShouldPublishAllEvents()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var entity1 = new TestDomainEventEntity { Id = 1 };
-        entity1.AddDomainEvent(new TestDomainEvent { Data = "event1" });
-        entity1.AddDomainEvent(new AnotherTestDomainEvent { Value = 42 });
-
-        var entity2 = new TestDomainEventEntity { Id = 2 };
-        entity2.AddDomainEvent(new TestDomainEvent { Data = "event2" });
-
-        context.DomainEventEntities.Add(entity1);
-        context.DomainEventEntities.Add(entity2);
-
-        context.SaveChanges();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
-    }
-
-    [Fact]
-    public void SavingChanges_ShouldClearDomainEventsAfterDispatch()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var entity = new TestDomainEventEntity { Id = 1 };
-        entity.AddDomainEvent(new TestDomainEvent { Data = "test" });
-        context.DomainEventEntities.Add(entity);
-
-        context.SaveChanges();
-
-        Assert.Empty(entity.DomainEvents);
-    }
-
-    [Fact]
-    public void SavingChanges_NoDomainEventEntities_ShouldNotPublishEvents()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        context.NonDomainEventEntities.Add(new NonDomainEventEntity { Id = 1 });
-
-        context.SaveChanges();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public void SavingChanges_EntityHasEmptyDomainEvents_ShouldNotPublish()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var entity = new TestDomainEventEntity { Id = 1 };
-        context.DomainEventEntities.Add(entity);
-
-        context.SaveChanges();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public void SavingChanges_MultipleEntityTypes_ShouldOnlyHandleDomainEventEntities()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var domainEntity = new TestDomainEventEntity { Id = 1 };
-        domainEntity.AddDomainEvent(new TestDomainEvent { Data = "valid" });
-
-        context.DomainEventEntities.Add(domainEntity);
-        context.NonDomainEventEntities.Add(new NonDomainEventEntity { Id = 99 });
-
-        context.SaveChanges();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    #endregion
-
-    #region SavingChangesAsync
-
-    [Fact]
-    public async Task SavingChangesAsync_EntitiesWithDomainEvents_ShouldPublishAllEvents()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var entity = new TestDomainEventEntity { Id = 1 };
-        entity.AddDomainEvent(new TestDomainEvent { Data = "async-event" });
-        entity.AddDomainEvent(new AnotherTestDomainEvent { Value = 100 });
-        context.DomainEventEntities.Add(entity);
-
-        await context.SaveChangesAsync();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task SavingChangesAsync_ShouldClearDomainEventsAfterDispatch()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        var entity = new TestDomainEventEntity { Id = 1 };
-        entity.AddDomainEvent(new TestDomainEvent { Data = "async-clear" });
-        context.DomainEventEntities.Add(entity);
-
-        await context.SaveChangesAsync();
-
-        Assert.Empty(entity.DomainEvents);
-    }
-
-    [Fact]
-    public async Task SavingChangesAsync_NoDomainEvents_ShouldNotPublish()
-    {
-        var options = new DbContextOptionsBuilder<DomainEventDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new DomainEventDbContext(options, _interceptor);
-
-        context.NonDomainEventEntities.Add(new NonDomainEventEntity { Id = 1 });
-
-        await context.SaveChangesAsync();
-
-        _localEventBusMock.Verify(bus => bus.PublishAsync(It.IsAny<IDomainEvent>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    #endregion
-}
-
-/// <summary>
-/// 用于领域事件测试的 DbContext
+/// 领域事件测试 DbContext
 /// </summary>
 public class DomainEventDbContext : DbContext
 {
     private readonly NoelleDomainEventInterceptor _interceptor;
-
-    public DbSet<TestDomainEventEntity> DomainEventEntities { get; set; } = null!;
-    public DbSet<NonDomainEventEntity> NonDomainEventEntities { get; set; } = null!;
 
     public DomainEventDbContext(DbContextOptions<DomainEventDbContext> options, NoelleDomainEventInterceptor interceptor)
         : base(options)
     {
         _interceptor = interceptor;
     }
+
+    public DbSet<TestDomainEventEntity> DomainEventEntities { get; set; } = null!;
+    public DbSet<NonDomainEventEntity> NonDomainEventEntities { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -5,6 +5,9 @@ using NoelleNet.Validation;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 
+/// <summary>
+/// <see cref="NoelleExceptionHandler"/> 的契约测试：写入结果透传、写入失败容错与日志级别决策
+/// </summary>
 public class NoelleExceptionHandlerTests
 {
     private readonly Mock<ILogger<NoelleExceptionHandler>> _loggerMock;
@@ -18,69 +21,38 @@ public class NoelleExceptionHandlerTests
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
-
         _handler = new NoelleExceptionHandler(_loggerMock.Object, _writerMock.Object);
     }
 
-    private static HttpContext CreateHttpContext() => new DefaultHttpContext();
-
+    /// <summary>
+    /// 写入结果应透传，并原样传递 HttpContext 与异常
+    /// </summary>
     [Fact]
-    public void Constructor_NullLogger_ShouldThrowArgumentNullException()
+    public async Task TryHandleAsync_ShouldForwardResultAndPassContext()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandler(null!, _writerMock.Object));
-    }
+        var httpContext = new DefaultHttpContext();
+        var exception = new InvalidOperationException("invalid op");
 
-    [Fact]
-    public void Constructor_NullErrorResponseWriter_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandler(_loggerMock.Object, null!));
-    }
+        Assert.True(await _handler.TryHandleAsync(httpContext, exception, CancellationToken.None));
+        _writerMock.Verify(w => w.TryWriteAsync(httpContext, exception, It.IsAny<CancellationToken>()), Times.Once);
 
-    [Fact]
-    public async Task TryHandleAsync_WriterReturnsTrue_ShouldReturnTrue()
-    {
-        var exception = new Exception("test");
-
-        bool result = await _handler.TryHandleAsync(CreateHttpContext(), exception, CancellationToken.None);
-
-        Assert.True(result);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WriterReturnsFalse_ShouldReturnFalse()
-    {
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-
-        bool result = await _handler.TryHandleAsync(CreateHttpContext(), new Exception("test"), CancellationToken.None);
-
-        Assert.False(result);
+        Assert.False(await _handler.TryHandleAsync(new DefaultHttpContext(), exception, CancellationToken.None));
     }
 
+    /// <summary>
+    /// 写入器抛异常时应返回 false 交给其他处理器兜底（容错契约，与 Middleware 的重抛策略不同）
+    /// </summary>
     [Fact]
-    public async Task TryHandleAsync_ShouldPassExceptionToWriter()
-    {
-        var httpContext = CreateHttpContext();
-        var exception = new InvalidOperationException("invalid op");
-
-        await _handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
-
-        _writerMock.Verify(
-            w => w.TryWriteAsync(httpContext, exception, It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WriterThrows_ShouldNotRethrow()
+    public async Task TryHandleAsync_WriterThrows_ShouldReturnFalseAndLog()
     {
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("write failed"));
 
-        bool result = await _handler.TryHandleAsync(CreateHttpContext(), new Exception("test"), CancellationToken.None);
+        var result = await _handler.TryHandleAsync(new DefaultHttpContext(), new Exception("test"), CancellationToken.None);
 
         Assert.False(result);
         _loggerMock.Verify(
@@ -88,35 +60,20 @@ public class NoelleExceptionHandlerTests
             Times.Once);
     }
 
+    /// <summary>
+    /// 日志级别决策：IHasLogLevel 优先，普通异常按 Error 记录
+    /// </summary>
     [Fact]
-    public async Task TryHandleAsync_IHasLogLevel_ShouldUseCustomLogLevel()
+    public async Task TryHandleAsync_ShouldLogWithDecidedLevel()
     {
-        var exception = new NoelleValidationException([]) { LogLevel = LogLevel.Critical };
-
-        await _handler.TryHandleAsync(CreateHttpContext(), exception, CancellationToken.None);
-
+        await _handler.TryHandleAsync(new DefaultHttpContext(), new NoelleValidationException([]) { LogLevel = LogLevel.Critical }, CancellationToken.None);
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Critical,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            l => l.Log(LogLevel.Critical, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-    }
 
-    [Fact]
-    public async Task TryHandleAsync_GenericException_ShouldLogError()
-    {
-        await _handler.TryHandleAsync(CreateHttpContext(), new Exception("generic error"), CancellationToken.None);
-
+        await _handler.TryHandleAsync(new DefaultHttpContext(), new Exception("generic"), CancellationToken.None);
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 }

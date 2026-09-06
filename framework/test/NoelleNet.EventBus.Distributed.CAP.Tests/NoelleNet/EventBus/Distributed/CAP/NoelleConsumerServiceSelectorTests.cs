@@ -11,129 +11,37 @@ using System.Reflection;
 namespace NoelleNet.EventBus.Distributed.CAP;
 
 /// <summary>
-/// <see cref="NoelleConsumerServiceSelector"/> 的单元测试
+/// <see cref="NoelleConsumerServiceSelector"/> 的契约测试：
+/// 由事件类型（EventNameAttribute）驱动的 CAP 消费者描述符构造
 /// </summary>
 public class NoelleConsumerServiceSelectorTests
 {
-    #region GetHandlerDescription
-
     /// <summary>
-    /// 给定有效的事件类型和处理程序类型，GetHandlerDescription 应返回包含正确 Topic 属性名称的 ConsumerExecutorDescriptor
+    /// 描述符应包含 Topic 名、HandleAsync 方法、实现类型、服务类型与参数
     /// </summary>
     [Fact]
-    public void GetHandlerDescription_WithValidTypes_ShouldReturnDescriptorWithCorrectTopicName()
+    public void GetHandlerDescription_WithValidTypes_ShouldReturnCompleteDescriptor()
     {
-        // Arrange
         var selector = CreateSelector();
 
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
+        var descriptor = selector.ExposeGetHandlerDescription(
+            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler)).Single();
 
-        // Assert
-        var descriptorList = descriptors.ToList();
-        Assert.Single(descriptorList);
-        var descriptor = descriptorList[0];
-        Assert.NotNull(descriptor.Attribute);
         Assert.Equal(CreateOrderEvent.EventName, descriptor.Attribute.Name);
-    }
-
-    /// <summary>
-    /// GetHandlerDescription 返回的描述符应包含正确的 MethodInfo（HandleAsync 方法）
-    /// </summary>
-    [Fact]
-    public void GetHandlerDescription_ShouldReturnDescriptorWithCorrectMethodInfo()
-    {
-        // Arrange
-        var selector = CreateSelector();
-
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
-
-        // Assert
-        var descriptorList = descriptors.ToList();
-        Assert.Single(descriptorList);
-        var descriptor = descriptorList[0];
-        Assert.NotNull(descriptor.MethodInfo);
-        Assert.Equal(nameof(IDistributedEventHandler<object>.HandleAsync),
-            descriptor.MethodInfo.Name);
-    }
-
-    /// <summary>
-    /// GetHandlerDescription 返回的描述符应包含正确的处理程序类型信息
-    /// </summary>
-    [Fact]
-    public void GetHandlerDescription_ShouldReturnDescriptorWithCorrectHandlerType()
-    {
-        // Arrange
-        var selector = CreateSelector();
-
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
-
-        // Assert
-        var descriptorList = descriptors.ToList();
-        Assert.Single(descriptorList);
-        var descriptor = descriptorList[0];
+        Assert.Equal(nameof(IDistributedEventHandler<object>.HandleAsync), descriptor.MethodInfo.Name);
         Assert.Equal(typeof(CreateOrderEventHandler), descriptor.ImplTypeInfo.AsType());
+        Assert.Equal(typeof(IDistributedEventHandler<>), descriptor.ServiceTypeInfo.GetGenericTypeDefinition());
+        Assert.Contains(descriptor.Parameters, p => p.ParameterType == typeof(CreateOrderEvent));
     }
 
     /// <summary>
-    /// GetHandlerDescription 返回的描述符应包含正确的服务类型信息（IDistributedEventHandler&lt;TEvent&gt;）
+    /// 事件缺少 EventNameAttribute 时应抛出 InvalidOperationException
     /// </summary>
     [Fact]
-    public void GetHandlerDescription_ShouldReturnDescriptorWithCorrectServiceType()
+    public void GetHandlerDescription_WithEventMissingEventNameAttribute_ShouldThrow()
     {
-        // Arrange
         var selector = CreateSelector();
 
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
-
-        // Assert
-        var descriptorList = descriptors.ToList();
-        Assert.Single(descriptorList);
-        var descriptor = descriptorList[0];
-        Assert.NotNull(descriptor.ServiceTypeInfo);
-        Assert.True(descriptor.ServiceTypeInfo.IsGenericType);
-        Assert.Equal(typeof(IDistributedEventHandler<>),
-            descriptor.ServiceTypeInfo.GetGenericTypeDefinition());
-    }
-
-    /// <summary>
-    /// GetHandlerDescription 返回的描述符应包含方法参数
-    /// </summary>
-    [Fact]
-    public void GetHandlerDescription_ShouldReturnDescriptorWithParameters()
-    {
-        // Arrange
-        var selector = CreateSelector();
-
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
-
-        // Assert
-        var descriptorList = descriptors.ToList();
-        Assert.Single(descriptorList);
-        Assert.NotEmpty(descriptorList[0].Parameters);
-        Assert.Contains(descriptorList[0].Parameters,
-            p => p.ParameterType == typeof(CreateOrderEvent));
-    }
-
-    /// <summary>
-    /// 当事件类型缺少 EventNameAttribute 时应抛出 InvalidOperationException
-    /// </summary>
-    [Fact]
-    public void GetHandlerDescription_WithEventMissingEventNameAttribute_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        var selector = CreateSelector();
-
-        // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(
             () => selector.ExposeGetHandlerDescription(
                 typeof(EventMissingAttribute), typeof(EventHandlerForEventMissingAttribute)).ToList());
@@ -142,79 +50,41 @@ public class NoelleConsumerServiceSelectorTests
     }
 
     /// <summary>
-    /// 当事件类型设置了 Group 属性时，应正确设置 CapSubscribeAttribute 的 Group
+    /// 事件设置了 Group 时使用自定义分组；未设置时由 CAP 默认分组填充
     /// </summary>
     [Fact]
-    public void GetHandlerDescription_WithEventGroupSet_ShouldSetGroupOnAttribute()
+    public void GetHandlerDescription_Group_ShouldUseCustomOrDefaultGroup()
     {
-        // Arrange
         var selector = CreateSelector();
 
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(EventWithGroup), typeof(EventHandlerForEventWithGroup));
+        var withGroup = selector.ExposeGetHandlerDescription(
+            typeof(EventWithGroup), typeof(EventHandlerForEventWithGroup)).Single();
+        Assert.StartsWith(EventWithGroup.GroupName, withGroup.Attribute.Group);
 
-        // Assert
-        var descriptor = descriptors.Single();
-        Assert.NotNull(descriptor.Attribute.Group);
-        Assert.StartsWith(EventWithGroup.GroupName, descriptor.Attribute.Group);
+        var withoutGroup = selector.ExposeGetHandlerDescription(
+            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler)).Single();
+        Assert.False(string.IsNullOrEmpty(withoutGroup.Attribute.Group));
     }
 
     /// <summary>
-    /// 当事件类型未设置 Group 属性时，CAP 的 SetSubscribeAttribute 会用 CapOptions.DefaultGroup 填充默认值
+    /// CancellationToken 参数应被标记为 FromCap
     /// </summary>
     [Fact]
-    public void GetHandlerDescription_WithoutEventGroup_ShouldHaveDefaultGroupFromCap()
+    public void GetHandlerDescription_CancellationTokenParameter_ShouldBeMarkedFromCap()
     {
-        // Arrange
         var selector = CreateSelector();
 
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(CreateOrderEventHandler));
+        var descriptor = selector.ExposeGetHandlerDescription(
+            typeof(CreateOrderEvent), typeof(HandlerWithCancellationToken)).Single();
 
-        // Assert
-        var descriptor = descriptors.Single();
-        Assert.False(string.IsNullOrEmpty(descriptor.Attribute.Group));
+        Assert.Contains(descriptor.Parameters, p => p.ParameterType == typeof(CancellationToken) && p.IsFromCap);
     }
-
-    /// <summary>
-    /// GetHandlerDescription 为需要 CancellationToken 的处理程序应正确识别 FromCap 参数
-    /// </summary>
-    [Fact]
-    public void GetHandlerDescription_WithCancellationTokenParameter_ShouldMarkAsFromCap()
-    {
-        // Arrange
-        var selector = CreateSelector();
-
-        // Act
-        var descriptors = selector.ExposeGetHandlerDescription(
-            typeof(CreateOrderEvent), typeof(HandlerWithCancellationToken));
-
-        // Assert
-        var descriptor = descriptors.Single();
-        Assert.Contains(descriptor.Parameters,
-            p => p.ParameterType == typeof(CancellationToken) && p.IsFromCap);
-    }
-
-    #endregion
 
     #region Helpers
 
-    /// <summary>
-    /// 创建用于测试 GetHandlerDescription 的 NoelleConsumerServiceSelector 实例
-    /// 使用 Moq mock IServiceProvider 提供基类构造函数所需的最小依赖
-    /// </summary>
-    private static TestableNoelleConsumerServiceSelector CreateSelector(
-        List<(Type HandlerType, Type EventType)>? pairs = null)
+    private static TestableNoelleConsumerServiceSelector CreateSelector()
     {
-        var optionsObj = new NoelleDistributedEventBusOptions();
-        var prop = typeof(NoelleDistributedEventBusOptions)
-            .GetProperty(nameof(NoelleDistributedEventBusOptions.HandlerEventTypePairs),
-                BindingFlags.Public | BindingFlags.Instance)!;
-        prop.SetValue(optionsObj, pairs ?? []);
-        var options = Options.Create(optionsObj);
-
+        var options = Options.Create(new NoelleDistributedEventBusOptions());
         var capOptions = Options.Create(new CapOptions());
         var mockLogger = new Mock<ILogger<ConsumerServiceSelector>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
@@ -228,9 +98,6 @@ public class NoelleConsumerServiceSelectorTests
         return new TestableNoelleConsumerServiceSelector(mockServiceProvider.Object, options);
     }
 
-    /// <summary>
-    /// 用于测试的可派生类，暴露 protected 方法
-    /// </summary>
     private class TestableNoelleConsumerServiceSelector : NoelleConsumerServiceSelector
     {
         public TestableNoelleConsumerServiceSelector(

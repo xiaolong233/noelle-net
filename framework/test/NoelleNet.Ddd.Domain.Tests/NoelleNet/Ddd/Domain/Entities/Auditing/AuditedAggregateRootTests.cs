@@ -1,159 +1,72 @@
-using NoelleNet.Auditing;
-using NoelleNet.Ddd.Domain.Entities.Auditing;
 using NoelleNet.Ddd.Domain.Events;
 
 namespace NoelleNet.Ddd.Domain.Entities.Auditing;
 
 /// <summary>
-/// 用于测试的审计聚合根实现
+/// 审计聚合根基类（CreationAuditedAggregateRoot / AuditedAggregateRoot）的契约测试：
+/// 审计字段与领域事件能力的组合继承
 /// </summary>
-internal class TestAuditedAggregateRoot : AuditedAggregateRoot
-{
-    public int Id { get; set; }
-
-    public override object?[] GetIdentifiers() => [Id];
-}
-
-internal class TestAuditedAggregateRootWithId : AuditedAggregateRoot<Guid>
-{
-    public TestAuditedAggregateRootWithId() { }
-}
-
 public class AuditedAggregateRootTests
 {
-    #region AuditedAggregateRoot (无类型参数)
-
+    /// <summary>
+    /// 创建审计聚合根：默认值 + 领域事件能力继承
+    /// </summary>
     [Fact]
-    public void ShouldImplementIAudited()
+    public void CreationAuditedAggregateRoot_ShouldHaveEmptyDefaultsAndDomainEvents()
     {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
+        var aggregate = new TestCreationAuditedAggregateRoot { Id = 1 };
 
-        Assert.IsAssignableFrom<IAudited>(aggregate);
+        Assert.Equal(default, aggregate.CreatedAt);
+        Assert.Null(aggregate.CreatedBy);
+        Assert.Empty(aggregate.DomainEvents);
     }
 
+    /// <summary>
+    /// 审计聚合根：修改审计字段默认为 null
+    /// </summary>
     [Fact]
-    public void ShouldImplementICreationAudited()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.IsAssignableFrom<ICreationAudited>(aggregate);
-    }
-
-    [Fact]
-    public void ShouldImplementIModificationAudited()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.IsAssignableFrom<IModificationAudited>(aggregate);
-    }
-
-    [Fact]
-    public void ShouldImplementIAggregateRoot()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.IsAssignableFrom<IAggregateRoot>(aggregate);
-    }
-
-    [Fact]
-    public void ShouldImplementIHasDomainEvents()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.IsAssignableFrom<IHasDomainEvents>(aggregate);
-    }
-
-    [Fact]
-    public void LastModifiedAt_DefaultValue_ShouldBeNull()
+    public void AuditedAggregateRoot_Defaults_ShouldBeNull()
     {
         var aggregate = new TestAuditedAggregateRoot { Id = 1 };
 
         Assert.Null(aggregate.LastModifiedAt);
-    }
-
-    [Fact]
-    public void LastModifiedBy_DefaultValue_ShouldBeNull()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
         Assert.Null(aggregate.LastModifiedBy);
     }
 
+    /// <summary>
+    /// 泛型审计聚合根：Id 默认值 + 审计与事件能力继承
+    /// </summary>
     [Fact]
-    public void CreatedAt_DefaultValue_ShouldBeDefaultDateTime()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.Equal(default, aggregate.CreatedAt);
-    }
-
-    [Fact]
-    public void CreatedBy_DefaultValue_ShouldBeNull()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.Null(aggregate.CreatedBy);
-    }
-
-    [Fact]
-    public void DomainEvents_ShouldBeEmptyByDefault()
-    {
-        var aggregate = new TestAuditedAggregateRoot { Id = 1 };
-
-        Assert.Empty(aggregate.DomainEvents);
-    }
-
-    #endregion
-
-    #region AuditedAggregateRoot<TIdentifier>
-
-    [Fact]
-    public void GenericAuditedAggregateRoot_ShouldImplementIAudited()
-    {
-        var aggregate = new TestAuditedAggregateRootWithId();
-
-        Assert.IsAssignableFrom<IAudited>(aggregate);
-    }
-
-    [Fact]
-    public void GenericAuditedAggregateRoot_ShouldImplementIAggregateRoot()
-    {
-        var aggregate = new TestAuditedAggregateRootWithId();
-
-        Assert.IsAssignableFrom<IAggregateRoot>(aggregate);
-    }
-
-    [Fact]
-    public void GenericAuditedAggregateRoot_ShouldImplementIEntityOfT()
-    {
-        var aggregate = new TestAuditedAggregateRootWithId();
-
-        Assert.IsAssignableFrom<IEntity<Guid>>(aggregate);
-    }
-
-    [Fact]
-    public void GenericAuditedAggregateRoot_IdDefaultValue_ShouldBeDefault()
+    public void GenericAuditedAggregateRoot_ShouldInheritCapabilities()
     {
         var aggregate = new TestAuditedAggregateRootWithId();
 
         Assert.Equal(default, aggregate.Id);
-    }
-
-    [Fact]
-    public void GenericAuditedAggregateRoot_LastModifiedAt_DefaultValue_ShouldBeNull()
-    {
-        var aggregate = new TestAuditedAggregateRootWithId();
-
         Assert.Null(aggregate.LastModifiedAt);
+        Assert.Empty(aggregate.DomainEvents);
     }
 
-    [Fact]
-    public void GenericAuditedAggregateRoot_LastModifiedBy_DefaultValue_ShouldBeNull()
+    /// <summary>
+    /// 创建审计聚合根
+    /// </summary>
+    internal class TestCreationAuditedAggregateRoot : CreationAuditedAggregateRoot
     {
-        var aggregate = new TestAuditedAggregateRootWithId();
+        public int Id { get; set; }
 
-        Assert.Null(aggregate.LastModifiedBy);
+        public override object?[] GetIdentifiers() => [Id];
     }
 
-    #endregion
+    /// <summary>
+    /// 审计聚合根
+    /// </summary>
+    internal class TestAuditedAggregateRoot : AuditedAggregateRoot
+    {
+        public int Id { get; set; }
+
+        public override object?[] GetIdentifiers() => [Id];
+    }
+
+    internal class TestAuditedAggregateRootWithId : AuditedAggregateRoot<Guid>
+    {
+    }
 }

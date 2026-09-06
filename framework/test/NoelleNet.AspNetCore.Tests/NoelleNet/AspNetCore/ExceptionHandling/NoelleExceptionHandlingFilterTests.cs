@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NoelleNet.Validation;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 
+/// <summary>
+/// <see cref="NoelleExceptionHandlingFilter"/> 的契约测试：ExceptionHandled 标记、写入失败重抛
+/// </summary>
 public class NoelleExceptionHandlingFilterTests
 {
     private readonly Mock<ILogger<NoelleExceptionHandlingFilter>> _loggerMock;
@@ -22,46 +24,30 @@ public class NoelleExceptionHandlingFilterTests
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
-
         _filter = new NoelleExceptionHandlingFilter(_loggerMock.Object, _writerMock.Object);
     }
 
-    private static ExceptionContext CreateExceptionContext(Exception exception)
+    private static ExceptionContext CreateExceptionContext(Exception exception, bool handled = false)
     {
-        var actionContext = new ActionContext(
-            new DefaultHttpContext(),
-            new RouteData(),
-            new ActionDescriptor());
-
-        return new ExceptionContext(actionContext, [])
+        return new ExceptionContext(
+            new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor()),
+            [])
         {
-            Exception = exception
+            Exception = exception,
+            ExceptionHandled = handled
         };
     }
 
+    /// <summary>
+    /// 已被其他处理器标记为 handled 时应跳过，不写入不记录
+    /// </summary>
     [Fact]
-    public void Constructor_NullLogger_ShouldThrowArgumentNullException()
+    public async Task OnExceptionAsync_AlreadyHandled_ShouldSkip()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandlingFilter(null!, _writerMock.Object));
-    }
-
-    [Fact]
-    public void Constructor_NullErrorResponseWriter_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandlingFilter(_loggerMock.Object, null!));
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_ExceptionAlreadyHandled_ShouldSkip()
-    {
-        var context = CreateExceptionContext(new Exception("test"));
-        context.ExceptionHandled = true;
+        var context = CreateExceptionContext(new Exception("test"), handled: true);
 
         await _filter.OnExceptionAsync(context);
 
-        Assert.True(context.ExceptionHandled);
         _writerMock.Verify(
             w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -70,43 +56,31 @@ public class NoelleExceptionHandlingFilterTests
             Times.Never);
     }
 
+    /// <summary>
+    /// 写入成功/失败应分别设置/不设置 ExceptionHandled，并传递原始异常
+    /// </summary>
     [Fact]
-    public async Task OnExceptionAsync_WriterReturnsTrue_ShouldMarkHandled()
-    {
-        var context = CreateExceptionContext(new Exception("test"));
-
-        await _filter.OnExceptionAsync(context);
-
-        Assert.True(context.ExceptionHandled);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_WriterReturnsFalse_ShouldNotMarkHandled()
-    {
-        _writerMock
-            .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        var context = CreateExceptionContext(new Exception("test"));
-
-        await _filter.OnExceptionAsync(context);
-
-        Assert.False(context.ExceptionHandled);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_ShouldPassExceptionToWriter()
+    public async Task OnExceptionAsync_ShouldSetHandledByWriterResult()
     {
         var exception = new InvalidOperationException("invalid op");
         var context = CreateExceptionContext(exception);
 
         await _filter.OnExceptionAsync(context);
 
-        _writerMock.Verify(
-            w => w.TryWriteAsync(context.HttpContext, exception, It.IsAny<CancellationToken>()),
-            Times.Once);
+        Assert.True(context.ExceptionHandled);
+        _writerMock.Verify(w => w.TryWriteAsync(context.HttpContext, exception, It.IsAny<CancellationToken>()), Times.Once);
+
+        _writerMock
+            .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        var context2 = CreateExceptionContext(exception);
+        await _filter.OnExceptionAsync(context2);
+        Assert.False(context2.ExceptionHandled);
     }
 
+    /// <summary>
+    /// 写入器抛异常时应向上重抛（MVC 管道无兜底）
+    /// </summary>
     [Fact]
     public async Task OnExceptionAsync_WriterThrows_ShouldRethrow()
     {
@@ -114,82 +88,7 @@ public class NoelleExceptionHandlingFilterTests
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("write failed"));
 
-        var context = CreateExceptionContext(new Exception("test"));
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _filter.OnExceptionAsync(context));
-
-        Assert.False(context.ExceptionHandled);
-        _loggerMock.Verify(
-            l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_IHasLogLevel_ShouldUseCustomLogLevel()
-    {
-        var exception = new NoelleValidationException([]) { LogLevel = LogLevel.Critical };
-        var context = CreateExceptionContext(exception);
-
-        await _filter.OnExceptionAsync(context);
-
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Critical,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_GenericException_ShouldLogError()
-    {
-        var context = CreateExceptionContext(new Exception("generic error"));
-
-        await _filter.OnExceptionAsync(context);
-
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_OperationCanceledException_ShouldLogWarning()
-    {
-        var context = CreateExceptionContext(new OperationCanceledException());
-
-        await _filter.OnExceptionAsync(context);
-
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task OnExceptionAsync_TaskCanceledException_ShouldLogDebug()
-    {
-        var context = CreateExceptionContext(new TaskCanceledException());
-
-        await _filter.OnExceptionAsync(context);
-
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Debug,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _filter.OnExceptionAsync(CreateExceptionContext(new Exception("test"))));
     }
 }

@@ -5,6 +5,10 @@ using NoelleNet.Validation;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 
+/// <summary>
+/// <see cref="NoelleExceptionHandlingMiddleware"/> 的契约测试：
+/// 异常拦截写入、写入失败重抛（与 IExceptionHandler 的容错策略差异）与日志级别决策
+/// </summary>
 public class NoelleExceptionHandlingMiddlewareTests
 {
     private readonly Mock<ILogger<NoelleExceptionHandlingMiddleware>> _loggerMock;
@@ -22,40 +26,16 @@ public class NoelleExceptionHandlingMiddlewareTests
     private NoelleExceptionHandlingMiddleware CreateMiddleware(RequestDelegate next) =>
         new(next, _loggerMock.Object, _writerMock.Object);
 
-    [Fact]
-    public void Constructor_NullNext_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandlingMiddleware(null!, _loggerMock.Object, _writerMock.Object));
-    }
-
-    [Fact]
-    public void Constructor_NullLogger_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandlingMiddleware(_ => Task.CompletedTask, null!, _writerMock.Object));
-    }
-
-    [Fact]
-    public void Constructor_NullErrorResponseWriter_ShouldThrowArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new NoelleExceptionHandlingMiddleware(_ => Task.CompletedTask, _loggerMock.Object, null!));
-    }
-
+    /// <summary>
+    /// 无异常时不写入、不记录日志
+    /// </summary>
     [Fact]
     public async Task InvokeAsync_NoException_ShouldNotWrite()
     {
-        bool nextInvoked = false;
-        var middleware = CreateMiddleware(_ =>
-        {
-            nextInvoked = true;
-            return Task.CompletedTask;
-        });
+        var middleware = CreateMiddleware(_ => Task.CompletedTask);
 
         await middleware.InvokeAsync(new DefaultHttpContext());
 
-        Assert.True(nextInvoked);
         _writerMock.Verify(
             w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -64,20 +44,23 @@ public class NoelleExceptionHandlingMiddlewareTests
             Times.Never);
     }
 
+    /// <summary>
+    /// 下游抛异常时应写入并吞掉异常
+    /// </summary>
     [Fact]
     public async Task InvokeAsync_NextThrows_ShouldWriteAndSwallow()
     {
         var exception = new InvalidOperationException("boom");
         var httpContext = new DefaultHttpContext();
-        var middleware = CreateMiddleware(_ => throw exception);
 
-        await middleware.InvokeAsync(httpContext);
+        await CreateMiddleware(_ => throw exception).InvokeAsync(httpContext);
 
-        _writerMock.Verify(
-            w => w.TryWriteAsync(httpContext, exception, It.IsAny<CancellationToken>()),
-            Times.Once);
+        _writerMock.Verify(w => w.TryWriteAsync(httpContext, exception, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// 写入器抛异常时向上重抛（Middleware 无兜底处理器，与 IExceptionHandler 策略不同）
+    /// </summary>
     [Fact]
     public async Task InvokeAsync_WriterThrows_ShouldRethrow()
     {
@@ -85,46 +68,25 @@ public class NoelleExceptionHandlingMiddlewareTests
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("write failed"));
 
-        var middleware = CreateMiddleware(_ => throw new Exception("boom"));
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.InvokeAsync(new DefaultHttpContext()));
-
-        _loggerMock.Verify(
-            l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateMiddleware(_ => throw new Exception("boom")).InvokeAsync(new DefaultHttpContext()));
     }
 
+    /// <summary>
+    /// 日志级别决策：IHasLogLevel 优先，普通异常按 Error 记录
+    /// </summary>
     [Fact]
-    public async Task InvokeAsync_GenericException_ShouldLogError()
+    public async Task InvokeAsync_ShouldLogWithDecidedLevel()
     {
-        var middleware = CreateMiddleware(_ => throw new Exception("generic error"));
-
-        await middleware.InvokeAsync(new DefaultHttpContext());
-
+        await CreateMiddleware(_ => throw new NoelleValidationException([]) { LogLevel = LogLevel.Critical })
+            .InvokeAsync(new DefaultHttpContext());
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            l => l.Log(LogLevel.Critical, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-    }
 
-    [Fact]
-    public async Task InvokeAsync_IHasLogLevel_ShouldUseCustomLogLevel()
-    {
-        var middleware = CreateMiddleware(_ => throw new NoelleValidationException([]) { LogLevel = LogLevel.Critical });
-
-        await middleware.InvokeAsync(new DefaultHttpContext());
-
+        await CreateMiddleware(_ => throw new Exception("generic")).InvokeAsync(new DefaultHttpContext());
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Critical,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 }

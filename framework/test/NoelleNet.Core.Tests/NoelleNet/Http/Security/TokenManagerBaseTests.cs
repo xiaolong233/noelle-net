@@ -1,22 +1,15 @@
-using Moq;
-
 namespace NoelleNet.Http.Security;
 
+/// <summary>
+/// <see cref="TokenManagerBase"/> 的单元测试：令牌缓存、过期刷新与并发双重检查锁
+/// </summary>
 public class TokenManagerBaseTests
 {
-    private readonly TokenManagerOptions _options;
+    private readonly TokenManagerOptions _options = new() { ExpirationBuffer = TimeSpan.Zero };
 
-    public TokenManagerBaseTests()
-    {
-        _options = new TokenManagerOptions { ExpirationBuffer = TimeSpan.Zero };
-    }
-
-    [Fact]
-    public void Constructor_NullOptions_ShouldThrow()
-    {
-        Assert.Throws<ArgumentNullException>(() => new TestTokenManager(null!, new TokenResponse("t", 1)));
-    }
-
+    /// <summary>
+    /// 首次调用应获取新令牌
+    /// </summary>
     [Fact]
     public async Task GetValidTokenAsync_InitialCall_ShouldFetchNewToken()
     {
@@ -28,88 +21,63 @@ public class TokenManagerBaseTests
         Assert.Equal(1, manager.FetchCount);
     }
 
+    /// <summary>
+    /// 令牌未过期时应直接返回缓存，不重复获取
+    /// </summary>
     [Fact]
     public async Task GetValidTokenAsync_TokenStillValid_ShouldReturnCachedToken()
     {
         var manager = new TestTokenManager(_options, new TokenResponse("cached_token", 3600));
 
-        var token1 = await manager.GetValidTokenAsync();
-        var token2 = await manager.GetValidTokenAsync();
+        await manager.GetValidTokenAsync();
+        var token = await manager.GetValidTokenAsync();
 
-        Assert.Equal("cached_token", token1);
-        Assert.Equal("cached_token", token2);
+        Assert.Equal("cached_token", token);
         Assert.Equal(1, manager.FetchCount);
     }
 
+    /// <summary>
+    /// 令牌过期后应重新获取
+    /// </summary>
     [Fact]
     public async Task GetValidTokenAsync_TokenExpired_ShouldFetchNewToken()
     {
-        // Set expires=-1 to simulate expired token
         var manager = new TestTokenManager(_options, new TokenResponse("expired_token", -1));
 
-        var token1 = await manager.GetValidTokenAsync();
-        // Second call - token is expired, should fetch again
-        var token2 = await manager.GetValidTokenAsync();
+        await manager.GetValidTokenAsync();
+        await manager.GetValidTokenAsync();
 
-        // The second call should fetch again
         Assert.Equal(2, manager.FetchCount);
     }
 
+    /// <summary>
+    /// 强制刷新应无视缓存重新获取，并更新后续读取的令牌
+    /// </summary>
     [Fact]
-    public async Task ForceRefreshTokenAsync_ShouldAlwaysFetchNewToken()
+    public async Task ForceRefreshTokenAsync_ShouldFetchAndUpdateCache()
     {
-        var manager = new TestTokenManager(_options, new TokenResponse("token1", 3600));
+        var manager = new TestTokenManager(_options, new Queue<TokenResponse>(
+            [new("first", 3600), new("second", 3600)]));
+
+        Assert.Equal("first", await manager.GetValidTokenAsync());
 
         await manager.ForceRefreshTokenAsync();
+
+        Assert.Equal("second", await manager.GetValidTokenAsync());
+        Assert.Equal(2, manager.FetchCount);
+    }
+
+    /// <summary>
+    /// 并发获取时，双重检查锁应保证只获取一次令牌
+    /// </summary>
+    [Fact]
+    public async Task GetValidTokenAsync_ConcurrentAccess_ShouldFetchOnlyOnce()
+    {
+        var manager = new TestTokenManager(_options, new TokenResponse("locked_token", 3600));
+
+        await Task.WhenAll(manager.GetValidTokenAsync(), manager.GetValidTokenAsync());
+
         Assert.Equal(1, manager.FetchCount);
-
-        await manager.ForceRefreshTokenAsync();
-        Assert.Equal(2, manager.FetchCount);
-    }
-
-    [Fact]
-    public async Task ForceRefreshTokenAsync_ShouldUpdateCachedToken()
-    {
-        var responses = new Queue<TokenResponse>(new[]
-        {
-            new TokenResponse("first", 3600),
-            new TokenResponse("second", 3600),
-        });
-        var manager = new TestTokenManager(_options, responses);
-
-        // Initial fetch
-        var token1 = await manager.GetValidTokenAsync();
-        Assert.Equal("first", token1);
-
-        // Force refresh
-        await manager.ForceRefreshTokenAsync();
-
-        // Get again should return refreshed token
-        var token2 = await manager.GetValidTokenAsync();
-        Assert.Equal("second", token2);
-    }
-
-    [Fact]
-    public async Task GetValidTokenAsync_DoubleCheckLock_ShouldOnlyFetchOnce()
-    {
-        var manager = new TestTokenManager(_options, new TokenResponse("locked_token", -1));
-
-        // Simulate concurrent access - both should wait for the lock
-        var t1 = manager.GetValidTokenAsync();
-        var t2 = manager.GetValidTokenAsync();
-
-        await Task.WhenAll(t1, t2);
-
-        // Both should return
-        Assert.NotNull(await t1);
-        Assert.NotNull(await t2);
-    }
-
-    [Fact]
-    public void TestTokenManager_ShouldImplementITokenManager()
-    {
-        var manager = new TestTokenManager(_options, new TokenResponse("t", 3600));
-        Assert.IsAssignableFrom<ITokenManager>(manager);
     }
 
     private class TestTokenManager : TokenManagerBase
@@ -119,7 +87,7 @@ public class TokenManagerBaseTests
 
         public TestTokenManager(TokenManagerOptions options, TokenResponse response) : base(options)
         {
-            _responses = new Queue<TokenResponse>(new[] { response });
+            _responses = new Queue<TokenResponse>([response]);
         }
 
         public TestTokenManager(TokenManagerOptions options, Queue<TokenResponse> responses) : base(options)

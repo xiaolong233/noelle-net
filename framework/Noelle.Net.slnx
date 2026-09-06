@@ -19,6 +19,7 @@
     <Project Path="src/NoelleNet.Uow/NoelleNet.Uow.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/NoelleNet.Application.Contracts.Tests/NoelleNet.Application.Contracts.Tests.csproj" Id="a3f5d1c8-4b2e-4a9c-9e01-7c6d5b4a3f21" />
     <Project Path="test/NoelleNet.AspNetCore.Tests/NoelleNet.AspNetCore.Tests.csproj" Id="c420dd32-0d4f-4eb8-8b87-4216a938ba2b" />
     <Project Path="test/NoelleNet.Core.Tests/NoelleNet.Core.Tests.csproj" Id="84a79efb-4adc-4967-b545-9287bc0dd6c9" />
     <Project Path="test/NoelleNet.Ddd.Domain.Tests/NoelleNet.Ddd.Domain.Tests.csproj" Id="95641674-c83f-411c-81bd-c75c0f9538da" />

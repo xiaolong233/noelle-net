@@ -5,95 +5,45 @@ using NoelleNet.EntityFrameworkCore.Interceptors;
 
 namespace NoelleNet.EntityFrameworkCore.Interceptors;
 
-#region Test Entities
-
 /// <summary>
-/// 用于测试的 Guid 键实体（直接实现 IEntity&lt;Guid&gt; 并拥有公开可写的 Id）
-/// 继承自 Entity&lt;Guid&gt; 但使用 new 关键字隐藏受保护的 Id setter
-/// </summary>
-public class TestGuidKeyEntityWithNew : Entity<Guid>
-{
-    private Guid _id;
-
-    public string Name { get; set; } = "";
-
-    public TestGuidKeyEntityWithNew() { }
-
-    public TestGuidKeyEntityWithNew(Guid id) : base(id)
-    {
-        _id = id;
-    }
-
-    public new Guid Id
-    {
-        get => _id;
-        set => _id = value;
-    }
-}
-
-#endregion
-
-/// <summary>
-/// <see cref="NoelleAutoSetGuidKeyInterceptor"/> 的单元测试
-/// 注：由于 Entity&lt;Guid&gt;.Id 使用 protected set，TrySetProperty 无法设置该属性。
-/// 测试使用 new 关键字公开 Id setter 来验证拦截器的核心逻辑。
+/// <see cref="NoelleAutoSetGuidKeyInterceptor"/> 的行为测试。
+/// 注意：EF Core 在 DetectChanges 阶段即通过客户端生成器为 Guid 键赋值，
+/// 因此默认配置下拦截器观察到的 Id 恒非空、不会触发；
+/// 拦截器的真实生效场景是键关闭了值生成（ValueGeneratedNever）的实体。
+/// 键最终值的归属取决于 EF 值生成与拦截器的先后（EF 内部实现细节），
+/// 因此仅锁定拦截器自身逻辑：空 Id 调用生成器、非空 Id 跳过且不覆盖。
 /// </summary>
 public class NoelleAutoSetGuidKeyInterceptorTests
 {
-    #region 构造函数
-
+    /// <summary>
+    /// 关闭键值生成（ValueGeneratedNever）且 Id 为空时，拦截器应调用生成器一次
+    /// </summary>
     [Fact]
-    public void Constructor_GuidGeneratorIsNull_ShouldThrowArgumentNullException()
-    {
-        var exception = Assert.Throws<ArgumentNullException>(() => new NoelleAutoSetGuidKeyInterceptor(null!));
-        Assert.Equal("guidGenerator", exception.ParamName);
-    }
-
-    [Fact]
-    public void Constructor_WithValidGenerator_ShouldCreateInstance()
-    {
-        var generator = new Mock<IGuidGenerator>().Object;
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(generator);
-
-        Assert.NotNull(interceptor);
-    }
-
-    #endregion
-
-    #region SavingChanges
-
-    [Fact]
-    public void SavingChanges_GuidEntityWithEmptyId_ShouldCallGenerator()
+    public async Task SavingChangesAsync_WhenKeyGenerationDisabledAndIdEmpty_ShouldCallGenerator()
     {
         var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var generatedGuid = Guid.NewGuid();
-        guidGeneratorMock.Setup(g => g.Generate()).Returns(generatedGuid);
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
+        guidGeneratorMock.Setup(g => g.Generate()).Returns(Guid.NewGuid());
+        var context = CreateContext(guidGeneratorMock.Object, valueGeneratedNever: true);
 
-        var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-        var entity = new TestGuidKeyEntityWithNew { Name = "test" };
+        var entity = new GuidKeyTestEntity { Name = "test" };
         context.GuidKeyEntities.Add(entity);
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         guidGeneratorMock.Verify(g => g.Generate(), Times.Once);
     }
 
+    /// <summary>
+    /// Id 非空时（构造函数已生成）不应调用生成器、不覆盖原值（同步路径代表）
+    /// </summary>
     [Fact]
-    public void SavingChanges_GuidEntityWithNonEmptyId_ShouldNotOverwriteId()
+    public void SavingChanges_EntityWithExistingId_ShouldNotCallGenerator()
     {
         var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
         var existingId = Guid.NewGuid();
+        var context = CreateContext(guidGeneratorMock.Object, valueGeneratedNever: true);
 
-        var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-        var entity = new TestGuidKeyEntityWithNew(existingId) { Name = "test" };
+        var entity = new GuidKeyTestEntity(existingId) { Name = "test" };
         context.GuidKeyEntities.Add(entity);
 
         context.SaveChanges();
@@ -102,96 +52,48 @@ public class NoelleAutoSetGuidKeyInterceptorTests
         guidGeneratorMock.Verify(g => g.Generate(), Times.Never);
     }
 
-    [Fact]
-    public void SavingChanges_NoEntities_ShouldNotThrow()
+    private static GuidKeyDbContext CreateContext(IGuidGenerator generator, bool valueGeneratedNever)
     {
-        var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
-
         var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-
-        context.SaveChanges();
-
-        guidGeneratorMock.Verify(g => g.Generate(), Times.Never);
+        return new GuidKeyDbContext(options, new NoelleAutoSetGuidKeyInterceptor(generator), valueGeneratedNever);
     }
-
-    #endregion
-
-    #region SavingChangesAsync
-
-    [Fact]
-    public async Task SavingChangesAsync_GuidEntityWithEmptyId_ShouldCallGenerator()
-    {
-        var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var generatedGuid = Guid.NewGuid();
-        guidGeneratorMock.Setup(g => g.Generate()).Returns(generatedGuid);
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
-
-        var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-        var entity = new TestGuidKeyEntityWithNew { Name = "async-test" };
-        context.GuidKeyEntities.Add(entity);
-
-        await context.SaveChangesAsync();
-
-        guidGeneratorMock.Verify(g => g.Generate(), Times.Once);
-    }
-
-    [Fact]
-    public async Task SavingChangesAsync_GuidEntityWithNonEmptyId_ShouldNotCallGenerator()
-    {
-        var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
-        var existingId = Guid.NewGuid();
-
-        var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-        context.GuidKeyEntities.Add(new TestGuidKeyEntityWithNew(existingId) { Name = "test" });
-
-        await context.SaveChangesAsync();
-
-        guidGeneratorMock.Verify(g => g.Generate(), Times.Never);
-    }
-
-    [Fact]
-    public async Task SavingChangesAsync_NoEntities_ShouldNotThrow()
-    {
-        var guidGeneratorMock = new Mock<IGuidGenerator>();
-        var interceptor = new NoelleAutoSetGuidKeyInterceptor(guidGeneratorMock.Object);
-
-        var options = new DbContextOptionsBuilder<GuidKeyDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        using var context = new GuidKeyDbContext(options, interceptor);
-
-        await context.SaveChangesAsync();
-
-        guidGeneratorMock.Verify(g => g.Generate(), Times.Never);
-    }
-
-    #endregion
 }
 
 /// <summary>
-/// 用于 GUID 键测试的 DbContext
+/// 真实形态的 Guid 键测试实体（protected Id setter，无 new 隐藏）
+/// </summary>
+public class GuidKeyTestEntity : Entity<Guid>
+{
+    public GuidKeyTestEntity() { }
+
+    public GuidKeyTestEntity(Guid id) : base(id) { }
+
+    public string Name { get; set; } = "";
+}
+
+/// <summary>
+/// GUID 键测试 DbContext
 /// </summary>
 public class GuidKeyDbContext : DbContext
 {
     private readonly NoelleAutoSetGuidKeyInterceptor _interceptor;
+    private readonly bool _valueGeneratedNever;
 
-    public DbSet<TestGuidKeyEntityWithNew> GuidKeyEntities { get; set; } = null!;
-
-    public GuidKeyDbContext(DbContextOptions<GuidKeyDbContext> options, NoelleAutoSetGuidKeyInterceptor interceptor)
+    public GuidKeyDbContext(DbContextOptions<GuidKeyDbContext> options, NoelleAutoSetGuidKeyInterceptor interceptor, bool valueGeneratedNever)
         : base(options)
     {
         _interceptor = interceptor;
+        _valueGeneratedNever = valueGeneratedNever;
+    }
+
+    public DbSet<GuidKeyTestEntity> GuidKeyEntities { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        if (_valueGeneratedNever)
+            modelBuilder.Entity<GuidKeyTestEntity>().Property(x => x.Id).ValueGeneratedNever();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

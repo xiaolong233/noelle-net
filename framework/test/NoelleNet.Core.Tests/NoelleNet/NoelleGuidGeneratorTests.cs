@@ -1,28 +1,26 @@
 namespace NoelleNet;
 
+/// <summary>
+/// <see cref="NoelleGuidGenerator"/> 的单元测试
+/// </summary>
 public class NoelleGuidGeneratorTests
 {
-    [Fact]
-    public void Generate_ShouldReturnNonEmptyGuid()
-    {
-        var generator = new NoelleGuidGenerator();
-        var guid = generator.Generate();
-
-        Assert.NotEqual(Guid.Empty, guid);
-    }
-
+    /// <summary>
+    /// 生成的是 .NET 9 的有序 GUID（版本 7），利于数据库索引
+    /// </summary>
     [Fact]
     public void Generate_ShouldReturnVersion7Guid()
     {
-        var generator = new NoelleGuidGenerator();
-        var guid = generator.Generate();
+        var guid = new NoelleGuidGenerator().Generate();
 
-        // Version 7 GUID has version nibble set to 7
         var versionByte = guid.ToByteArray()[7];
         var version = (versionByte >> 4) & 0x0F;
         Assert.Equal(7, version);
     }
 
+    /// <summary>
+    /// 多次生成应返回互不相同的 GUID
+    /// </summary>
     [Fact]
     public void Generate_MultipleCalls_ShouldReturnUniqueGuids()
     {
@@ -30,12 +28,5 @@ public class NoelleGuidGeneratorTests
         var guids = Enumerable.Range(0, 100).Select(_ => generator.Generate()).ToHashSet();
 
         Assert.Equal(100, guids.Count);
-    }
-
-    [Fact]
-    public void NoelleGuidGenerator_ShouldImplementIGuidGenerator()
-    {
-        var generator = new NoelleGuidGenerator();
-        Assert.IsAssignableFrom<IGuidGenerator>(generator);
     }
 }

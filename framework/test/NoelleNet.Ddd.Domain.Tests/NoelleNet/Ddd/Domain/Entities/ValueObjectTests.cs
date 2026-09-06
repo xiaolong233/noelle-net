@@ -1,9 +1,9 @@
-using NoelleNet.Ddd.Domain.Entities;
-
 namespace NoelleNet.Ddd.Domain.Entities;
 
+#region 测试值对象
+
 /// <summary>
-/// 用于测试的值对象实现——地址
+/// 地址值对象
 /// </summary>
 internal class Address : ValueObject
 {
@@ -20,33 +20,7 @@ internal class Address : ValueObject
 }
 
 /// <summary>
-/// 用于测试的值对象实现——金额
-/// </summary>
-internal class Money : ValueObject
-{
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = "";
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Amount;
-        yield return Currency;
-    }
-}
-
-/// <summary>
-/// 用于测试的值对象实现——无组件
-/// </summary>
-internal class EmptyValueObject : ValueObject
-{
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield break;
-    }
-}
-
-/// <summary>
-/// 与 Address 类型不同的值对象（用于类型区分测试）
+/// 与 Address 组件相同但类型不同的值对象（验证类型参与相等性）
 /// </summary>
 internal class AddressLike : ValueObject
 {
@@ -62,250 +36,142 @@ internal class AddressLike : ValueObject
     }
 }
 
+/// <summary>
+/// 无相等组件的值对象
+/// </summary>
+internal class EmptyValueObject : ValueObject
+{
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield break;
+    }
+}
+
+#endregion
+
+/// <summary>
+/// <see cref="ValueObject"/> 的契约测试：值相等性、运算符、哈希与集合语义
+/// </summary>
 public class ValueObjectTests
 {
+    private static Address CreateAddress(string street = "Main St", string city = "NYC", string zip = "10001")
+        => new() { Street = street, City = city, ZipCode = zip };
+
     #region Equals
 
+    /// <summary>
+    /// 同引用相等；与 null 不相等；不同类型即使组件相同也不相等
+    /// </summary>
     [Fact]
-    public void Equals_SameReference_ShouldReturnTrue()
+    public void Equals_ReferenceAndTypeSemantics_ShouldHold()
     {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
+        var address = CreateAddress();
 
         Assert.True(address.Equals(address));
-    }
-
-    [Fact]
-    public void Equals_Null_ShouldReturnFalse()
-    {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
         Assert.False(address.Equals(null));
+        Assert.False(address.Equals(new AddressLike { Street = "Main St", City = "NYC", ZipCode = "10001" }));
     }
 
+    /// <summary>
+    /// 组件全等则相等，任一组件不同则不相等
+    /// </summary>
     [Fact]
-    public void Equals_DifferentType_ShouldReturnFalse()
+    public void Equals_ShouldCompareByComponents()
     {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var money = new Money { Amount = 100, Currency = "USD" };
-
-        Assert.False(address.Equals(money));
+        Assert.True(CreateAddress().Equals(CreateAddress()));
+        Assert.False(CreateAddress().Equals(CreateAddress(street: "Broadway")));
+        Assert.False(CreateAddress().Equals(CreateAddress(zip: "10002")));
     }
 
-    [Fact]
-    public void Equals_DifferentTypeButSameComponent_ShouldReturnFalse()
-    {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var addressLike = new AddressLike { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.False(address.Equals(addressLike));
-    }
-
-    [Fact]
-    public void Equals_SameValues_ShouldReturnTrue()
-    {
-        var address1 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var address2 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.True(address1.Equals(address2));
-    }
-
-    [Fact]
-    public void Equals_DifferentValues_ShouldReturnFalse()
-    {
-        var address1 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var address2 = new Address { Street = "Broadway", City = "NYC", ZipCode = "10001" };
-
-        Assert.False(address1.Equals(address2));
-    }
-
-    [Fact]
-    public void Equals_OneComponentDifferent_ShouldReturnFalse()
-    {
-        var address1 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var address2 = new Address { Street = "Main St", City = "NYC", ZipCode = "10002" };
-
-        Assert.False(address1.Equals(address2));
-    }
-
+    /// <summary>
+    /// 无相等组件的两个实例相等（空序列相等）
+    /// </summary>
     [Fact]
     public void Equals_EmptyValueObjects_ShouldReturnTrue()
     {
-        var empty1 = new EmptyValueObject();
-        var empty2 = new EmptyValueObject();
-
-        Assert.True(empty1.Equals(empty2));
+        Assert.True(new EmptyValueObject().Equals(new EmptyValueObject()));
     }
 
     #endregion
 
     #region Operators
 
+    /// <summary>
+    /// == 与 != 运算符：null 情况与组件比较
+    /// </summary>
     [Fact]
-    public void EqualityOperator_BothNull_ShouldReturnTrue()
+    public void EqualityOperators_ShouldHandleNullsAndComponents()
     {
         Address? left = null;
         Address? right = null;
-
         Assert.True(left == right);
-    }
+        Assert.False(left == CreateAddress());
+        Assert.False(CreateAddress() == null);
 
-    [Fact]
-    public void EqualityOperator_SameReference_ShouldReturnTrue()
-    {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        Address left = address;
-        Address right = address;
-
-        Assert.True(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_LeftNull_ShouldReturnFalse()
-    {
-        Address? left = null;
-        var right = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.False(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_RightNull_ShouldReturnFalse()
-    {
-        var left = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        Address? right = null;
-
-        Assert.False(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_SameValues_ShouldReturnTrue()
-    {
-        var left = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var right = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.True(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_DifferentValues_ShouldReturnFalse()
-    {
-        var left = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var right = new Address { Street = "Broadway", City = "NYC", ZipCode = "10001" };
-
-        Assert.False(left == right);
-    }
-
-    [Fact]
-    public void InequalityOperator_SameValues_ShouldReturnFalse()
-    {
-        var left = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var right = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.False(left != right);
-    }
-
-    [Fact]
-    public void InequalityOperator_DifferentValues_ShouldReturnTrue()
-    {
-        var left = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var right = new Address { Street = "Broadway", City = "NYC", ZipCode = "10001" };
-
-        Assert.True(left != right);
+        Assert.True(CreateAddress() == CreateAddress());
+        Assert.False(CreateAddress() == CreateAddress(street: "Broadway"));
+        Assert.False(CreateAddress() != CreateAddress());
+        Assert.True(CreateAddress() != CreateAddress(street: "Broadway"));
     }
 
     #endregion
 
     #region GetHashCode
 
+    /// <summary>
+    /// 相同组件哈希相同、不同组件哈希不同；空值对象不抛异常
+    /// </summary>
     [Fact]
-    public void GetHashCode_SameValues_ShouldReturnSameHash()
+    public void GetHashCode_ShouldFollowComponents()
     {
-        var address1 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var address2 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-
-        Assert.Equal(address1.GetHashCode(), address2.GetHashCode());
-    }
-
-    [Fact]
-    public void GetHashCode_DifferentValues_ShouldReturnDifferentHash()
-    {
-        var address1 = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        var address2 = new Address { Street = "Broadway", City = "NYC", ZipCode = "10001" };
-
-        Assert.NotEqual(address1.GetHashCode(), address2.GetHashCode());
-    }
-
-    [Fact]
-    public void GetHashCode_EmptyValueObject_ShouldNotThrow()
-    {
-        var empty = new EmptyValueObject();
-        var hash = empty.GetHashCode();
+        Assert.Equal(CreateAddress().GetHashCode(), CreateAddress().GetHashCode());
+        Assert.NotEqual(CreateAddress().GetHashCode(), CreateAddress(street: "Broadway").GetHashCode());
+        Assert.NotNull(new EmptyValueObject().GetHashCode());
     }
 
     #endregion
 
     #region ToString
 
+    /// <summary>
+    /// ToString 返回 JSON；空值对象输出 "{}"
+    /// </summary>
     [Fact]
-    public void ToString_ShouldReturnValidJson()
+    public void ToString_ShouldReturnJson()
     {
-        var address = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
+        Assert.Equal("{}", new EmptyValueObject().ToString());
 
-        var str = address.ToString();
-
-        Assert.NotNull(str);
-        Assert.NotEmpty(str);
-    }
-
-    [Fact]
-    public void ToString_EmptyValueObject_ShouldReturnBraces()
-    {
-        var empty = new EmptyValueObject();
-
-        var str = empty.ToString();
-
-        Assert.Equal("{}", str);
-    }
-
-    [Fact]
-    public void ToString_MoneyValueObject_ShouldReturnValidJson()
-    {
-        var money = new Money { Amount = 99.99m, Currency = "USD" };
-
-        var str = money.ToString();
-
-        Assert.NotNull(str);
-        Assert.NotEmpty(str);
+        var json = CreateAddress().ToString();
+        Assert.Contains("Main St", json);
+        Assert.Contains("NYC", json);
     }
 
     #endregion
 
-    #region UseWithDictionary
+    #region 集合语义
 
+    /// <summary>
+    /// 值对象可作为字典键：同值不同实例应命中
+    /// </summary>
     [Fact]
     public void CanUseAsDictionaryKey()
     {
-        var dict = new Dictionary<Address, string>();
-        var key = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        dict[key] = "value";
+        var dict = new Dictionary<Address, string> { [CreateAddress()] = "value" };
 
-        var lookup = new Address { Street = "Main St", City = "NYC", ZipCode = "10001" };
-        Assert.True(dict.ContainsKey(lookup));
-        Assert.Equal("value", dict[lookup]);
+        Assert.True(dict.ContainsKey(CreateAddress()));
+        Assert.Equal("value", dict[CreateAddress()]);
     }
 
+    /// <summary>
+    /// 值对象在 HashSet 中按值去重
+    /// </summary>
     [Fact]
     public void CanUseAsHashSet()
     {
-        var set = new HashSet<Address>
-        {
-            new Address { Street = "Main St", City = "NYC", ZipCode = "10001" },
-            new Address { Street = "Broadway", City = "NYC", ZipCode = "10001" }
-        };
+        var set = new HashSet<Address> { CreateAddress(), CreateAddress(street: "Broadway") };
 
-        Assert.Equal(2, set.Count);
+        set.Add(CreateAddress());
 
-        set.Add(new Address { Street = "Main St", City = "NYC", ZipCode = "10001" });
         Assert.Equal(2, set.Count);
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Text.Encodings.Web;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace NoelleNet.Ddd.Domain.Entities;
@@ -55,7 +55,8 @@ public abstract class ValueObject
     /// <inheritdoc/>
     public override string ToString()
     {
-        return JsonSerializer.Serialize(this, _jsonOptions);
+        // 使用运行时类型序列化：若按编译期类型（ValueObject 基类，无公开属性）序列化，输出将恒为 "{}"
+        return JsonSerializer.Serialize(this, GetType(), _jsonOptions);
     }
 }
 

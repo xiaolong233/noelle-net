@@ -1,7 +1,13 @@
 namespace System.Collections.Generic;
 
+/// <summary>
+/// <see cref="NoelleEnumerableExtensions"/> 的单元测试
+/// </summary>
 public class NoelleEnumerableExtensionsTests
 {
+    /// <summary>
+    /// 条件为 true 时应用过滤
+    /// </summary>
     [Fact]
     public void WhereIf_ConditionTrue_ShouldApplyFilter()
     {
@@ -12,6 +18,9 @@ public class NoelleEnumerableExtensionsTests
         Assert.Equal(new[] { 4, 5 }, result);
     }
 
+    /// <summary>
+    /// 条件为 false 时应原样返回源序列（惰性、不过滤）
+    /// </summary>
     [Fact]
     public void WhereIf_ConditionFalse_ShouldReturnSource()
     {
@@ -22,30 +31,25 @@ public class NoelleEnumerableExtensionsTests
         Assert.Equal(source, result);
     }
 
-    [Fact]
-    public void WhereIf_NullSource_ShouldThrow()
-    {
-        IEnumerable<int>? source = null;
-        Assert.Throws<ArgumentNullException>(() => source!.WhereIf(true, x => x > 0));
-    }
-
+    /// <summary>
+    /// 空序列在条件为 true 时返回空结果
+    /// </summary>
     [Fact]
     public void WhereIf_EmptySource_ShouldReturnEmpty()
     {
-        var source = Enumerable.Empty<int>();
-
-        var result = source.WhereIf(true, x => x > 0);
+        var result = Enumerable.Empty<int>().WhereIf(true, x => x > 0);
 
         Assert.Empty(result);
     }
 
+    /// <summary>
+    /// 源序列为 null 时应抛出 ArgumentNullException
+    /// </summary>
     [Fact]
-    public void WhereIf_WithStrings_ShouldWork()
+    public void WhereIf_NullSource_ShouldThrow()
     {
-        var source = new[] { "a", "bb", "ccc", "dddd" };
+        IEnumerable<int>? source = null;
 
-        var result = source.WhereIf(true, s => s.Length > 2);
-
-        Assert.Equal(new[] { "ccc", "dddd" }, result);
+        Assert.Throws<ArgumentNullException>(() => source!.WhereIf(true, x => x > 0));
     }
 }

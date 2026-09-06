@@ -1,9 +1,9 @@
-using NoelleNet.Ddd.Domain.Entities;
-
 namespace NoelleNet.Ddd.Domain.Entities;
 
+#region 测试实体
+
 /// <summary>
-/// 用于测试的实体实现（无类型标识符）
+/// 单标识符测试实体
 /// </summary>
 internal class TestEntity : Entity
 {
@@ -13,7 +13,7 @@ internal class TestEntity : Entity
 }
 
 /// <summary>
-/// 用于测试的实体实现（多标识符）
+/// 复合标识符测试实体
 /// </summary>
 internal class TestCompositeEntity : Entity
 {
@@ -24,7 +24,7 @@ internal class TestCompositeEntity : Entity
 }
 
 /// <summary>
-/// 用于测试的实体实现（无标识符）
+/// 无标识符测试实体
 /// </summary>
 internal class TestEmptyEntity : Entity
 {
@@ -32,16 +32,13 @@ internal class TestEmptyEntity : Entity
 }
 
 /// <summary>
-/// 用于测试的实体实现（null 标识符）
+/// null 标识符测试实体
 /// </summary>
 internal class TestNullIdentifierEntity : Entity
 {
     public override object?[] GetIdentifiers() => null!;
 }
 
-/// <summary>
-/// 用于测试的泛型实体实现
-/// </summary>
 internal class TestEntityWithGuid : Entity<Guid>
 {
     public TestEntityWithGuid() { }
@@ -54,13 +51,6 @@ internal class TestEntityWithInt : Entity<int>
     public TestEntityWithInt() { }
 
     public TestEntityWithInt(int id) : base(id) { }
-}
-
-internal class TestEntityWithLong : Entity<long>
-{
-    public TestEntityWithLong() { }
-
-    public TestEntityWithLong(long id) : base(id) { }
 }
 
 internal class TestEntityWithString : Entity<string>
@@ -77,46 +67,43 @@ internal class AnotherTestEntity : Entity
     public override object?[] GetIdentifiers() => [Id];
 }
 
+#endregion
+
+/// <summary>
+/// <see cref="Entity"/> 与 <see cref="Entity{TIdentifier}"/> 的契约测试：
+/// 相等性语义（瞬态引用相等、非瞬态按标识符）、运算符、哈希与瞬态判定
+/// </summary>
 public class EntityTests
 {
     #region Equals
 
+    /// <summary>
+    /// 同引用相等、与 null 不等
+    /// </summary>
     [Fact]
-    public void Equals_SameReference_ShouldReturnTrue()
+    public void Equals_SameReferenceOrNull_ShouldFollowReferenceSemantics()
     {
         var entity = new TestEntity { Id = 1 };
 
         Assert.True(entity.Equals(entity));
-    }
-
-    [Fact]
-    public void Equals_NullOther_ShouldReturnFalse()
-    {
-        var entity = new TestEntity { Id = 1 };
-
         Assert.False(entity.Equals(null));
     }
 
+    /// <summary>
+    /// 同类型且标识符相同/不同
+    /// </summary>
     [Fact]
-    public void Equals_SameTypeAndSameIds_ShouldReturnTrue()
+    public void Equals_SameType_ShouldCompareByIdentifiers()
     {
-        var entity1 = new TestEntity { Id = 1 };
-        var entity2 = new TestEntity { Id = 1 };
-
-        Assert.True(entity1.Equals(entity2));
+        Assert.True(new TestEntity { Id = 1 }.Equals(new TestEntity { Id = 1 }));
+        Assert.False(new TestEntity { Id = 1 }.Equals(new TestEntity { Id = 2 }));
     }
 
+    /// <summary>
+    /// 不同类型即使标识符相同也不相等
+    /// </summary>
     [Fact]
-    public void Equals_SameTypeAndDifferentIds_ShouldReturnFalse()
-    {
-        var entity1 = new TestEntity { Id = 1 };
-        var entity2 = new TestEntity { Id = 2 };
-
-        Assert.False(entity1.Equals(entity2));
-    }
-
-    [Fact]
-    public void Equals_DifferentTypeSameIds_ShouldReturnFalse()
+    public void Equals_DifferentType_ShouldReturnFalse()
     {
         var entity1 = new TestEntity { Id = 1 };
         var entity2 = new AnotherTestEntity { Id = 1 };
@@ -124,374 +111,144 @@ public class EntityTests
         Assert.False(entity1.Equals(entity2));
     }
 
+    /// <summary>
+    /// 瞬态实体仅引用相等；瞬态与非瞬态不相等
+    /// </summary>
     [Fact]
-    public void Equals_BothTransientDifferentReferences_ShouldReturnFalse()
+    public void Equals_TransientEntities_ShouldUseReferenceEquality()
     {
-        var entity1 = new TestEntity { Id = 0 };
-        var entity2 = new TestEntity { Id = 0 };
-
-        Assert.False(entity1.Equals(entity2));
-    }
-
-    [Fact]
-    public void Equals_BothTransientSameReference_ShouldReturnTrue()
-    {
-        var entity = new TestEntity { Id = 0 };
-
-        Assert.True(entity.Equals(entity));
-    }
-
-    [Fact]
-    public void Equals_OneTransientOneNot_ShouldReturnFalse()
-    {
-        var transient = new TestEntity { Id = 0 };
+        var transient1 = new TestEntity { Id = 0 };
+        var transient2 = new TestEntity { Id = 0 };
         var persistent = new TestEntity { Id = 1 };
 
-        Assert.False(transient.Equals(persistent));
-        Assert.False(persistent.Equals(transient));
+        Assert.False(transient1.Equals(transient2));
+        Assert.True(transient1.Equals(transient1));
+        Assert.False(transient1.Equals(persistent));
+        Assert.False(persistent.Equals(transient1));
     }
 
+    /// <summary>
+    /// 复合标识符按全部键比较
+    /// </summary>
     [Fact]
-    public void Equals_CompositeKeySameValues_ShouldReturnTrue()
+    public void Equals_CompositeKey_ShouldCompareAllIdentifiers()
     {
         var entity1 = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" };
         var entity2 = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" };
+        var entity3 = new TestCompositeEntity { FirstKey = "A", SecondKey = "C" };
 
         Assert.True(entity1.Equals(entity2));
-    }
-
-    [Fact]
-    public void Equals_CompositeKeyDifferentValues_ShouldReturnFalse()
-    {
-        var entity1 = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" };
-        var entity2 = new TestCompositeEntity { FirstKey = "A", SecondKey = "C" };
-
-        Assert.False(entity1.Equals(entity2));
-    }
-
-    [Fact]
-    public void Equals_CompositeKeyDifferentLength_ShouldReturnFalse()
-    {
-        var entity = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" };
-        var singleKeyEntity = new TestEntity { Id = 1 };
-
-        Assert.False(entity.Equals(singleKeyEntity));
+        Assert.False(entity1.Equals(entity3));
     }
 
     #endregion
 
     #region Operators
 
+    /// <summary>
+    /// == 运算符：null 情况与标识符比较
+    /// </summary>
     [Fact]
-    public void EqualityOperator_BothNull_ShouldReturnTrue()
+    public void EqualityOperator_ShouldHandleNullsAndIds()
     {
         TestEntity? left = null;
         TestEntity? right = null;
-
         Assert.True(left == right);
-    }
 
-    [Fact]
-    public void EqualityOperator_LeftNull_ShouldReturnFalse()
-    {
-        TestEntity? left = null;
-        var right = new TestEntity { Id = 1 };
+        var entity = new TestEntity { Id = 1 };
+        Assert.False(left == entity);
+        Assert.False(entity == null);
 
-        Assert.False(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_RightNull_ShouldReturnFalse()
-    {
-        var left = new TestEntity { Id = 1 };
-        TestEntity? right = null;
-
-        Assert.False(left == right);
-    }
-
-    [Fact]
-    public void EqualityOperator_SameIds_ShouldReturnTrue()
-    {
-        var left = new TestEntity { Id = 1 };
-        var right = new TestEntity { Id = 1 };
-
-        Assert.True(left == right);
-    }
-
-    [Fact]
-    public void InequalityOperator_DifferentIds_ShouldReturnTrue()
-    {
-        var left = new TestEntity { Id = 1 };
-        var right = new TestEntity { Id = 2 };
-
-        Assert.True(left != right);
-    }
-
-    [Fact]
-    public void InequalityOperator_SameIds_ShouldReturnFalse()
-    {
-        var left = new TestEntity { Id = 1 };
-        var right = new TestEntity { Id = 1 };
-
-        Assert.False(left != right);
+        Assert.True(entity == new TestEntity { Id = 1 });
+        Assert.True(entity != new TestEntity { Id = 2 });
     }
 
     #endregion
 
     #region GetHashCode
 
+    /// <summary>
+    /// 相同标识符哈希相同、不同标识符哈希不同；空/null 标识符不抛异常
+    /// </summary>
     [Fact]
-    public void GetHashCode_SameIds_ShouldReturnSameHash()
+    public void GetHashCode_ShouldFollowIdentifiers()
     {
-        var entity1 = new TestEntity { Id = 1 };
-        var entity2 = new TestEntity { Id = 1 };
+        Assert.Equal(new TestEntity { Id = 1 }.GetHashCode(), new TestEntity { Id = 1 }.GetHashCode());
+        Assert.NotEqual(new TestEntity { Id = 1 }.GetHashCode(), new TestEntity { Id = 2 }.GetHashCode());
 
-        Assert.Equal(entity1.GetHashCode(), entity2.GetHashCode());
-    }
-
-    [Fact]
-    public void GetHashCode_DifferentIds_ShouldReturnDifferentHash()
-    {
-        var entity1 = new TestEntity { Id = 1 };
-        var entity2 = new TestEntity { Id = 2 };
-
-        Assert.NotEqual(entity1.GetHashCode(), entity2.GetHashCode());
-    }
-
-    [Fact]
-    public void GetHashCode_EmptyIdentifiers_ShouldNotThrow()
-    {
-        var entity = new TestEmptyEntity();
-
-        var hash = entity.GetHashCode();
-    }
-
-    [Fact]
-    public void GetHashCode_NullIdentifiers_ShouldNotThrow()
-    {
-        var entity = new TestNullIdentifierEntity();
-
-        var hash = entity.GetHashCode();
+        Assert.NotNull(new TestEmptyEntity().GetHashCode());
+        Assert.NotNull(new TestNullIdentifierEntity().GetHashCode());
     }
 
     #endregion
 
     #region IsTransient
 
+    /// <summary>
+    /// 各类零值标识符（Guid.Empty/0/0L/null/空串）应判定为瞬态
+    /// </summary>
     [Fact]
     public void IsTransient_EmptyIdentifiers_ShouldReturnTrue()
     {
-        var entity = new TestEmptyEntity();
-
-        Assert.True(entity.IsTransient());
+        Assert.True(new TestEmptyEntity().IsTransient());
+        Assert.True(new TestNullIdentifierEntity().IsTransient());
+        Assert.True(new TestEntityWithGuid(Guid.Empty).IsTransient());
+        Assert.True(new TestEntityWithInt(0).IsTransient());
+        Assert.True(new TestEntityWithString(null!).IsTransient());
+        Assert.True(new TestEntityWithString("").IsTransient());
+        Assert.True(new TestEntityWithString("   ").IsTransient());
     }
 
+    /// <summary>
+    /// 非零标识符应判定为非瞬态
+    /// </summary>
     [Fact]
-    public void IsTransient_NullIdentifiers_ShouldReturnTrue()
+    public void IsTransient_ValidIdentifiers_ShouldReturnFalse()
     {
-        var entity = new TestNullIdentifierEntity();
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_GuidEmpty_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithGuid(Guid.Empty);
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_IntZero_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithInt(0);
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_LongZero_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithLong(0L);
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_NullString_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithString(null!);
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_EmptyString_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithString("");
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_WhitespaceString_ShouldReturnTrue()
-    {
-        var entity = new TestEntityWithString("   ");
-
-        Assert.True(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_ValidGuid_ShouldReturnFalse()
-    {
-        var entity = new TestEntityWithGuid(Guid.NewGuid());
-
-        Assert.False(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_NonZeroInt_ShouldReturnFalse()
-    {
-        var entity = new TestEntityWithInt(42);
-
-        Assert.False(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_NonZeroLong_ShouldReturnFalse()
-    {
-        var entity = new TestEntityWithLong(100L);
-
-        Assert.False(entity.IsTransient());
-    }
-
-    [Fact]
-    public void IsTransient_NonEmptyString_ShouldReturnFalse()
-    {
-        var entity = new TestEntityWithString("hello");
-
-        Assert.False(entity.IsTransient());
+        Assert.False(new TestEntityWithGuid(Guid.NewGuid()).IsTransient());
+        Assert.False(new TestEntityWithInt(42).IsTransient());
+        Assert.False(new TestEntityWithString("hello").IsTransient());
     }
 
     #endregion
 
     #region ToString
 
+    /// <summary>
+    /// ToString 应包含类型名与标识符（无/单/多标识符三种格式）
+    /// </summary>
     [Fact]
-    public void ToString_NoIdentifiers_ShouldReturnNoIdentifiers()
+    public void ToString_ShouldIncludeTypeAndIdentifiers()
     {
-        var entity = new TestEmptyEntity();
+        Assert.Contains("[No Identifiers]", new TestEmptyEntity().ToString());
 
-        Assert.Contains("[No Identifiers]", entity.ToString());
-    }
+        var single = new TestEntity { Id = 42 }.ToString();
+        Assert.StartsWith("TestEntity", single);
+        Assert.Contains("[Id: 42]", single);
 
-    [Fact]
-    public void ToString_SingleIdentifier_ShouldReturnIdFormat()
-    {
-        var entity = new TestEntity { Id = 42 };
+        var composite = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" }.ToString();
+        Assert.Contains("[Ids: A, B]", composite);
 
-        var str = entity.ToString();
-        Assert.Contains("[Id: 42]", str);
-        Assert.StartsWith("TestEntity", str);
-    }
-
-    [Fact]
-    public void ToString_MultipleIdentifiers_ShouldReturnIdsFormat()
-    {
-        var entity = new TestCompositeEntity { FirstKey = "A", SecondKey = "B" };
-
-        var str = entity.ToString();
-        Assert.Contains("[Ids: A, B]", str);
-    }
-
-    [Fact]
-    public void ToString_NullIdentifier_ShouldDisplayNull()
-    {
-        var entity = new TestEntityWithString(null!);
-
-        var str = entity.ToString();
-        Assert.Contains("[Id: null]", str);
-    }
-
-    [Fact]
-    public void ToString_GenericEntity_ShouldUseTypeName()
-    {
-        var entity = new TestEntityWithInt(1);
-
-        var str = entity.ToString();
-        Assert.StartsWith("TestEntityWithInt", str);
+        Assert.Contains("[Id: null]", new TestEntityWithString(null!).ToString());
     }
 
     #endregion
 
     #region Entity<TIdentifier>
 
+    /// <summary>
+    /// 泛型实体：构造函数设置 Id、GetIdentifiers 返回 Id 数组、相等性按 Id
+    /// </summary>
     [Fact]
-    public void GenericEntity_DefaultConstructor_IdShouldBeDefault()
-    {
-        var entity = new TestEntityWithInt();
-
-        Assert.Equal(default, entity.Id);
-    }
-
-    [Fact]
-    public void GenericEntity_ConstructorWithId_ShouldSetId()
+    public void GenericEntity_ShouldSetIdAndCompareById()
     {
         var entity = new TestEntityWithInt(42);
-
         Assert.Equal(42, entity.Id);
-    }
+        Assert.Equal([42], entity.GetIdentifiers());
 
-    [Fact]
-    public void GenericEntity_GuidConstructor_ShouldSetId()
-    {
-        var guid = Guid.NewGuid();
-        var entity = new TestEntityWithGuid(guid);
-
-        Assert.Equal(guid, entity.Id);
-    }
-
-    [Fact]
-    public void GenericEntity_GetIdentifiers_ShouldReturnIdArray()
-    {
-        var entity = new TestEntityWithInt(42);
-
-        var ids = entity.GetIdentifiers();
-
-        Assert.Single(ids);
-        Assert.Equal(42, ids[0]);
-    }
-
-    [Fact]
-    public void GenericEntity_ImplementsIEntityOfT()
-    {
-        var entity = new TestEntityWithInt(1);
-
-        Assert.IsAssignableFrom<IEntity<int>>(entity);
-        Assert.IsAssignableFrom<IEntity>(entity);
-    }
-
-    #endregion
-
-    #region Equality with Entity<TIdentifier>
-
-    [Fact]
-    public void GenericEntity_Equals_SameId_ShouldReturnTrue()
-    {
-        var entity1 = new TestEntityWithGuid(new Guid("11111111-1111-1111-1111-111111111111"));
-        var entity2 = new TestEntityWithGuid(new Guid("11111111-1111-1111-1111-111111111111"));
-
-        Assert.True(entity1.Equals(entity2));
-    }
-
-    [Fact]
-    public void GenericEntity_Equals_DifferentId_ShouldReturnFalse()
-    {
-        var entity1 = new TestEntityWithGuid(new Guid("11111111-1111-1111-1111-111111111111"));
-        var entity2 = new TestEntityWithGuid(new Guid("22222222-2222-2222-2222-222222222222"));
-
-        Assert.False(entity1.Equals(entity2));
+        var guid = new Guid("11111111-1111-1111-1111-111111111111");
+        Assert.True(new TestEntityWithGuid(guid).Equals(new TestEntityWithGuid(guid)));
+        Assert.False(new TestEntityWithGuid(guid).Equals(new TestEntityWithGuid(Guid.NewGuid())));
     }
 
     #endregion

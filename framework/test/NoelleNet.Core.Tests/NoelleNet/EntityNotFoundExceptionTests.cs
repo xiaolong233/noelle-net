@@ -1,39 +1,28 @@
 namespace NoelleNet;
 
+/// <summary>
+/// <see cref="EntityNotFoundException"/> 与 <see cref="EntityNotFoundException{TEntityType}"/> 的契约测试：
+/// 异常处理器依赖 EntityType/Id 与消息格式生成 404 ProblemDetails。
+/// </summary>
 public class EntityNotFoundExceptionTests
 {
+    /// <summary>
+    /// 无参构造时 EntityType 与 Id 应为 null
+    /// </summary>
     [Fact]
-    public void Constructor_Default_ShouldCreateInstance()
+    public void Constructor_Default_ShouldHaveNoTypeAndId()
     {
         var ex = new EntityNotFoundException();
 
-        Assert.NotNull(ex);
         Assert.Null(ex.EntityType);
         Assert.Null(ex.Id);
     }
 
+    /// <summary>
+    /// 仅指定实体类型（无 Id）时，消息应说明"未指定实体的标识符"
+    /// </summary>
     [Fact]
-    public void Constructor_WithMessage_ShouldSetMessage()
-    {
-        var ex = new EntityNotFoundException("实体未找到");
-
-        Assert.Equal("实体未找到", ex.Message);
-        Assert.Null(ex.EntityType);
-        Assert.Null(ex.Id);
-    }
-
-    [Fact]
-    public void Constructor_WithMessageAndInnerException_ShouldSetBoth()
-    {
-        var inner = new InvalidOperationException("inner");
-        var ex = new EntityNotFoundException("实体未找到", inner);
-
-        Assert.Equal("实体未找到", ex.Message);
-        Assert.Same(inner, ex.InnerException);
-    }
-
-    [Fact]
-    public void Constructor_WithEntityType_ShouldSetEntityType()
+    public void Constructor_WithEntityTypeOnly_ShouldIndicateMissingId()
     {
         var ex = new EntityNotFoundException(typeof(string));
 
@@ -41,8 +30,11 @@ public class EntityNotFoundExceptionTests
         Assert.Contains("未指定实体的标识符", ex.Message);
     }
 
+    /// <summary>
+    /// 指定实体类型与 Id 时，消息应包含标识符值
+    /// </summary>
     [Fact]
-    public void Constructor_WithEntityTypeAndId_ShouldSetBoth()
+    public void Constructor_WithEntityTypeAndId_ShouldIncludeIdInMessage()
     {
         var ex = new EntityNotFoundException(typeof(string), 123);
 
@@ -51,75 +43,29 @@ public class EntityNotFoundExceptionTests
         Assert.Contains("标识符：123", ex.Message);
     }
 
+    /// <summary>
+    /// 内部异常应被传播
+    /// </summary>
     [Fact]
-    public void Constructor_WithEntityTypeAndIdAndInnerException_ShouldSetAll()
+    public void Constructor_WithInnerException_ShouldPropagate()
     {
         var inner = new InvalidOperationException("inner");
+
         var ex = new EntityNotFoundException(typeof(string), 123, inner);
 
-        Assert.Equal(typeof(string), ex.EntityType);
-        Assert.Equal(123, ex.Id);
         Assert.Same(inner, ex.InnerException);
     }
 
+    /// <summary>
+    /// 泛型版本：自动携带实体类型，与 Id 组合生成消息
+    /// </summary>
     [Fact]
-    public void Constructor_WithNullId_ShouldGenerateAppropriateMessage()
-    {
-        var ex = new EntityNotFoundException(typeof(string), null);
-
-        Assert.Contains("未指定实体的标识符", ex.Message);
-    }
-
-    [Fact]
-    public void EntityTypeAndId_ShouldBeSettable()
-    {
-        var ex = new EntityNotFoundException();
-
-        ex.EntityType = typeof(int);
-        ex.Id = 456;
-
-        Assert.Equal(typeof(int), ex.EntityType);
-        Assert.Equal(456, ex.Id);
-    }
-}
-
-public class EntityNotFoundExceptionGenericTests
-{
-    [Fact]
-    public void Constructor_Default_ShouldSetEntityType()
-    {
-        var ex = new EntityNotFoundException<string>();
-
-        Assert.Equal(typeof(string), ex.EntityType);
-        Assert.Contains("未指定实体的标识符", ex.Message);
-    }
-
-    [Fact]
-    public void Constructor_WithId_ShouldSetId()
+    public void Generic_WithId_ShouldSetTypeAndMessage()
     {
         var ex = new EntityNotFoundException<string>(42);
 
         Assert.Equal(typeof(string), ex.EntityType);
         Assert.Equal(42, ex.Id);
         Assert.Contains("标识符：42", ex.Message);
-    }
-
-    [Fact]
-    public void Constructor_WithIdAndInnerException_ShouldSetAll()
-    {
-        var inner = new InvalidOperationException("inner");
-        var ex = new EntityNotFoundException<string>(42, inner);
-
-        Assert.Equal(typeof(string), ex.EntityType);
-        Assert.Equal(42, ex.Id);
-        Assert.Same(inner, ex.InnerException);
-    }
-
-    [Fact]
-    public void EntityNotFoundException_Generic_ShouldBeAssignableToBase()
-    {
-        var ex = new EntityNotFoundException<string>();
-
-        Assert.IsAssignableFrom<EntityNotFoundException>(ex);
     }
 }

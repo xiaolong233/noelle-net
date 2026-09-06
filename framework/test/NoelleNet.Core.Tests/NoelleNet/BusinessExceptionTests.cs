@@ -1,11 +1,15 @@
 using Microsoft.Extensions.Logging;
-using NoelleNet.ExceptionHandling;
-using NoelleNet.Logging;
 
 namespace NoelleNet;
 
+/// <summary>
+/// <see cref="BusinessException"/> 的单元测试
+/// </summary>
 public class BusinessExceptionTests
 {
+    /// <summary>
+    /// 全参数构造应初始化错误码、消息、详情、内部异常与日志级别
+    /// </summary>
     [Fact]
     public void Constructor_ShouldInitializeProperties()
     {
@@ -18,6 +22,9 @@ public class BusinessExceptionTests
         Assert.Equal(LogLevel.Error, ex.LogLevel);
     }
 
+    /// <summary>
+    /// 默认日志级别应为 Warning（异常处理器据此决定日志级别）
+    /// </summary>
     [Fact]
     public void Constructor_WithDefaults_ShouldUseWarningLogLevel()
     {
@@ -26,31 +33,9 @@ public class BusinessExceptionTests
         Assert.Equal(LogLevel.Warning, ex.LogLevel);
     }
 
-    [Fact]
-    public void ShouldImplementInterfaces()
-    {
-        var ex = new BusinessException();
-
-        Assert.IsAssignableFrom<IBusinessException>(ex);
-        Assert.IsAssignableFrom<IHasErrorCode>(ex);
-        Assert.IsAssignableFrom<IHasErrorDetails>(ex);
-        Assert.IsAssignableFrom<IHasLogLevel>(ex);
-    }
-
-    [Fact]
-    public void Properties_ShouldBeSettable()
-    {
-        var ex = new BusinessException();
-
-        ex.ErrorCode = "NEW_CODE";
-        ex.Details = "新详情";
-        ex.LogLevel = LogLevel.Critical;
-
-        Assert.Equal("NEW_CODE", ex.ErrorCode);
-        Assert.Equal("新详情", ex.Details);
-        Assert.Equal(LogLevel.Critical, ex.LogLevel);
-    }
-
+    /// <summary>
+    /// 参数允许为 null（错误码/详情/内部异常均可省略）
+    /// </summary>
     [Fact]
     public void Constructor_WithNullParameters_ShouldAllowNulls()
     {

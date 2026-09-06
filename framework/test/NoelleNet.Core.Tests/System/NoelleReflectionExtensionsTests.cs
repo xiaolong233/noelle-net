@@ -1,38 +1,29 @@
 namespace System;
 
+/// <summary>
+/// <see cref="NoelleReflectionExtensions"/> 的单元测试
+/// </summary>
 public class NoelleReflectionExtensionsTests
 {
+    /// <summary>
+    /// 非泛型类型应返回类型名
+    /// </summary>
     [Fact]
     public void GetGenericTypeName_NonGenericType_ShouldReturnName()
     {
-        var type = typeof(string);
-        Assert.Equal("String", type.GetGenericTypeName());
+        Assert.Equal("String", typeof(string).GetGenericTypeName());
     }
 
+    /// <summary>
+    /// 泛型类型应返回带泛型参数的可读名称（含 object 重载）
+    /// </summary>
     [Fact]
     public void GetGenericTypeName_GenericType_ShouldReturnFormattedName()
     {
-        var type = typeof(Dictionary<string, int>);
-        Assert.Equal("Dictionary<String,Int32>", type.GetGenericTypeName());
-    }
+        Assert.Equal("Dictionary<String,Int32>", typeof(Dictionary<string, int>).GetGenericTypeName());
+        Assert.Equal("List<Int32>", typeof(List<int>).GetGenericTypeName());
 
-    [Fact]
-    public void GetGenericTypeName_SingleGenericParam_ShouldReturnFormattedName()
-    {
-        var type = typeof(List<int>);
-        Assert.Equal("List<Int32>", type.GetGenericTypeName());
-    }
-
-    [Fact]
-    public void GetGenericTypeName_ObjectOverload_NonGenericType_ShouldReturnName()
-    {
-        Assert.Equal("String", "hello".GetGenericTypeName());
-    }
-
-    [Fact]
-    public void GetGenericTypeName_ObjectOverload_GenericType_ShouldReturnFormattedName()
-    {
-        var list = new List<int>();
-        Assert.Equal("List<Int32>", list.GetGenericTypeName());
+        // object 重载
+        Assert.Equal("List<Int32>", new List<int>().GetGenericTypeName());
     }
 }
