@@ -65,7 +65,7 @@ dotnet add package NoelleNet.Application.Contracts
 
 ## 快速入门
 
-完整可运行示例见 GitHub 仓库的 [`example/Noelle.Todo`](https://github.com/xiaolong233/noelle-net)（SQLite 免配置，`dotnet run` 启动）。
+更详细的模块用法见 GitHub 仓库的 [docs/usage-guide.md](https://github.com/xiaolong233/noelle-net/blob/master/docs/usage-guide.md)。
 
 ### 1. 定义领域模型
 

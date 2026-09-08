@@ -1,6 +1,6 @@
 # Noelle.Net 使用指南
 
-本文是 README 的补充，按主题介绍各功能模块的详细用法。完整可运行示例见仓库内的 `example/Noelle.Todo`。
+本文是 README 的补充，按主题介绍各功能模块的详细用法。
 
 ---
 
@@ -187,17 +187,15 @@ public class OrganizationUnitCacheInvalidationHandler : ILocalEventHandler<Entit
 - 新增时：`CreatedAt`、`CreatedBy`（来自 `ICurrentUser.UserId`）
 - 修改时：`LastModifiedAt`、`LastModifiedBy`
 
-推荐的实体配置：审计列统一 snake_case 命名，长度与常量表对齐：
+推荐的实体配置：审计列统一 snake_case 命名；审计基类（`AuditedAggregateRoot` / `AuditedEntity` 等）已内置 `[MaxLength(64)]`，无需重复声明长度：
 
 ```csharp
 public static void ConfigureAuditingProperties<TEntity>(this EntityTypeBuilder<TEntity> builder) where TEntity : class, IAudited
 {
     builder.Property(x => x.CreatedAt).HasColumnName("created_at").HasComment("创建时间");
-    builder.Property(x => x.CreatedBy).HasMaxLength(AuditedConstants.CreatedBy.MaxLength)
-           .HasColumnName("created_by").HasComment("创建人");
+    builder.Property(x => x.CreatedBy).HasColumnName("created_by").HasComment("创建人");
     builder.Property(x => x.LastModifiedAt).HasColumnName("last_modified_at").HasComment("最后修改时间");
-    builder.Property(x => x.LastModifiedBy).HasMaxLength(AuditedConstants.LastModifiedBy.MaxLength)
-           .HasColumnName("last_modified_by").HasComment("最后修改人");
+    builder.Property(x => x.LastModifiedBy).HasColumnName("last_modified_by").HasComment("最后修改人");
 }
 ```
 
@@ -267,7 +265,7 @@ services.AddDistributedEventBus(cfg =>
 
 注意：
 
-- 事件名与分组通过 `EventNameAttribute` 声明；分布式事件总线依赖 CAP 的消费者选择器扩展点，CAP 版本约束为 `[8.4.1, 9.0)`；
+- 事件名与分组通过 `EventNameAttribute` 声明；分布式事件总线依赖 CAP 的消费者选择器扩展点，CAP 版本要求不低于 `8.4.1`；
 - `PublishDelayAsync` 依赖 CAP 的持久化存储与调度器，InMemory 存储下无法保证延迟生效；
 - 消息与业务数据原子提交：使用 CAP 事务发件箱（见"工作单元与事务"）。
 
@@ -309,7 +307,13 @@ var query = _dbContext.TodoItems
     .WhereIf(dto.IsCompleted.HasValue, x => x.IsCompleted == dto.IsCompleted!.Value);
 
 var totalCount = await query.CountAsync(cancellationToken);
-var items = await query.OrderBy(dto.Sort).Skip(dto.Offset).Take(dto.Limit).ToListAsync(cancellationToken);
+
+// Sort 是约定格式字符串（如 "CreatedAt desc"、"CreatedAt desc, Title asc"），框架不内置字符串排序，
+// 需自行解析映射为排序表达式（或引入 System.Linq.Dynamic.Core 按字符串排序）
+var items = await query
+    .OrderByDescending(x => x.CreatedAt)
+    .Skip(dto.Offset).Take(dto.Limit)
+    .ToListAsync(cancellationToken);
 
 return new PagedResultDto<TodoItemDto>(totalCount, items);
 ```

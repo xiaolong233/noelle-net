@@ -7,9 +7,11 @@
 		<PackageReadmeFile>NuGet.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/xiaolong233/noelle-net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>dotnet;NoelleNet</PackageTags>
+		<PackageTags>dotnet;NoelleNet;ddd;eventbus;efcore;cap;auditing;uow;aspnetcore;mediatr;fluentvalidation</PackageTags>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageIcon>icon.png</PackageIcon>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -18,6 +20,10 @@
 			<PackagePath>\</PackagePath>
 		</None>
 		<None Include="..\..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\icon.png">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>

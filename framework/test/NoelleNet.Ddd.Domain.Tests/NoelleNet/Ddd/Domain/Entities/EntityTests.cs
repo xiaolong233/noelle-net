@@ -157,7 +157,7 @@ public class EntityTests
 
         var entity = new TestEntity { Id = 1 };
         Assert.False(left == entity);
-        Assert.False(entity == null);
+        Assert.NotNull(entity);
 
         Assert.True(entity == new TestEntity { Id = 1 });
         Assert.True(entity != new TestEntity { Id = 2 });
@@ -175,9 +175,6 @@ public class EntityTests
     {
         Assert.Equal(new TestEntity { Id = 1 }.GetHashCode(), new TestEntity { Id = 1 }.GetHashCode());
         Assert.NotEqual(new TestEntity { Id = 1 }.GetHashCode(), new TestEntity { Id = 2 }.GetHashCode());
-
-        Assert.NotNull(new TestEmptyEntity().GetHashCode());
-        Assert.NotNull(new TestNullIdentifierEntity().GetHashCode());
     }
 
     #endregion

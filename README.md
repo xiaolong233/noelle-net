@@ -114,7 +114,7 @@ services.AddLocalEventBus(cfg =>
 });
 ```
 
-完整可运行的最小示例见 [`example/Noelle.Todo`](example/Noelle.Todo)（SQLite 免配置）。
+各功能模块的注册与用法细节见 [docs/usage-guide.md](docs/usage-guide.md)。
 
 ---
 
@@ -337,8 +337,11 @@ dotnet build framework/Noelle.Net.slnx
 # 测试
 dotnet test framework/Noelle.Net.slnx
 
-# 打包
+# 打包（同时生成 .snupkg 符号包）
 cd nupkg && ./pack.ps1
+
+# 推送（可选：打包后自动推送主包与符号包，需先设置 NUGET_API_KEY）
+cd nupkg; $env:NUGET_API_KEY = '<your key>'; ./pack.ps1 -Push
 ```
 
 ---

@@ -5,8 +5,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NoelleNet.EventBus.Abstractions;
 using NoelleNet.EventBus.Abstractions.Distributed;
-using NoelleNet.EventBus.Distributed;
-using System.Reflection;
 
 namespace NoelleNet.EventBus.Distributed.CAP;
 
@@ -30,7 +28,7 @@ public class NoelleConsumerServiceSelectorTests
         Assert.Equal(CreateOrderEvent.EventName, descriptor.Attribute.Name);
         Assert.Equal(nameof(IDistributedEventHandler<object>.HandleAsync), descriptor.MethodInfo.Name);
         Assert.Equal(typeof(CreateOrderEventHandler), descriptor.ImplTypeInfo.AsType());
-        Assert.Equal(typeof(IDistributedEventHandler<>), descriptor.ServiceTypeInfo.GetGenericTypeDefinition());
+        Assert.Equal(typeof(IDistributedEventHandler<>), descriptor.ServiceTypeInfo!.GetGenericTypeDefinition());
         Assert.Contains(descriptor.Parameters, p => p.ParameterType == typeof(CreateOrderEvent));
     }
 

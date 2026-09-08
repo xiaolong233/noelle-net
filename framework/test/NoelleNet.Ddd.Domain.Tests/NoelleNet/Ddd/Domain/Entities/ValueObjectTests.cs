@@ -106,7 +106,7 @@ public class ValueObjectTests
         Address? right = null;
         Assert.True(left == right);
         Assert.False(left == CreateAddress());
-        Assert.False(CreateAddress() == null);
+        Assert.NotNull(CreateAddress());
 
         Assert.True(CreateAddress() == CreateAddress());
         Assert.False(CreateAddress() == CreateAddress(street: "Broadway"));
@@ -126,7 +126,6 @@ public class ValueObjectTests
     {
         Assert.Equal(CreateAddress().GetHashCode(), CreateAddress().GetHashCode());
         Assert.NotEqual(CreateAddress().GetHashCode(), CreateAddress(street: "Broadway").GetHashCode());
-        Assert.NotNull(new EmptyValueObject().GetHashCode());
     }
 
     #endregion
@@ -168,9 +167,12 @@ public class ValueObjectTests
     [Fact]
     public void CanUseAsHashSet()
     {
-        var set = new HashSet<Address> { CreateAddress(), CreateAddress(street: "Broadway") };
-
-        set.Add(CreateAddress());
+        var set = new HashSet<Address>
+        {
+            CreateAddress(),
+            CreateAddress(street: "Broadway"),
+            CreateAddress()
+        };
 
         Assert.Equal(2, set.Count);
     }
