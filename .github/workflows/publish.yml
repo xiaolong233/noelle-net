@@ -1,0 +1,85 @@
+# Noelle.Net 发布流水线
+# - 推送 v* tag 自动发布：test → pack（版本号取自 tag 名）→ push（先主包后符号包）
+# - 使用 nuget.org Trusted Publishing（OIDC），无需配置任何 Secret
+# 前置条件：nuget.org 已注册 Trusted Publishing 策略
+#   Repository Owner = xiaolong233
+#   Repository       = noelle-net
+#   Workflow File    = publish.yml
+#   Environment      = 留空
+#   Scope            = Push new packages and package versions
+#   Glob Pattern     = NoelleNet.*
+name: Publish NuGet
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:   # 手动触发仅用于排查；守卫会阻止非 tag 发布
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # SourceLink 需要完整 git 历史
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Run tests
+        run: dotnet test framework/Noelle.Net.slnx -c Release
+
+  pack:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write           # upload-artifact 需要
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Resolve version from tag
+        id: vars
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "::error::发布必须通过推送 v* tag 触发；手动触发仅用于排查，不会发布。"
+            exit 1
+          fi
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Pack
+        run: dotnet pack framework/Noelle.Net.slnx -c Release -o artifacts -p:Version=${{ steps.vars.outputs.version }} -p:ContinuousIntegrationBuild=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+
+  publish:
+    needs: pack
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read            # download-artifact 需要
+      id-token: write          # OIDC 令牌签发（Trusted Publishing 必需）
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts
+      - name: NuGet login (OIDC -> temporary API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: xiaolong233   # nuget.org 的用户名（profile name，非邮箱）；如不是这个值请修改
+      - name: Push main packages
+        run: dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
+      - name: Push symbol packages
+        run: dotnet nuget push artifacts/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
