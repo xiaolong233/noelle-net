@@ -17,6 +17,8 @@ public class NoelleExceptionHandlerTests
     public NoelleExceptionHandlerTests()
     {
         _loggerMock = new Mock<ILogger<NoelleExceptionHandler>>();
+        // Moq 松散模拟的 IsEnabled 默认返回 false，会让处理器直接跳过日志调用，导致级别断言失去意义
+        _loggerMock.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _writerMock = new Mock<IErrorResponseWriter>();
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
@@ -74,6 +76,35 @@ public class NoelleExceptionHandlerTests
         await _handler.TryHandleAsync(new DefaultHttpContext(), new Exception("generic"), CancellationToken.None);
         _loggerMock.Verify(
             l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 实体未找到是可预期的客户端错误（404），应经 IHasLogLevel 以 Information 级别记录，
+    /// 而不是落回普通异常的 Error 兜底分支
+    /// </summary>
+    [Fact]
+    public async Task TryHandleAsync_EntityNotFoundException_ShouldLogWithInformation()
+    {
+        await _handler.TryHandleAsync(new DefaultHttpContext(), new EntityNotFoundException<string>(42), CancellationToken.None);
+
+        _loggerMock.Verify(
+            l => l.Log(LogLevel.Information, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 日志级别决策表：异常显式声明优先；未声明时按内置类型表映射；未匹配的一律 Error。
+    /// 用例见 <see cref="ExceptionLogLevelCases"/>，与 Filter / Middleware 共用同一份。
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ExceptionLogLevelCases.All), MemberType = typeof(ExceptionLogLevelCases))]
+    public async Task TryHandleAsync_ShouldResolveLogLevelByException(string caseName, LogLevel expected)
+    {
+        await _handler.TryHandleAsync(new DefaultHttpContext(), ExceptionLogLevelCases.Create(caseName), CancellationToken.None);
+
+        _loggerMock.Verify(
+            l => l.Log(expected, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 }

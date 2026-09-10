@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using NoelleNet.ExceptionHandling;
 using NoelleNet.Logging;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,7 +7,7 @@ namespace NoelleNet.Validation;
 /// <summary>
 /// 实现了 <see cref="IHasValidationResults"/> 接口的模型验证失败异常类
 /// </summary>
-public class NoelleValidationException : Exception, IHasValidationResults, IHasLogLevel, IHasHttpStatusCode
+public class NoelleValidationException : Exception, IHasValidationResults, IHasLogLevel
 {
     /// <summary>
     /// 创建一个新的 <see cref="NoelleValidationException"/> 实例
@@ -37,8 +36,5 @@ public class NoelleValidationException : Exception, IHasValidationResults, IHasL
     public IEnumerable<ValidationResult> ValidationResults { get; set; }
 
     /// <inheritdoc/>
-    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
-
-    /// <inheritdoc/>
-    public virtual int StatusCode => 400;
+    public LogLevel LogLevel { get; set; } = LogLevel.Information;
 }

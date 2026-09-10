@@ -7,7 +7,7 @@ namespace NoelleNet;
 /// <summary>
 /// 业务异常类
 /// </summary>
-public class BusinessException : Exception, IBusinessException, IHasErrorCode, IHasErrorDetails, IHasLogLevel, IHasHttpStatusCode
+public class BusinessException : Exception, IBusinessException, IHasErrorCode, IHasErrorDetails, IHasLogLevel
 {
     /// <summary>
     /// 创建一个新的 <see cref="BusinessException"/> 实例
@@ -37,8 +37,5 @@ public class BusinessException : Exception, IBusinessException, IHasErrorCode, I
     public string? Details { get; set; }
 
     /// <inheritdoc/>
-    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
-
-    /// <inheritdoc/>
-    public virtual int StatusCode => 400;
+    public LogLevel LogLevel { get; set; }
 }

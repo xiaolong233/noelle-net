@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Filters;
 using NoelleNet.Logging;
+using NoelleNet.Validation;
+using System.Data;
 using System.Diagnostics;
 using System.Net;
 
@@ -40,28 +42,36 @@ public class NoelleExceptionHandlingFilter : IAsyncExceptionFilter
         }
         finally
         {
-            // 记录日志，优先记录实际响应的状态码，若状态码未被设置（仍为默认值且响应未开始）则按服务器内部错误记录
-            LogLevel logLevel = context.Exception switch
-            {
-                IHasLogLevel hasLogLevel => hasLogLevel.LogLevel,
-                IBusinessException => LogLevel.Information,
-                TaskCanceledException => LogLevel.Debug,
-                OperationCanceledException => LogLevel.Warning,
-                _ => LogLevel.Error
-            };
             int statusCode = context.HttpContext.Response.StatusCode;
             if (statusCode == (int)HttpStatusCode.OK && !context.HttpContext.Response.HasStarted)
                 statusCode = (int)HttpStatusCode.InternalServerError;
 
-            _logger.Log(
-                logLevel,
-                context.Exception,
-                "处理请求时发生异常。TraceId：{TraceId}，请求方法：{RequestMethod}，请求路径：{RequestPath}，响应状态码：{StatusCode}，异常类型：{ExceptionType}",
-                Activity.Current?.TraceId.ToString() ?? context.HttpContext.TraceIdentifier,
-                context.HttpContext.Request.Method,
-                context.HttpContext.Request.Path,
-                statusCode,
-                context.Exception.GetType().FullName);
+            LogLevel logLevel = GetLogLevel(context.Exception);
+
+            if (_logger.IsEnabled(logLevel))
+            {
+                _logger.Log(
+                    logLevel,
+                    context.Exception,
+                    "处理请求时发生异常。TraceId：{TraceId}，请求方法：{RequestMethod}，请求路径：{RequestPath}，响应状态码：{StatusCode}，异常类型：{ExceptionType}",
+                    Activity.Current?.TraceId.ToString() ?? context.HttpContext.TraceIdentifier,
+                    context.HttpContext.Request.Method,
+                    context.HttpContext.Request.Path,
+                    statusCode,
+                    context.Exception.GetType().FullName);
+            }
         }
     }
+
+    protected virtual LogLevel GetLogLevel(Exception e) => e switch
+    {
+        IHasLogLevel hasLogLevel => hasLogLevel.LogLevel,
+        IHasValidationResults => LogLevel.Information,
+        System.ComponentModel.DataAnnotations.ValidationException => LogLevel.Information,
+        IBusinessException => LogLevel.Information,
+        DBConcurrencyException => LogLevel.Warning,
+        OperationCanceledException { InnerException: TimeoutException } => LogLevel.Warning,
+        OperationCanceledException => LogLevel.Debug,
+        _ => LogLevel.Error
+    };
 }

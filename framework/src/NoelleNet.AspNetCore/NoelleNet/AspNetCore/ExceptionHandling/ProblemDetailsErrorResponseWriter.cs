@@ -126,6 +126,8 @@ public class ProblemDetailsErrorResponseWriter : IErrorResponseWriter
             return HttpStatusCode.BadRequest;
         if (exception is System.ComponentModel.DataAnnotations.ValidationException || exception is IHasValidationResults)
             return HttpStatusCode.BadRequest;
+        if (exception is EntityNotFoundException)
+            return HttpStatusCode.NotFound;
         if (exception is DBConcurrencyException)
             return HttpStatusCode.Conflict;
         if (exception is NotImplementedException)
@@ -326,7 +328,7 @@ public class ProblemDetailsErrorResponseWriter : IErrorResponseWriter
     /// </summary>
     /// <param name="data">异常携带的数据字典</param>
     /// <returns></returns>
-    private static IDictionary<string, object?> GetSafeExceptionData(IDictionary data)
+    private static Dictionary<string, object?> GetSafeExceptionData(IDictionary data)
     {
         var result = new Dictionary<string, object?>(data.Count);
 

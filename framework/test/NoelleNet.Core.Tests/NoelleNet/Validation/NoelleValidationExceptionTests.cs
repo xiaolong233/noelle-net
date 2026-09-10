@@ -35,13 +35,14 @@ public class NoelleValidationExceptionTests
     }
 
     /// <summary>
-    /// 默认日志级别应为 Warning（验证失败属预期业务错误，异常处理器按 Warning 记录）
+    /// 默认日志级别应为 Information：验证失败是客户端输入问题、服务端行为完全正确，
+    /// 且发生量最大，不应占用"应当很少"的 Warning 通道
     /// </summary>
     [Fact]
-    public void DefaultLogLevel_ShouldBeWarning()
+    public void DefaultLogLevel_ShouldBeInformation()
     {
         var ex = new NoelleValidationException([new ValidationResult("error")]);
 
-        Assert.Equal(LogLevel.Warning, ex.LogLevel);
+        Assert.Equal(LogLevel.Information, ex.LogLevel);
     }
 }

@@ -1,4 +1,5 @@
-﻿using NoelleNet.ExceptionHandling;
+using Microsoft.Extensions.Logging;
+using NoelleNet.Logging;
 
 namespace NoelleNet;
 
@@ -36,7 +37,7 @@ public class EntityNotFoundException<TEntityType> : EntityNotFoundException
 /// <summary>
 /// 实体未找到时引发的异常
 /// </summary>
-public class EntityNotFoundException : Exception, IHasHttpStatusCode
+public class EntityNotFoundException : Exception, IHasLogLevel
 {
     /// <summary>
     /// 创建一个新的 <see cref="EntityNotFoundException"/> 实例
@@ -106,5 +107,5 @@ public class EntityNotFoundException : Exception, IHasHttpStatusCode
     public object? Id { get; set; }
 
     /// <inheritdoc/>
-    public virtual int StatusCode => 404;
+    public LogLevel LogLevel { get; set; } = LogLevel.Information;
 }

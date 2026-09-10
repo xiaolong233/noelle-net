@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NoelleNet.Validation;
 
 namespace NoelleNet.AspNetCore.ExceptionHandling;
 
 /// <summary>
-/// <see cref="NoelleExceptionHandlingFilter"/> 的契约测试：ExceptionHandled 标记、写入失败重抛
+/// <see cref="NoelleExceptionHandlingFilter"/> 的契约测试：ExceptionHandled 标记、写入失败重抛与日志级别决策
 /// </summary>
 public class NoelleExceptionHandlingFilterTests
 {
@@ -20,6 +21,8 @@ public class NoelleExceptionHandlingFilterTests
     public NoelleExceptionHandlingFilterTests()
     {
         _loggerMock = new Mock<ILogger<NoelleExceptionHandlingFilter>>();
+        // Moq 松散模拟的 IsEnabled 默认返回 false，会让筛选器直接跳过日志调用，导致级别断言失去意义
+        _loggerMock.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _writerMock = new Mock<IErrorResponseWriter>();
         _writerMock
             .Setup(w => w.TryWriteAsync(It.IsAny<HttpContext>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()))
@@ -90,5 +93,51 @@ public class NoelleExceptionHandlingFilterTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _filter.OnExceptionAsync(CreateExceptionContext(new Exception("test"))));
+    }
+
+    /// <summary>
+    /// 日志级别决策：IHasLogLevel 优先，普通异常按 Error 记录
+    /// </summary>
+    [Fact]
+    public async Task OnExceptionAsync_ShouldLogWithDecidedLevel()
+    {
+        await _filter.OnExceptionAsync(CreateExceptionContext(new NoelleValidationException([]) { LogLevel = LogLevel.Critical }));
+        _loggerMock.Verify(
+            l => l.Log(LogLevel.Critical, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
+        await _filter.OnExceptionAsync(CreateExceptionContext(new Exception("generic")));
+        _loggerMock.Verify(
+            l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 实体未找到是可预期的客户端错误（404），应经 IHasLogLevel 以 Information 级别记录，
+    /// 而不是落回普通异常的 Error 兜底分支
+    /// </summary>
+    [Fact]
+    public async Task OnExceptionAsync_EntityNotFoundException_ShouldLogWithInformation()
+    {
+        await _filter.OnExceptionAsync(CreateExceptionContext(new EntityNotFoundException<string>(42)));
+
+        _loggerMock.Verify(
+            l => l.Log(LogLevel.Information, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 日志级别决策表：异常显式声明优先；未声明时按内置类型表映射；未匹配的一律 Error。
+    /// 用例见 <see cref="ExceptionLogLevelCases"/>，与 Handler / Middleware 共用同一份。
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ExceptionLogLevelCases.All), MemberType = typeof(ExceptionLogLevelCases))]
+    public async Task OnExceptionAsync_ShouldResolveLogLevelByException(string caseName, LogLevel expected)
+    {
+        await _filter.OnExceptionAsync(CreateExceptionContext(ExceptionLogLevelCases.Create(caseName)));
+
+        _loggerMock.Verify(
+            l => l.Log(expected, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }
