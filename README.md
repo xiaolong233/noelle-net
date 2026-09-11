@@ -1,10 +1,14 @@
+<p align="center">
+  <img src="noelle_net.png" alt="Noelle.Net" width="160" />
+</p>
+
 # Noelle.Net
 
-面向 **.NET 9** WebApi 开发的应用基础类库。它提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用的组件，帮助快速搭建风格统一的 WebApi 项目。
+面向 **.NET 10** WebApi 开发的应用基础类库。它提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用的组件，帮助快速搭建风格统一的 WebApi 项目。
 
-[![NuGet](https://img.shields.io/badge/nuget-v9.1.5-blue)](https://www.nuget.org/)
+[![NuGet](https://img.shields.io/nuget/v/NoelleNet.Core?label=nuget)](https://www.nuget.org/packages/NoelleNet.Core)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-9.0-purple)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
 
 ---
 
@@ -70,18 +74,21 @@ public class TodoItem : AuditedAggregateRoot<Guid>
 
 ```csharp
 // 安全主体
-services.AddHttpContextAccessor();
-services.AddScoped<ICurrentUser, CurrentUser>();
-services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+
+// GUID 生成器（按需注入 IGuidGenerator；默认实现生成有序的 Guid.CreateVersion7()）
+builder.Services.AddSingleton<IGuidGenerator, NoelleGuidGenerator>();
 
 // 全局异常处理
-services.AddLocalization();
-services.AddProblemDetails();
-services.AddExceptionHandler<NoelleExceptionHandler>();
-services.AddSingleton<IErrorResponseWriter, ProblemDetailsErrorResponseWriter>();
+builder.Services.AddLocalization();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<NoelleExceptionHandler>();
+builder.Services.AddSingleton<IErrorResponseWriter, ProblemDetailsErrorResponseWriter>();
 
 // 控制器：模型验证过滤器 + kebab-case 路由
-services.AddControllers(options =>
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add<NoelleFluentValidationFilter>();
     options.Conventions.Add(new RouteTokenTransformerConvention(new NoelleRouteKebabCaseTransformer()));
@@ -89,10 +96,10 @@ services.AddControllers(options =>
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInputValidator>();
 
 // 数据库 + 拦截器（AddDbContext<DbContext, AppDbContext> 会同时注册抽象与具体两个服务类型）
-services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
-services.AddScoped<NoelleAuditInterceptor>();
-services.AddScoped<NoelleDomainEventInterceptor>();
-services.AddDbContext<DbContext, AppDbContext>((sp, options) =>
+builder.Services.AddScoped<NoelleAutoSetGuidKeyInterceptor>();
+builder.Services.AddScoped<NoelleAuditInterceptor>();
+builder.Services.AddScoped<NoelleDomainEventInterceptor>();
+builder.Services.AddDbContext<DbContext, AppDbContext>((sp, options) =>
 {
     options.UseNpgsql(configuration.GetRequiredConnectionString("Default"));
     options.AddInterceptors(
@@ -102,16 +109,19 @@ services.AddDbContext<DbContext, AppDbContext>((sp, options) =>
 });
 
 // 工作单元与事务
-services.AddScoped<IUnitOfWork, UnitOfWork>();
-services.AddScoped<ITransactionManager, NoelleTransactionManager>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITransactionManager, NoelleTransactionManager>();
 
 // 本地事件总线
 var assembly = typeof(Program).Assembly;
-services.AddLocalEventBus(cfg =>
+builder.Services.AddLocalEventBus(cfg =>
 {
     cfg.RegisterServicesFromAssemblies(assembly);
     cfg.UseMediatR(x => x.RegisterServicesFromAssemblies(assembly));
 });
+
+// 管道：注册异常处理中间件后，NoelleExceptionHandler 才会生效
+app.UseExceptionHandler();
 ```
 
 各功能模块的注册与用法细节见 [docs/usage-guide.md](docs/usage-guide.md)。
@@ -120,7 +130,7 @@ services.AddLocalEventBus(cfg =>
 
 ## 全局异常处理
 
-启用后，异常自动转为符合 RFC 9457 的 ProblemDetails 响应：
+启用后，异常自动转为符合 RFC 9457（Problem Details，取代 RFC 7807）的 ProblemDetails 响应：
 
 ```csharp
 // 业务异常 → HTTP 400
@@ -135,7 +145,8 @@ throw new EntityNotFoundException(typeof(TodoItem), id);
 | `BusinessException` | 400 |
 | `EntityNotFoundException` | 404 |
 | `NoelleValidationException` | 400 |
-| 数据库并发冲突 | 409 |
+| 数据库并发冲突（`DBConcurrencyException`） | 409 |
+| `NotImplementedException` | 501 |
 | 其他未处理异常 | 500 |
 
 支持错误码本地化：通过 `NoelleExceptionLocalizationOptions.LocalizerProvider` 指定资源类型，`ErrorCode` 映射 resx 文本，`WithData` 传占位参数。详细说明见 [docs/usage-guide.md](docs/usage-guide.md#全局异常处理)。
@@ -209,8 +220,8 @@ public class OrganizationUnitCacheInvalidationHandler : ILocalEventHandler<Entit
 ## 工作单元与事务
 
 ```csharp
-services.AddScoped<IUnitOfWork, UnitOfWork>();
-services.AddScoped<ITransactionManager, NoelleTransactionManager>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITransactionManager, NoelleTransactionManager>();
 ```
 
 - `IUnitOfWork.SaveChangesAsync` 统一保存变更；
@@ -218,7 +229,7 @@ services.AddScoped<ITransactionManager, NoelleTransactionManager>();
 - 需要消息与数据库操作原子提交时，把事务管理器替换为 CAP 事务发件箱实现：
 
 ```csharp
-services.Replace(ServiceDescriptor.Scoped<ITransactionManager, NoelleCapTransactionManager>());
+builder.Services.Replace(ServiceDescriptor.Scoped<ITransactionManager, NoelleCapTransactionManager>());
 ```
 
 ---
@@ -228,7 +239,7 @@ services.Replace(ServiceDescriptor.Scoped<ITransactionManager, NoelleCapTransact
 ### 本地事件（进程内，MediatR）
 
 ```csharp
-services.AddLocalEventBus(cfg =>
+builder.Services.AddLocalEventBus(cfg =>
 {
     cfg.RegisterServicesFromAssemblies(assembly);
     cfg.UseMediatR(x =>
@@ -255,7 +266,7 @@ await _distributedEventBus.PublishDelayAsync(TimeSpan.FromMinutes(30), orderClos
 ```
 
 ```csharp
-services.AddDistributedEventBus(cfg =>
+builder.Services.AddDistributedEventBus(cfg =>
 {
     cfg.RegisterServicesFromAssemblies(assembly);
     cfg.UseCap(options =>
@@ -278,9 +289,9 @@ services.AddDistributedEventBus(cfg =>
 `ICurrentUser` 统一访问当前用户，声明解析遵循"OpenID Connect 短名优先、`ClaimTypes` URI 回退"策略，兼容 Cookie、JWT Bearer、OpenIddict 等认证方案：
 
 ```csharp
-services.AddHttpContextAccessor();
-services.AddScoped<ICurrentUser, CurrentUser>();
-services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
 ```
 
 ```csharp
@@ -330,6 +341,8 @@ return new PagedResultDto<TodoItemDto>(totalCount, items);
 
 欢迎通过 [GitHub Issues](https://github.com/xiaolong233/noelle-net/issues) 提交 Bug 或功能建议，也欢迎 Pull Request。
 
+本地开发需要 **.NET 10 SDK**（CI 与发布流水线使用 `10.0.x`）。
+
 ```powershell
 # 构建
 dotnet build framework/Noelle.Net.slnx
@@ -337,7 +350,7 @@ dotnet build framework/Noelle.Net.slnx
 # 测试
 dotnet test framework/Noelle.Net.slnx
 
-# 打包（同时生成 .snupkg 符号包）
+# 打包（Release；默认先跑测试，-SkipTests 可跳过，同时生成 .snupkg 符号包）
 cd nupkg && ./pack.ps1
 
 # 推送（可选：打包后自动推送主包与符号包，需先设置 NUGET_API_KEY）

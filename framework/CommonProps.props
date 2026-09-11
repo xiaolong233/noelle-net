@@ -1,14 +1,15 @@
 <Project>
 
 	<PropertyGroup>
-		<Version>9.1.5</Version>
+		<Version>1.0.0</Version>
 		<Authors>xiaolong233</Authors>
-		<Description>Noelle.Net：面向 .NET 9 WebApi 开发的应用基础类库，提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用组件；坚持不深度封装 ASP.NET Core、依赖注入显式配置的设计原则，拒绝黑箱操作。</Description>
+		<Description>Noelle.Net：面向 .NET 10 WebApi 开发的应用基础类库，提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用组件；坚持不深度封装 ASP.NET Core、依赖注入显式配置的设计原则，拒绝黑箱操作。</Description>
 		<PackageReadmeFile>NuGet.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/xiaolong233/noelle-net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>dotnet;NoelleNet;ddd;eventbus;efcore;cap;auditing;uow;aspnetcore;mediatr;fluentvalidation</PackageTags>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>noelle_net.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
@@ -19,6 +20,10 @@
 			<PackagePath>\</PackagePath>
 		</None>
 		<None Include="..\..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\..\noelle_net.png">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>

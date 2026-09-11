@@ -1,6 +1,6 @@
 # Noelle.Net
 
-Noelle.Net 是一个面向 **.NET 9** WebApi 开发的应用基础类库，提供 DDD（领域驱动设计）实体模型、事件总线、EF Core 仓储、审计追踪、工作单元、ASP.NET Core 增强等常用组件。
+Noelle.Net 是一个面向 **.NET 10** WebApi 开发的应用基础类库，提供 DDD（领域驱动设计）实体模型、事件总线、EF Core 仓储、审计追踪、工作单元、ASP.NET Core 增强等常用组件。
 
 设计原则：不深度封装 ASP.NET Core、依赖注入显式配置（无模块化与自动注册）、优先使用社区成熟组件（MediatR / CAP / FluentValidation / EF Core）、暂不支持多租户。
 
@@ -76,7 +76,7 @@ public class TodoItem : AuditedAggregateRoot<Guid>
 
     public TodoItem(string title)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         Title = title;
         AddDomainEvent(new EntityCreatedEvent<TodoItem>(this));
     }
@@ -131,25 +131,27 @@ public class TodoItemRepository : EfCoreRepository<TodoItem, AppDbContext>, ITod
 ```csharp
 // 安全主体
 services.AddHttpContextAccessor();
-services.AddSingleton<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
+services.AddScoped<ICurrentPrincipalProvider, NoelleHttpContextCurrentPrincipalProvider>();
 services.AddScoped<ICurrentUser, CurrentUser>();
 
 // GUID 生成器
 services.AddSingleton<IGuidGenerator, NoelleGuidGenerator>();
 
-// 全局异常处理（.NET 8+ 推荐方式）
+// 全局异常处理（.NET 8+ 推荐方式；管道中还需调用 app.UseExceptionHandler()）
 services.AddLocalization();
 services.AddProblemDetails();
 services.AddSingleton<IErrorResponseWriter, ProblemDetailsErrorResponseWriter>();
 services.AddExceptionHandler<NoelleExceptionHandler>();
 
-// 模型验证（成对使用，见"模型验证"一节）
+// 模型验证：两个过滤器按验证机制二选一（见"模型验证"一节）
 services.AddControllers(options =>
 {
-    options.Filters.Add<NoelleModelValidationFilter>();
-    options.Filters.Add<NoelleFluentValidationFilter>();
-});
-services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
+    options.Filters.Add<NoelleFluentValidationFilter>();      // FluentValidation
+    // options.Filters.Add<NoelleModelValidationFilter>();    // DataAnnotations（ModelState）
+})
+.ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+// 使用 NoelleFluentValidationFilter 时必须注册验证器，否则过滤器不会做任何校验
+services.AddValidatorsFromAssemblyContaining<CreateTodoItemValidator>();
 
 // 数据库 + 拦截器
 // AddDbContext<DbContext, AppDbContext> 会同时注册两个服务类型：
@@ -210,7 +212,7 @@ throw new BusinessException(errorCode: "TODO:DUPLICATE_NAME", message: "已存�
 throw new EntityNotFoundException(typeof(TodoItem), itemId);
 ```
 
-异常自动转换为 RFC 9457 ProblemDetails：
+异常自动转换为 RFC 9457 ProblemDetails（404 示例，`EntityNotFoundException` 不携带错误码，因此响应中没有 `code` 字段）：
 
 ```json
 {
@@ -218,7 +220,6 @@ throw new EntityNotFoundException(typeof(TodoItem), itemId);
   "title": "请求的资源未找到。",
   "status": 404,
   "detail": "未找到标识符为 1 的 TodoItem 实体。",
-  "code": "TODO:NOT_FOUND",
   "traceId": "..."
 }
 ```
@@ -245,14 +246,16 @@ throw ex;
 
 ## 模型验证
 
-两个验证过滤器分工：
+框架提供两个验证过滤器，**底层验证机制不同，按项目实际情况选用其一即可**：
 
-| 过滤器 | 职责 |
-|---|---|
-| `NoelleModelValidationFilter` | 绑定期验证（DataAnnotations、类型转换失败） |
-| `NoelleFluentValidationFilter` | 业务规则验证（按参数类型解析 `IValidator<T>`） |
+| 过滤器 | 底层机制 | 适用场景 |
+|--------|----------|----------|
+| `NoelleModelValidationFilter` | ASP.NET Core 内置的 `ModelState`（DataAnnotations 绑定期验证） | 使用 DataAnnotations 特性验证 |
+| `NoelleFluentValidationFilter` | FluentValidation（按参数类型解析 `IValidator<T>`） | 使用 FluentValidation 编写验证规则 |
 
-⚠️ `NoelleModelValidationFilter` 必须与 `SuppressModelStateInvalidFilter = true` **成对使用**：压制 ASP.NET Core 内置验证短路，验证错误统一走框架异常处理；只压制而不注册该过滤器，会导致无效模型直接进入 Action。
+两者都抛出 `NoelleValidationException`，输出统一的 ProblemDetails 错误格式。
+
+⚠️ 无论选用哪个过滤器，都需设置 `SuppressModelStateInvalidFilter = true`：关闭 `[ApiController]` 内置验证短路，让验证错误统一走框架异常处理。使用 `NoelleModelValidationFilter` 时**必须**设置（否则过滤器永远不会执行）；仅使用 `NoelleFluentValidationFilter` 时也建议设置（否则绑定期错误仍会输出内置格式）。
 
 ---
 
@@ -289,6 +292,6 @@ public class TodoCreatedEventHandler : IDistributedEventHandler<TodoCreatedEvent
 
 ## 适用范围
 
-- **目标框架**: .NET 9
+- **目标框架**: .NET 10
 - **许可证**: MIT
 - **仓库**: [github.com/xiaolong233/noelle-net](https://github.com/xiaolong233/noelle-net)

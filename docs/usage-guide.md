@@ -71,7 +71,8 @@ throw new BusinessException(DomainErrorCodes.OrganizationUnitParentNotFound)
 ```csharp
 services.Configure<NoelleExceptionLocalizationOptions>(config =>
 {
-    config.LocalizerProvider = (type, factory) => factory.Create(typeof(AppResource));
+    // 第一个参数是当前异常，可用于按异常类型选择不同资源
+    config.LocalizerProvider = (exception, factory) => factory.Create(typeof(AppResource));
 });
 ```
 
@@ -330,5 +331,4 @@ return new PagedResultDto<TodoItemDto>(totalCount, items);
 - `IDistributedCache` 泛型扩展：`GetAsync<T>` / `SetAsync<T>` / `GetOrCreateAsync<T>`；
 - `IConfiguration` 强校验取值：`GetRequiredValue` / `GetRequiredConnectionString`（缺失时抛出含配置路径的异常）；
 - `TokenManagerBase`：带过期缓冲与双重检查锁的访问令牌管理基类；
-- `HttpClientLoggingHandler`：出站 HTTP 请求日志（含敏感字段/请求头脱敏）；
-- 扩展方法：`WhereIf`（Enumerable/Queryable）、`WithData`（异常附加数据）、`To<T>`（类型转换）等。
+- 扩展方法：`WhereIf`（Enumerable/Queryable）、`WithData`（异常附加数据）、`To<T>`（类型转换）、`GetGenericTypeName`（泛型类型名）、`IsNullOrEmpty`/`IsNullOrWhiteSpace`（空值判断）等。
