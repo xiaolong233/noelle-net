@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Version>1.0.0</Version>
 		<Authors>xiaolong233</Authors>
-		<Description>Noelle.Net：面向 .NET 10 WebApi 开发的应用基础类库，提供 DDD 领域模型、事件总线、EF Core 仓储、审计追踪、工作单元与 ASP.NET Core 增强等开箱即用组件；坚持不深度封装 ASP.NET Core、依赖注入显式配置的设计原则，拒绝黑箱操作。</Description>
+		<Description>这是辅助 .NET 开发的小类库～ 平时顺手攒的小零件都在这儿了，希望能帮你少敲几行重复代码！(｡•̀ᴗ-)✧</Description>
 		<PackageReadmeFile>NuGet.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/xiaolong233/noelle-net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
